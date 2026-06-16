@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mijote — planificateur de repas végétariens de saison (Lyon)</title>
+<meta name="description" content="Mijote : webapp pour planifier vos repas végétariens et vegan de la semaine selon les produits de saison à Lyon, générer une liste de courses, cuisiner avec ce qu'il reste dans le frigo, et convertir vos ingrédients.">
+<meta name="author" content="Ellie">
+<meta name="theme-color" content="#0f1115">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://elisalien.github.io/mijote/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mijote — planificateur de repas végétariens de saison">
+<meta property="og:description" content="Planifiez vos repas végétariens/vegan de saison, générez votre liste de courses et cuisinez avec ce que vous avez déjà. Adapté à Lyon, France.">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:url" content="https://elisalien.github.io/mijote/">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mijote — planificateur de repas végétariens de saison">
+<meta name="twitter:description" content="Planifiez vos repas végétariens/vegan de saison, générez votre liste de courses et cuisinez avec ce que vous avez déjà.">
+
+<!-- Favicon inline (marmite verte) -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23171a21'/%3E%3Ctext x='50' y='72' font-size='60' text-anchor='middle'%3E%F0%9F%8D%B2%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23171a21'/%3E%3Ctext x='50' y='72' font-size='60' text-anchor='middle'%3E%F0%9F%8D%B2%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0f1115; --bg2:#171a21; --bg3:#1f242e; --card:#1a1e26;
+  --line:#2a303c; --txt:#e6e9ef; --txt2:#a6adbb; --txt3:#6b7280;
+  --accent:#7ee0a8; --accent2:#4cc38a; --warn:#f2b25c; --danger:#e06c75;
+  --veg:#7ee0a8; --rad:14px; --shadow:0 6px 24px rgba(0,0,0,.35);
+  --maxw:1080px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-weight:650;letter-spacing:-.01em;margin:0 0 .4em}
+h2{font-size:1.25rem} h3{font-size:1.02rem}
+a{color:var(--accent)}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+input,select,textarea{
+  background:var(--bg3); border:1px solid var(--line); color:var(--txt);
+  border-radius:9px; padding:9px 11px; outline:none; width:100%;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--accent2)}
+textarea{resize:vertical;min-height:70px;font-size:14px}
+::placeholder{color:var(--txt3)}
+.muted{color:var(--txt2)} .small{font-size:13px} .tiny{font-size:12px}
+
+/* layout */
+header.top{
+  position:sticky;top:0;z-index:50;background:rgba(15,17,21,.85);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+}
+.top-inner{max-width:var(--maxw);margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:750;font-size:1.15rem}
+.brand .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:17px}
+.season-pill{margin-left:auto;background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:13px;color:var(--txt2);white-space:nowrap}
+.season-pill b{color:var(--accent)}
+nav.tabs{max-width:var(--maxw);margin:0 auto;padding:0 10px;display:flex;gap:2px;overflow-x:auto}
+nav.tabs button{
+  padding:11px 14px;color:var(--txt2);border-bottom:2px solid transparent;
+  white-space:nowrap;font-weight:550;border-radius:0;font-size:14px;
+}
+nav.tabs button:hover{color:var(--txt)}
+nav.tabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+main{max-width:var(--maxw);margin:0 auto;padding:22px 18px 80px}
+.view{display:none;animation:fade .25s ease} .view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+
+/* cards & grid */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:16px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.stack>*+*{margin-top:12px}
+
+/* buttons */
+.btn{background:var(--bg3);border:1px solid var(--line);border-radius:9px;padding:9px 14px;font-weight:550;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.btn:hover{border-color:var(--txt3);background:var(--bg2)}
+.btn.primary{background:var(--accent2);color:#06231a;border-color:var(--accent2)}
+.btn.primary:hover{background:var(--accent);filter:brightness(1.03)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn.danger{color:var(--danger);border-color:transparent}
+.btn.danger:hover{background:rgba(224,108,117,.12)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* chips / tags */
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12.5px;color:var(--txt2)}
+.chip.veg{color:var(--veg);border-color:rgba(126,224,168,.3)}
+.chip.cuisine{color:#b9a7ff;border-color:rgba(185,167,255,.25)}
+.chip.x{cursor:pointer}
+.chip.x:hover{border-color:var(--danger);color:var(--danger)}
+.badge{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.03em}
+.badge.veg{background:rgba(126,224,168,.16);color:var(--accent)}
+.badge.season{background:rgba(242,178,92,.16);color:var(--warn)}
+.badge.quick{background:rgba(124,196,255,.16);color:#7cc4ff}
+.badge.meat{background:rgba(224,108,117,.16);color:#e98b91}
+.badge.fish{background:rgba(96,165,210,.18);color:#6fb6e0}
+
+/* recipe card */
+.recipe{display:flex;flex-direction:column;gap:9px;cursor:pointer}
+.recipe .title{font-weight:650;font-size:1.05rem;line-height:1.25}
+.recipe .meta{display:flex;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--txt2)}
+.recipe .match{height:6px;border-radius:999px;background:var(--bg3);overflow:hidden}
+.recipe .match>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.recipe.dim{opacity:.5}
+
+/* jars / pickle tracker */
+.jar{display:flex;flex-direction:column;gap:10px}
+.jar .bar{height:9px;border-radius:999px;background:var(--bg3);overflow:hidden}
+.jar .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--warn),var(--accent2));transition:width .4s}
+.jar.ready .bar>i{background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.jar .status{font-weight:650}
+.jar.ready .status{color:var(--accent)}
+.jar.waiting .status{color:var(--warn)}
+.jar.expired .status{color:var(--danger)}
+
+/* tracker aliments ouverts */
+.trk{display:flex;flex-direction:column;gap:8px;position:relative}
+.trk .bar{height:8px;border-radius:999px;background:var(--bg3);overflow:hidden}
+.trk .bar>i{display:block;height:100%;transition:width .4s}
+.trk.ok .bar>i{background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.trk.soon .bar>i{background:linear-gradient(90deg,var(--warn),#f7d08a)}
+.trk.late .bar>i{background:linear-gradient(90deg,var(--danger),#f0989e)}
+.trk .left{font-weight:650}
+.trk.ok .left{color:var(--accent)} .trk.soon .left{color:var(--warn)} .trk.late .left{color:var(--danger)}
+.preset-pick{display:flex;flex-wrap:wrap;gap:7px}
+.preset-pick button{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--txt2)}
+.preset-pick button:hover{border-color:var(--accent2);color:var(--accent)}
+.sub-h{display:flex;align-items:center;gap:10px;margin:26px 0 4px}
+.sub-h h3{margin:0} .sub-h .ln{flex:1;height:1px;background:var(--line)}
+
+/* accueil */
+.hero{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--line);border-radius:var(--rad);padding:20px}
+.home-day{background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.home-day.today{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2) inset}
+.home-day h4{margin:0 0 8px;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--txt2);display:flex;gap:8px;align-items:center}
+.home-day .tag-today{background:var(--accent2);color:#06231a;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;letter-spacing:.02em}
+.home-meal{display:flex;gap:8px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--line)}
+.home-meal:last-child{border:none}
+.home-meal .lbl{font-size:12px;color:var(--txt3);min-width:54px;flex:none}
+.home-meal .dish{font-size:13.5px}
+.home-meal a.dish{color:var(--txt);cursor:pointer;border-bottom:1px dotted var(--txt3)}
+.home-meal a.dish:hover{color:var(--accent);border-color:var(--accent)}
+.validated-banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(126,224,168,.1);border:1px solid rgba(126,224,168,.3);border-radius:10px;padding:10px 14px;color:var(--accent);font-weight:550}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--line);border-radius:18px;max-width:680px;width:100%;box-shadow:var(--shadow);padding:0;animation:pop .2s ease}
+@keyframes pop{from{transform:scale(.97);opacity:0}to{transform:scale(1);opacity:1}}
+.modal .mhead{padding:18px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3;background:var(--bg2);border-radius:18px 18px 0 0}
+.modal .mbody{padding:18px 20px}
+.modal .mfoot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.close-x{position:absolute;top:16px;right:18px;font-size:22px;color:var(--txt2);line-height:1}
+.close-x:hover{color:var(--txt)}
+
+/* ingredient list */
+ul.ing{list-style:none;padding:0;margin:0}
+ul.ing li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+ul.ing li:last-child{border:none}
+ul.ing .have{color:var(--accent)}
+ul.ing .swap{color:var(--warn);font-size:12.5px}
+ol.steps{padding-left:18px;margin:0}
+ol.steps li{padding:5px 0;border-bottom:1px solid var(--line)}
+ol.steps li:last-child{border:none}
+
+/* toggle */
+.toggle{position:relative;width:42px;height:24px;border-radius:999px;background:var(--bg3);border:1px solid var(--line);transition:.2s;flex:none}
+.toggle.on{background:var(--accent2);border-color:var(--accent2)}
+.toggle i{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.toggle.on i{left:20px}
+
+/* week planner */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+@media(max-width:760px){.week{grid-template-columns:repeat(2,1fr)}}
+.day{background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:9px;min-height:96px}
+.day h4{margin:0 0 7px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--txt2)}
+.day .meal{margin-bottom:9px}
+.day .meal-lbl{font-size:11px;color:var(--txt3);margin-bottom:4px;font-weight:600}
+.day .slot{background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:7px;font-size:12.5px;margin-bottom:6px;position:relative}
+.day .slot .rm{position:absolute;top:3px;right:5px;color:var(--txt3);font-size:13px}
+.day .slot .rm:hover{color:var(--danger)}
+.day .add{width:100%;border:1px dashed var(--line);border-radius:8px;padding:6px;color:var(--txt3);font-size:18px}
+.day .add:hover{color:var(--accent);border-color:var(--accent2)}
+
+/* shopping */
+.shop-cat{margin-bottom:14px}
+.shop-cat h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin:0 0 6px}
+.shop-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+.shop-item:last-child{border:none}
+.shop-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent2);flex:none}
+.shop-item.done span{text-decoration:line-through;color:var(--txt3)}
+.shop-item .q{margin-left:auto;color:var(--txt2);font-size:13px;white-space:nowrap}
+
+/* converter */
+.conv-result{font-size:2rem;font-weight:750;color:var(--accent)}
+.preset-btns{display:flex;gap:6px;flex-wrap:wrap}
+.preset-btns button{background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;color:var(--txt2)}
+.preset-btns button:hover,.preset-btns button.active{color:var(--accent);border-color:var(--accent2)}
+
+.empty{text-align:center;padding:40px 20px;color:var(--txt3)}
+.empty .ic{font-size:40px;margin-bottom:8px;opacity:.6}
+label.fld{display:block;font-size:13px;color:var(--txt2);margin-bottom:5px;font-weight:550}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--line);color:var(--txt);padding:11px 18px;border-radius:11px;box-shadow:var(--shadow);z-index:200;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1;bottom:30px}
+code.bm{display:block;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:11px;word-break:break-all;color:var(--txt2);max-height:90px;overflow:auto}
+hr{border:none;border-top:1px solid var(--line);margin:16px 0}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand"><span class="logo">🥘</span> Mijote</div>
+    <div class="season-pill" id="seasonPill">Saison…</div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-v="accueil" class="active">🏠 Accueil</button>
+    <button data-v="frigo">🧊 Frigo → Recettes</button>
+    <button data-v="recettes">📖 Recettes</button>
+    <button data-v="semaine">🗓️ Ma semaine</button>
+    <button data-v="courses">🛒 Liste de courses</button>
+    <button data-v="convert">⚖️ Convertisseur</button>
+    <button data-v="pickles">🧊 Tracker frigo</button>
+    <button data-v="ajouter">➕ Ajouter</button>
+    <button data-v="reglages">⚙️ Réglages</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ACCUEIL -->
+  <section class="view active" id="v-accueil">
+    <div id="homeContent"></div>
+  </section>
+
+  <!-- FRIGO -->
+  <section class="view" id="v-frigo">
+    <div class="spread" style="margin-bottom:14px">
+      <div><h2 style="margin:0">Qu'as-tu dans le frigo&nbsp;?</h2>
+      <div class="muted small">Ajoute tes ingrédients, on classe les recettes par correspondance.</div></div>
+    </div>
+    <div class="card stack">
+      <div class="row">
+        <input id="fridgeInput" placeholder="Ex : pois chiches, épinards, riz…  (Entrée pour ajouter)" style="flex:1;min-width:200px">
+        <button class="btn primary" id="fridgeAdd">Ajouter</button>
+      </div>
+      <div class="row" id="fridgeChips"></div>
+      <div class="row small muted" id="fridgeSugg"></div>
+    </div>
+    <div class="row" style="margin:18px 0 10px">
+      <label class="row small" style="gap:8px;cursor:pointer"><span class="muted">Mode vegan</span><span class="toggle" id="veganGlobal"><i></i></span></label>
+      <label class="row small" style="gap:8px;cursor:pointer;margin-left:8px"><input type="checkbox" id="seasonOnly" style="width:auto"><span class="muted">De saison seulement</span></label>
+      <span class="muted small" id="fridgeCount" style="margin-left:auto"></span>
+    </div>
+    <div class="grid g2" id="fridgeResults"></div>
+  </section>
+
+  <!-- RECETTES -->
+  <section class="view" id="v-recettes">
+    <div class="spread" style="margin-bottom:14px;flex-wrap:wrap">
+      <h2 style="margin:0">Mes recettes</h2>
+      <div class="row">
+        <input id="recipeSearch" placeholder="Rechercher…" style="width:180px">
+        <select id="cuisineFilter" style="width:auto"></select>
+        <select id="dietFilter" style="width:auto">
+          <option value="">Tout</option><option value="vegan">Vegan</option>
+          <option value="vegetarien">Végétarien</option><option value="veganizable">Vegan possible</option>
+          <option value="poisson">🐟 Poisson</option><option value="viande">🍖 Viande</option>
+        </select>
+        <label class="row small" style="gap:6px;cursor:pointer;white-space:nowrap"><input type="checkbox" id="quickFilter" style="width:auto"> ⚡ Rapides</label>
+      </div>
+    </div>
+    <div class="row small muted" style="margin-bottom:12px" id="recipeCount"></div>
+    <div class="grid g2" id="recipeList"></div>
+  </section>
+
+  <!-- SEMAINE -->
+  <section class="view" id="v-semaine">
+    <div class="spread" style="margin-bottom:14px">
+      <h2 style="margin:0">Ma semaine</h2>
+      <div class="row">
+        <button class="btn sm" id="weekOptim">🧩 Menu optimisé</button>
+        <button class="btn sm" id="weekRandom">🎲 Remplir au hasard</button>
+        <button class="btn sm" id="weekClear">Vider</button>
+        <button class="btn sm" id="weekToShop">🛒 Liste de courses</button>
+        <button class="btn sm primary" id="weekValidate">✓ Valider le menu</button>
+      </div>
+    </div>
+    <div id="weekValidInfo" style="margin-bottom:12px"></div>
+    <div class="week" id="week"></div>
+  </section>
+
+  <!-- COURSES -->
+  <section class="view" id="v-courses">
+    <div class="spread" style="margin-bottom:14px">
+      <h2 style="margin:0">Liste de courses</h2>
+      <div class="row">
+        <button class="btn sm" id="shopCopy">Copier</button>
+        <button class="btn sm" id="shopReset">Tout décocher</button>
+      </div>
+    </div>
+    <div class="muted small" style="margin-bottom:14px">Calculée depuis ta semaine, moins ce qui est déjà dans ton frigo.</div>
+    <div id="shopList"></div>
+  </section>
+
+  <!-- CONVERT -->
+  <section class="view" id="v-convert">
+    <h2>Convertisseur de denrées</h2>
+    <div class="muted small" style="margin-bottom:16px">Mesure au volume (ton ecocup, un verre…) → poids, et inversement.</div>
+    <div class="grid g2">
+      <div class="card stack">
+        <div>
+          <label class="fld">Ingrédient</label>
+          <select id="convIng"></select>
+        </div>
+        <div>
+          <label class="fld">Contenant / volume</label>
+          <div class="preset-btns" id="convPresets"></div>
+        </div>
+        <div class="row">
+          <div style="flex:1"><label class="fld">Volume (cl)</label><input id="convVol" type="number" value="25" min="0" step="any"></div>
+          <div style="flex:1"><label class="fld">↔ Poids (g)</label><input id="convWeight" type="number" placeholder="—" min="0" step="any"></div>
+        </div>
+        <div class="muted tiny">Saisis l'un OU l'autre — l'app calcule le second.</div>
+      </div>
+      <div class="card" style="display:grid;place-content:center;text-align:center;gap:6px">
+        <div class="muted small" id="convLabel">—</div>
+        <div class="conv-result" id="convOut">—</div>
+        <div class="muted tiny" id="convDensity"></div>
+      </div>
+    </div>
+    <h3 style="margin:22px 0 8px">Équivalences rapides (cuillères)</h3>
+    <div class="grid g3" id="convQuick"></div>
+  </section>
+
+  <!-- TRACKER FRIGO -->
+  <section class="view" id="v-pickles">
+    <div class="spread" style="margin-bottom:6px">
+      <h2 style="margin:0">🧊 Tracker frigo</h2>
+    </div>
+    <div class="muted small" style="margin-bottom:16px">Note quand tu ouvres un aliment : on calcule les jours restants et on t'alerte avant la péremption.</div>
+
+    <div class="card stack">
+      <div class="small muted">Ajout rapide — clique sur l'aliment que tu viens d'ouvrir :</div>
+      <div class="preset-pick" id="openedPresets"></div>
+      <div class="row">
+        <input id="openedName" placeholder="Autre aliment ouvert…" style="flex:1;min-width:160px">
+        <div style="width:130px"><input id="openedDays" type="number" min="1" value="4" title="jours de conservation"></div>
+        <button class="btn primary" id="openedAdd">Ajouter</button>
+      </div>
+      <div class="tiny muted">La durée par défaut s'ajuste selon l'aliment choisi. Tu peux toujours la modifier.</div>
+    </div>
+
+    <div id="openedList" class="grid g2" style="margin-top:16px"></div>
+
+    <div class="sub-h"><h3>🫙 Pickles & marinades maison</h3><span class="ln"></span><button class="btn sm primary" id="jarNew">+ Démarrer un bocal</button></div>
+    <div class="muted small" style="margin:4px 0 14px">Lance un bocal, on calcule le moment où il est prêt à manger (et jusqu'à quand le garder).</div>
+    <div class="grid g2" id="jarList"></div>
+  </section>
+
+  <!-- AJOUTER -->
+  <section class="view" id="v-ajouter">
+    <h2>Ajouter une recette</h2>
+    <div class="grid g2" style="margin-top:6px;align-items:start">
+      <div class="card stack">
+        <h3>Depuis une URL</h3>
+        <div class="muted small">Colle le lien d'une page de recette — on tente d'extraire automatiquement (titre, ingrédients, étapes).</div>
+        <div class="row"><input id="urlInput" placeholder="https://…" style="flex:1"><button class="btn primary" id="urlImport">Importer</button></div>
+        <div class="small muted" id="urlStatus"></div>
+        <hr>
+        <h3>Coller du texte / JSON</h3>
+        <div class="muted small">Colle le contenu copié par le bookmarklet, ou du texte brut (un ingrédient par ligne).</div>
+        <textarea id="pasteInput" placeholder="Colle ici…"></textarea>
+        <button class="btn" id="pasteImport">Analyser le texte collé</button>
+        <hr>
+        <h3>🔖 Bookmarklet « Siphonner »</h3>
+        <div class="muted small">Glisse ce bouton dans ta barre de favoris. Sur n'importe quelle page de recette, clique-le : la recette est copiée, tu n'as plus qu'à la coller ci-dessus.</div>
+        <div class="row"><a id="bmLink" class="btn primary" href="#">🔖 Siphonner vers Mijote</a><button class="btn sm" id="bmCopy">Copier le code</button></div>
+        <code class="bm" id="bmCode"></code>
+      </div>
+      <div class="card stack">
+        <h3>Saisie manuelle</h3>
+        <div><label class="fld">Nom *</label><input id="mName" placeholder="Ex : Dal de lentilles corail"></div>
+        <div class="row">
+          <div style="flex:1"><label class="fld">Cuisine</label><input id="mCuisine" placeholder="indien, italien…"></div>
+          <div style="flex:1"><label class="fld">Portions</label><input id="mServings" type="number" value="4" min="1"></div>
+          <div style="flex:1"><label class="fld">Temps (min)</label><input id="mTime" type="number" value="30" min="0"></div>
+        </div>
+        <div><label class="fld">Ingrédients (un par ligne : <span class="muted">qté unité ingrédient</span>)</label>
+          <textarea id="mIng" placeholder="200 g lentilles corail&#10;1 boîte lait de coco&#10;2 carottes"></textarea></div>
+        <div><label class="fld">Étapes (une par ligne)</label>
+          <textarea id="mSteps" placeholder="Faire revenir les épices…&#10;Ajouter les lentilles…"></textarea></div>
+        <label class="row small" style="gap:8px;cursor:pointer"><span class="toggle" id="mVegan"><i></i></span><span class="muted">Cette recette est déjà vegan</span></label>
+        <button class="btn primary" id="mSave">Enregistrer la recette</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- REGLAGES -->
+  <section class="view" id="v-reglages">
+    <h2>Réglages & goûts</h2>
+    <div class="grid g2" style="align-items:start">
+      <div class="card stack">
+        <h3>🥗 Mon régime</h3>
+        <label class="row small" style="gap:10px;cursor:pointer;justify-content:space-between"><span class="muted">Masquer viande & poisson (pour moi)</span><span class="toggle" id="vegOnlyToggle"><i></i></span></label>
+        <div class="muted tiny">Désactive ce réglage pour montrer toutes les recettes (ex : quand tu partages l'app avec des amis).</div>
+        <hr>
+        <h3>🚫 Aliments que je n'aime pas</h3>
+        <div class="muted small">Les recettes qui en contiennent sont masquées ou signalées. Ex : « olives » exclut les olives mais pas l'huile d'olive.</div>
+        <div class="row"><input id="dislikeInput" placeholder="Ajouter un aliment…" style="flex:1"><button class="btn" id="dislikeAdd">+</button></div>
+        <div class="row" id="dislikeChips"></div>
+      </div>
+      <div class="card stack">
+        <h3>💾 Données</h3>
+        <div class="muted small">Tes recettes, préférences et personnalisations sont sauvegardées dans ce navigateur. Exporte-les pour les sauvegarder ou les transférer.</div>
+        <div class="row">
+          <button class="btn" id="exportBtn">⬇️ Exporter (JSON)</button>
+          <label class="btn" style="margin:0">⬆️ Importer<input type="file" id="importFile" accept="application/json" style="display:none"></label>
+        </div>
+        <hr>
+        <div class="muted small">Réinitialiser remet la base de recettes d'origine (tes ajouts perso seront perdus).</div>
+        <button class="btn danger" id="resetBtn">Réinitialiser la base</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+<div class="modal-bg" id="pickBg"><div class="modal" id="pickModal" style="max-width:520px"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================ DONNÉES ============================ */
+const MONTHS=["jan","fév","mar","avr","mai","juin","juil","aoû","sep","oct","nov","déc"];
+const MONTHS_FULL=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+
+// Saisonnalité région lyonnaise (légumes/fruits par mois, 1=jan..12=déc)
+const SEASON={
+ 1:["poireau","carotte","chou","pomme de terre","panais","courge","endive","betterave","épinard","mâche","pomme","poire","clémentine","orange"],
+ 2:["poireau","carotte","chou","pomme de terre","panais","endive","betterave","épinard","mâche","topinambour","pomme","poire","kiwi"],
+ 3:["poireau","carotte","épinard","endive","radis","betterave","chou","pomme de terre","blette","pomme","kiwi"],
+ 4:["asperge","radis","épinard","blette","carotte","petit pois","navet","oignon nouveau","rhubarbe","pomme"],
+ 5:["asperge","radis","petit pois","courgette","épinard","fève","blette","fraise","rhubarbe","oignon nouveau"],
+ 6:["courgette","aubergine","poivron","tomate","concombre","haricot vert","petit pois","blette","ail","fraise","abricot","cerise","melon"],
+ 7:["courgette","aubergine","poivron","tomate","concombre","haricot vert","maïs","fenouil","abricot","pêche","melon","prune","framboise"],
+ 8:["courgette","aubergine","poivron","tomate","concombre","haricot vert","maïs","fenouil","pêche","prune","figue","raisin","melon"],
+ 9:["courgette","aubergine","poivron","tomate","champignon","poireau","épinard","blette","raisin","figue","pomme","poire","prune"],
+ 10:["courge","champignon","poireau","chou","épinard","betterave","carotte","brocoli","panais","pomme","poire","raisin","coing"],
+ 11:["courge","champignon","poireau","chou","carotte","panais","endive","betterave","topinambour","pomme","poire","clémentine"],
+ 12:["courge","poireau","chou","carotte","panais","endive","mâche","topinambour","pomme","poire","clémentine","orange"]
+};
+
+// Densités approximatives — grammes par millilitre (pour le convertisseur)
+const DENSITY={
+ "Farine (T55/T65)":0.53,"Farine complète":0.55,"Sucre blanc":0.85,"Sucre roux":0.80,
+ "Sucre glace":0.56,"Riz cru":0.85,"Semoule fine":0.65,"Polenta":0.73,"Lentilles sèches":0.85,
+ "Pois chiches secs":0.80,"Maïzena":0.54,"Cacao en poudre":0.45,"Noix de coco râpée":0.35,
+ "Sel fin":1.20,"Sucre vanillé":0.85,"Levure chimique":0.72,"Eau / lait":1.00,
+ "Lait végétal":1.00,"Huile":0.92,"Sirop d'érable/agave":1.37,"Beurre fondu":0.96,
+ "Beurre de cacahuète":1.10,"Miel":1.42,"Crème liquide":1.01
+};
+const CONTAINERS=[
+ {n:"Ecocup",cl:25},{n:"Verre",cl:20},{n:"Mug",cl:30},{n:"Bol",cl:35},
+ {n:"Tasse",cl:15},{n:"C. à soupe",cl:1.5},{n:"C. à café",cl:0.5}
+];
+const QUICK=[
+ {n:"1 c. à soupe de farine",ing:"Farine (T55/T65)",cl:1.5},
+ {n:"1 c. à soupe de sucre",ing:"Sucre blanc",cl:1.5},
+ {n:"1 c. à soupe d'huile",ing:"Huile",cl:1.5},
+ {n:"1 c. à café de sel",ing:"Sel fin",cl:0.5},
+ {n:"1 ecocup (25cl) de riz",ing:"Riz cru",cl:25},
+ {n:"1 ecocup (25cl) de farine",ing:"Farine (T55/T65)",cl:25}
+];
+
+// Substitutions vegan génériques (clé = ingrédient non-vegan détecté)
+const VEGAN_SWAPS={
+ "paneer":"tofu ferme","mozzarella":"mozzarella végétale (ou tofu lacto-fermenté)",
+ "parmesan":"levure maltée + parmesan végétal","beurre":"margarine végétale / huile",
+ "crème":"crème de soja ou coco","crème fraîche":"crème de soja","lait":"lait végétal (soja/avoine)",
+ "oeuf":"1 c.à s. de fécule + 3 c.à s. d'eau (ou tofu soyeux)","oeufs":"tofu soyeux / fécule",
+ "reblochon":"« faux-mage » fondant ou pommes de terre + crème végétale","fromage":"fromage végétal / levure maltée",
+ "miel":"sirop d'agave/érable","yaourt":"yaourt végétal (soja/coco)","ghee":"huile de coco / margarine"
+};
+
+/* ===================== BASE DE ~28 RECETTES ===================== */
+// season: liste de mois où la recette est « de saison » (ingrédients de saison). [] = toute l'année
+const SEED=[
+ // ---------- INDIEN ----------
+ {id:"r01",name:"Dal de lentilles corail au lait de coco",cuisine:"indien",vegan:true,time:30,servings:4,season:[1,2,3,4,5,6,7,8,9,10,11,12],
+  ing:[["200","g","lentilles corail","légumineuses"],["400","ml","lait de coco","épicerie"],["2","","carottes","légumes"],["100","g","épinards","légumes"],["2","cm","gingembre","frais"],["2","gousses","ail","légumes"],["2","c.à c.","curry / garam masala","épices"],["1","c.à c.","cumin","épices"],["1","","oignon (cuit)","légumes"],["","","huile, sel","épicerie"]],
+  steps:["Faire revenir oignon, ail, gingembre et épices dans un peu d'huile.","Ajouter les carottes en dés, puis les lentilles rincées.","Verser le lait de coco + 30 cl d'eau, laisser mijoter 20 min.","Incorporer les épinards en fin de cuisson, saler. Servir avec du riz."]},
+ {id:"r02",name:"Chana masala (pois chiches)",cuisine:"indien",vegan:true,time:35,servings:4,season:[],
+  ing:[["400","g","pois chiches cuits","légumineuses"],["400","g","tomates concassées (cuites)","épicerie"],["1","","oignon (cuit)","légumes"],["2","gousses","ail","légumes"],["2","cm","gingembre","frais"],["2","c.à c.","garam masala","épices"],["1","c.à c.","cumin","épices"],["1","c.à c.","coriandre moulue","épices"],["1/2","c.à c.","curcuma","épices"],["","","coriandre fraîche","herbes"]],
+  steps:["Faire fondre l'oignon, ajouter ail, gingembre et épices.","Ajouter les tomates concassées, cuire 10 min.","Ajouter les pois chiches + un verre d'eau, mijoter 15 min.","Parsemer de coriandre. Servir avec riz ou naan."]},
+ {id:"r03",name:"Palak paneer (épinards & paneer)",cuisine:"indien",vegan:false,veganSwap:true,time:35,servings:4,season:[1,2,3,4,5,9,10],
+  ing:[["400","g","épinards","légumes"],["250","g","paneer","frais"],["1","","oignon (cuit)","légumes"],["2","gousses","ail","légumes"],["2","cm","gingembre","frais"],["1","c.à c.","garam masala","épices"],["1/2","c.à c.","cumin","épices"],["10","cl","crème","frais"],["","","huile, sel","épicerie"]],
+  steps:["Blanchir puis mixer les épinards.","Dorer les dés de paneer, réserver.","Faire revenir oignon, ail, gingembre, épices.","Ajouter la purée d'épinards + crème, puis le paneer. Mijoter 5 min."]},
+ {id:"r04",name:"Aloo gobi (pommes de terre & chou-fleur)",cuisine:"indien",vegan:true,time:40,servings:4,season:[1,2,9,10,11,12],
+  ing:[["500","g","pommes de terre","légumes"],["1","","chou-fleur","légumes"],["1","","oignon (cuit)","légumes"],["2","gousses","ail","légumes"],["1","c.à c.","cumin","épices"],["1","c.à c.","curcuma","épices"],["1","c.à c.","garam masala","épices"],["","","coriandre fraîche, huile, sel","herbes"]],
+  steps:["Faire revenir cumin, oignon et ail.","Ajouter pommes de terre et chou-fleur en morceaux + épices.","Couvrir, cuire 25 min à feu doux en remuant.","Finir avec la coriandre fraîche."]},
+ {id:"r05",name:"Curry de légumes de saison au coco",cuisine:"indien",vegan:true,time:35,servings:4,season:[6,7,8,9,10],
+  ing:[["1","","courgette","légumes"],["1","","aubergine","légumes"],["1","","poivron","légumes"],["400","ml","lait de coco","épicerie"],["2","c.à c.","pâte de curry","épices"],["1","","oignon (cuit)","légumes"],["2","gousses","ail","légumes"],["","","riz basmati","féculents"]],
+  steps:["Saisir les légumes coupés en morceaux.","Ajouter oignon, ail et pâte de curry.","Verser le lait de coco, mijoter 20 min.","Servir sur du riz basmati."]},
+ {id:"r06",name:"Biryani de légumes",cuisine:"indien",vegan:false,veganSwap:true,time:50,servings:4,season:[],
+  ing:[["300","g","riz basmati","féculents"],["300","g","légumes variés","légumes"],["1","","oignon (cuit)","légumes"],["10","cl","yaourt (à cuire)","frais"],["1","c.à s.","pâte biryani","épices"],["","","safran, noix de cajou","épices"],["","","coriandre, menthe","herbes"]],
+  steps:["Cuire le riz à moitié.","Faire revenir les légumes avec oignon, épices et yaourt.","Monter en couches riz/légumes, parsemer de safran.","Couvrir et cuire à l'étouffée 20 min."]},
+ // ---------- JAPONAIS ----------
+ {id:"r07",name:"Curry japonais aux légumes",cuisine:"japonais",vegan:true,time:40,servings:4,season:[1,2,9,10,11,12],
+  ing:[["2","","carottes","légumes"],["2","","pommes de terre","légumes"],["1","","oignon (cuit)","légumes"],["1","","bloc de roux curry japonais","épicerie"],["","","riz","féculents"],["1","c.à s.","sauce soja","épicerie"]],
+  steps:["Faire revenir oignon, carottes et pommes de terre.","Couvrir d'eau, cuire 15 min.","Ajouter le roux de curry, mélanger jusqu'à épaississement.","Servir avec du riz japonais."]},
+ {id:"r08",name:"Donburi tofu teriyaki",cuisine:"japonais",vegan:true,time:25,servings:2,season:[],
+  ing:[["250","g","tofu ferme","frais"],["3","c.à s.","sauce soja","épicerie"],["2","c.à s.","mirin","épicerie"],["1","c.à s.","sucre","épicerie"],["200","g","riz","féculents"],["2","","oignon vert (cuit)","légumes"],["1","c.à c.","graines de sésame","épicerie"]],
+  steps:["Dorer les cubes de tofu.","Ajouter soja + mirin + sucre, laisser caraméliser.","Servir sur un bol de riz chaud.","Parsemer de sésame et oignon vert."]},
+ {id:"r09",name:"Ramen miso aux légumes",cuisine:"japonais",vegan:false,veganSwap:true,time:30,servings:2,season:[1,2,9,10,11,12],
+  ing:[["2","portions","nouilles ramen","féculents"],["3","c.à s.","pâte de miso","épicerie"],["1","l","bouillon de légumes","épicerie"],["100","g","champignons","légumes"],["100","g","épinards","légumes"],["1","","oeuf mollet","frais"],["2","","oignon vert (cuit)","légumes"],["1","c.à s.","sauce soja","épicerie"]],
+  steps:["Chauffer le bouillon, délayer le miso (sans bouillir).","Cuire les nouilles à part.","Pocher les champignons et épinards dans le bouillon.","Dresser nouilles + bouillon, ajouter l'oeuf et l'oignon vert."]},
+ {id:"r10",name:"Onigiri (boulettes de riz)",cuisine:"japonais",vegan:true,time:25,servings:3,season:[],
+  ing:[["300","g","riz rond japonais","féculents"],["2","feuilles","nori","épicerie"],["1","c.à s.","sésame","épicerie"],["","","sel","épicerie"],["2","c.à s.","garniture (umeboshi, tofu…)","épicerie"]],
+  steps:["Cuire le riz, laisser tiédir.","Mouiller les mains, saler, former des triangles.","Garnir le coeur, refermer.","Entourer d'une bande de nori."]},
+ {id:"r11",name:"Okonomiyaki (galette de chou)",cuisine:"japonais",vegan:false,veganSwap:true,time:30,servings:2,season:[1,2,10,11,12],
+  ing:[["200","g","chou blanc","légumes"],["120","g","farine","épicerie"],["2","","oeufs","frais"],["10","cl","eau","épicerie"],["2","","oignon vert (cuit)","légumes"],["","","sauce okonomiyaki, mayo","épicerie"]],
+  steps:["Mélanger farine, oeufs, eau en pâte.","Incorporer le chou râpé et l'oignon vert.","Cuire en galette épaisse 5 min de chaque côté.","Napper de sauce et mayo."]},
+ // ---------- CORÉEN ----------
+ {id:"r12",name:"Bibimbap végétarien",cuisine:"coréen",vegan:false,veganSwap:true,time:40,servings:2,season:[3,4,5,9,10],
+  ing:[["200","g","riz","féculents"],["100","g","épinards","légumes"],["1","","carotte","légumes"],["100","g","champignons","légumes"],["100","g","pousses de soja","légumes"],["1","","oeuf","frais"],["2","c.à s.","gochujang","épicerie"],["1","c.à s.","huile de sésame","épicerie"]],
+  steps:["Cuire le riz.","Sauter séparément chaque légume.","Disposer en bouquets sur le riz.","Ajouter l'oeuf au plat et le gochujang, mélanger à table."]},
+ {id:"r13",name:"Tofu sauté au gochujang",cuisine:"coréen",vegan:true,time:25,servings:2,season:[],
+  ing:[["250","g","tofu ferme","frais"],["2","c.à s.","gochujang","épicerie"],["1","c.à s.","sauce soja","épicerie"],["1","c.à s.","sirop d'agave","épicerie"],["2","gousses","ail","légumes"],["2","","oignon vert (cuit)","légumes"],["1","c.à c.","sésame","épicerie"]],
+  steps:["Dorer les cubes de tofu.","Mélanger gochujang, soja, agave, ail.","Enrober le tofu de sauce, laisser glacer.","Parsemer sésame et oignon vert."]},
+ {id:"r14",name:"Kimchi jjigae (ragoût de kimchi)",cuisine:"coréen",vegan:true,time:30,servings:2,season:[1,2,11,12],
+  ing:[["250","g","kimchi végétalien","épicerie"],["200","g","tofu","frais"],["1","","oignon vert (cuit)","légumes"],["1","c.à s.","gochugaru","épices"],["1","c.à c.","huile de sésame","épicerie"],["50","cl","bouillon de légumes","épicerie"]],
+  steps:["Faire revenir le kimchi dans l'huile de sésame.","Ajouter le bouillon et le gochugaru.","Laisser mijoter 15 min.","Ajouter le tofu en cubes, réchauffer, parsemer d'oignon vert."]},
+ {id:"r15",name:"Japchae (nouilles de patate douce)",cuisine:"coréen",vegan:true,time:35,servings:3,season:[9,10,11],
+  ing:[["200","g","nouilles dangmyeon","féculents"],["1","","carotte","légumes"],["100","g","épinards","légumes"],["100","g","champignons","légumes"],["1","","poivron","légumes"],["3","c.à s.","sauce soja","épicerie"],["1","c.à s.","huile de sésame","épicerie"],["1","c.à s.","sucre","épicerie"]],
+  steps:["Cuire les nouilles, rincer.","Sauter chaque légume séparément.","Mélanger nouilles, légumes, soja, sésame et sucre.","Servir tiède, parsemé de sésame."]},
+ // ---------- FRANÇAIS ----------
+ {id:"r16",name:"Gratin dauphinois",cuisine:"français",vegan:false,veganSwap:true,time:70,servings:4,season:[1,2,10,11,12],
+  ing:[["1","kg","pommes de terre","légumes"],["40","cl","crème liquide","frais"],["20","cl","lait","frais"],["2","gousses","ail","légumes"],["","","muscade, sel, poivre","épices"]],
+  steps:["Émincer finement les pommes de terre.","Frotter le plat à l'ail, disposer en couches.","Couvrir de crème + lait, muscade.","Cuire 1 h à 160 °C."]},
+ {id:"r17",name:"Soupe à l'oignon gratinée",cuisine:"français",vegan:false,veganSwap:true,time:50,servings:4,season:[1,2,10,11,12],
+  ing:[["6","","oignons (cuits)","légumes"],["1","l","bouillon de légumes","épicerie"],["30","g","beurre","frais"],["1","c.à s.","farine","épicerie"],["4","tranches","pain","féculents"],["80","g","gruyère râpé","frais"]],
+  steps:["Faire fondre longuement les oignons émincés dans le beurre.","Saupoudrer de farine, mouiller avec le bouillon.","Mijoter 20 min.","Verser en bols, couvrir de pain + gruyère, gratiner."]},
+ {id:"r18",name:"Ratatouille",cuisine:"français",vegan:true,time:50,servings:4,season:[6,7,8,9],
+  ing:[["1","","aubergine","légumes"],["2","","courgettes","légumes"],["1","","poivron","légumes"],["4","","tomates (cuites)","légumes"],["1","","oignon (cuit)","légumes"],["2","gousses","ail","légumes"],["","","thym, basilic, huile d'olive","herbes"]],
+  steps:["Cuire séparément chaque légume coupé en dés.","Réunir avec oignon, ail, tomates et herbes.","Mijoter 25 min à couvert.","Rectifier l'assaisonnement, servir tiède."]},
+ {id:"r19",name:"Quiche aux poireaux",cuisine:"français",vegan:false,veganSwap:true,time:55,servings:4,season:[1,2,3,9,10,11,12],
+  ing:[["1","","pâte brisée","épicerie"],["3","","poireaux","légumes"],["3","","oeufs","frais"],["20","cl","crème","frais"],["50","g","gruyère râpé","frais"],["","","muscade, sel","épices"]],
+  steps:["Fondre les poireaux émincés 15 min.","Battre oeufs + crème + muscade.","Garnir la pâte de poireaux, verser l'appareil.","Cuire 35 min à 180 °C."]},
+ {id:"r20",name:"Galettes de sarrasin garnies",cuisine:"français",vegan:false,veganSwap:true,time:40,servings:4,season:[],
+  ing:[["250","g","farine de sarrasin","épicerie"],["50","cl","eau","épicerie"],["1","","oeuf","frais"],["4","","oeufs (garniture)","frais"],["100","g","champignons","légumes"],["80","g","emmental","frais"]],
+  steps:["Mélanger farine, eau, oeuf, sel ; reposer 1 h.","Cuire de fines galettes.","Garnir d'oeuf, champignons poêlés, fromage.","Replier et servir chaud."]},
+ {id:"r21",name:"Tartiflette végétarienne",cuisine:"français",vegan:false,veganSwap:true,time:60,servings:4,season:[1,2,11,12],
+  ing:[["1","kg","pommes de terre","légumes"],["1","","reblochon","frais"],["2","","oignons (cuits)","légumes"],["20","cl","crème","frais"],["150","g","champignons","légumes"]],
+  steps:["Cuire les pommes de terre, couper en rondelles.","Fondre oignons et champignons.","Alterner pommes de terre et reblochon dans un plat.","Napper de crème, cuire 25 min à 200 °C."]},
+ // ---------- ITALIEN ----------
+ {id:"r22",name:"Risotto aux champignons",cuisine:"italien",vegan:false,veganSwap:true,time:40,servings:4,season:[9,10,11],
+  ing:[["300","g","riz arborio","féculents"],["300","g","champignons","légumes"],["1","l","bouillon de légumes","épicerie"],["1","","oignon (cuit)","légumes"],["10","cl","vin blanc","épicerie"],["50","g","parmesan","frais"],["30","g","beurre","frais"]],
+  steps:["Nacrer le riz avec l'oignon.","Déglacer au vin blanc.","Mouiller au bouillon louche par louche en remuant 18 min.","Hors du feu, ajouter champignons poêlés, beurre et parmesan."]},
+ {id:"r23",name:"Pasta e fagioli (pâtes & haricots)",cuisine:"italien",vegan:true,time:35,servings:4,season:[1,2,11,12],
+  ing:[["250","g","pâtes courtes","féculents"],["400","g","haricots blancs cuits","légumineuses"],["400","g","tomates concassées (cuites)","épicerie"],["1","","carotte","légumes"],["1","","branche de céleri","légumes"],["1","","oignon (cuit)","légumes"],["","","romarin, huile d'olive","herbes"]],
+  steps:["Faire un soffritto carotte/céleri/oignon.","Ajouter tomates et haricots, mouiller d'eau.","Cuire les pâtes directement dedans.","Servir avec un filet d'huile d'olive et romarin."]},
+ {id:"r24",name:"Lasagnes aux légumes",cuisine:"italien",vegan:false,veganSwap:true,time:75,servings:6,season:[6,7,8,9],
+  ing:[["1","paquet","lasagnes","féculents"],["1","","aubergine","légumes"],["2","","courgettes","légumes"],["700","g","sauce tomate (cuite)","épicerie"],["50","cl","béchamel","frais"],["100","g","mozzarella","frais"],["50","g","parmesan","frais"]],
+  steps:["Poêler aubergine et courgettes.","Monter : sauce, pâtes, légumes, béchamel — répéter.","Terminer par mozzarella et parmesan.","Cuire 40 min à 180 °C."]},
+ {id:"r25",name:"Gnocchi crème d'épinards",cuisine:"italien",vegan:false,veganSwap:true,time:25,servings:3,season:[3,4,5,9,10],
+  ing:[["500","g","gnocchi","féculents"],["200","g","épinards","légumes"],["20","cl","crème","frais"],["2","gousses","ail","légumes"],["40","g","parmesan","frais"],["","","muscade","épices"]],
+  steps:["Faire tomber les épinards à l'ail.","Ajouter la crème et la muscade.","Cuire les gnocchi, les égoutter.","Mélanger à la sauce, parmesan râpé."]},
+ {id:"r26",name:"Pizza margherita maison",cuisine:"italien",vegan:false,veganSwap:true,time:90,servings:2,season:[],
+  ing:[["250","g","farine","épicerie"],["16","cl","eau","épicerie"],["1","sachet","levure boulangère","épicerie"],["200","g","sauce tomate (cuite)","épicerie"],["125","g","mozzarella","frais"],["","","basilic, huile d'olive","herbes"]],
+  steps:["Pétrir farine, eau, levure, sel ; lever 1 h.","Étaler, garnir de sauce tomate.","Ajouter la mozzarella.","Cuire 10 min très chaud, basilic à la sortie."]},
+ // ---------- ANTILLAIS ----------
+ {id:"r27",name:"Colombo de légumes",cuisine:"antillais",vegan:true,time:45,servings:4,season:[1,2,10,11,12],
+  ing:[["2","","pommes de terre","légumes"],["1","","courgette","légumes"],["2","","carottes","légumes"],["1","","aubergine","légumes"],["2","c.à s.","poudre à colombo","épices"],["1","","oignon (cuit)","légumes"],["2","gousses","ail","légumes"],["","","riz","féculents"]],
+  steps:["Faire revenir oignon, ail et colombo.","Ajouter les légumes en morceaux.","Couvrir d'eau, mijoter 30 min.","Servir avec du riz."]},
+ {id:"r28",name:"Riz aux haricots rouges & coco",cuisine:"antillais",vegan:true,time:40,servings:4,season:[],
+  ing:[["250","g","riz","féculents"],["400","g","haricots rouges cuits","légumineuses"],["20","cl","lait de coco","épicerie"],["1","","oignon (cuit)","légumes"],["2","gousses","ail","légumes"],["1","","thym","herbes"],["","","piment (optionnel)","épices"]],
+  steps:["Faire revenir oignon, ail et thym.","Ajouter riz, haricots et lait de coco + eau.","Cuire à couvert 20 min.","Laisser reposer, aérer à la fourchette."]},
+ {id:"r29",name:"Accras de légumes",cuisine:"antillais",vegan:true,time:30,servings:4,season:[],
+  ing:[["150","g","farine","épicerie"],["1","","courgette râpée","légumes"],["2","","oignon vert (cuit)","légumes"],["2","gousses","ail","légumes"],["1","c.à c.","levure chimique","épicerie"],["","","persil, piment, huile à friture","herbes"]],
+  steps:["Mélanger farine, levure et un peu d'eau en pâte.","Incorporer légumes râpés, ail, herbes.","Former de petites boules.","Frire jusqu'à doré."]},
+ {id:"r30",name:"Bananes plantain poêlées & dhal",cuisine:"antillais",vegan:true,time:30,servings:3,season:[],
+  ing:[["3","","bananes plantain","légumes"],["150","g","lentilles corail","légumineuses"],["20","cl","lait de coco","épicerie"],["1","c.à c.","curcuma","épices"],["1","","oignon (cuit)","légumes"],["","","huile, sel","épicerie"]],
+  steps:["Cuire les lentilles avec curcuma, oignon et lait de coco.","Trancher les plantains.","Les poêler jusqu'à caramélisation.","Servir le dhal avec les plantains."]},
+ // ---------- ŒUFS (rapides) ----------
+ {id:"r31",name:"Œufs chili chinois (sautés au piment)",cuisine:"chinois",vegan:false,veganSwap:false,time:12,servings:2,season:[],
+  ing:[["4","","œufs","frais"],["2","","piments rouges doux","légumes"],["2","c.à s.","sauce soja","épicerie"],["1","c.à c.","sucre","épicerie"],["2","","oignon vert","légumes"],["1","gousse","ail","légumes"],["1","c.à s.","huile","épicerie"]],
+  steps:["Battre les œufs, les brouiller rapidement à feu vif, réserver.","Faire sauter ail, piments et oignon vert.","Remettre les œufs, ajouter soja + sucre.","Mélanger 1 min. Servir avec du riz."]},
+ {id:"r32",name:"Œufs brouillés à la tomate (番茄炒蛋)",cuisine:"chinois",vegan:false,veganSwap:false,time:12,servings:2,season:[6,7,8,9],
+  ing:[["4","","œufs","frais"],["3","","tomates (cuites)","légumes"],["1","c.à c.","sucre","épicerie"],["2","","oignon vert","légumes"],["","","sel, huile","épicerie"]],
+  steps:["Brouiller les œufs à feu vif, réserver encore baveux.","Faire fondre les tomates en quartiers avec le sucre et une pincée de sel.","Remettre les œufs, mélanger 1 min.","Parsemer d'oignon vert. Servir avec du riz."]},
+ {id:"r33",name:"Tamagoyaki (omelette roulée japonaise)",cuisine:"japonais",vegan:false,veganSwap:false,time:15,servings:2,season:[],
+  ing:[["3","","œufs","frais"],["1","c.à s.","sauce soja","épicerie"],["1","c.à c.","sucre","épicerie"],["1","c.à c.","mirin","épicerie"],["","","huile","épicerie"]],
+  steps:["Battre œufs, soja, sucre, mirin.","Verser une fine couche dans une poêle huilée.","Rouler dès que prise, répéter en ajoutant de l'appareil.","Trancher l'omelette roulée."]},
+ {id:"r34",name:"Œufs marinés sauce soja — Mayak (코)",cuisine:"coréen",vegan:false,veganSwap:false,time:15,servings:4,season:[],tracker:true,readyHours:6,bestHours:24,keepDays:5,
+  ing:[["6","","œufs mollets (6 min)","frais"],["12","cl","sauce soja","épicerie"],["12","cl","eau","épicerie"],["2","c.à s.","sucre","épicerie"],["2","gousses","ail","légumes"],["1","","oignon vert","légumes"],["1","","piment (optionnel)","légumes"],["1","c.à s.","graines de sésame","épicerie"]],
+  steps:["Cuire les œufs 6 min, refroidir et écaler.","Mélanger soja, eau, sucre, ail, oignon vert, piment, sésame.","Immerger les œufs dans la marinade.","Réfrigérer : prêts dès 6 h, idéal après une nuit. À consommer sous 3-5 jours."]},
+ {id:"r35",name:"Œufs marinés ramen — Ajitama",cuisine:"japonais",vegan:false,veganSwap:false,time:12,servings:4,season:[],tracker:true,readyHours:4,bestHours:12,keepDays:4,
+  ing:[["4","","œufs mollets (6-7 min)","frais"],["6","cl","sauce soja","épicerie"],["6","cl","mirin","épicerie"],["6","cl","eau","épicerie"],["1","c.à s.","sucre","épicerie"]],
+  steps:["Cuire les œufs 6-7 min, refroidir, écaler.","Porter soja, mirin, eau, sucre à frémissement puis laisser tiédir.","Immerger les œufs (dans un sachet zip pour bien couvrir).","Réfrigérer 4 à 12 h. Parfait sur un ramen."]},
+ {id:"r36",name:"Œufs durs sauce gochujang",cuisine:"coréen",vegan:false,veganSwap:false,time:12,servings:2,season:[],
+  ing:[["4","","œufs durs","frais"],["1","c.à s.","gochujang","épicerie"],["1","c.à s.","sauce soja","épicerie"],["1","c.à c.","huile de sésame","épicerie"],["1","c.à c.","sirop d'agave","épicerie"],["1","","oignon vert","légumes"],["1","c.à c.","sésame","épicerie"]],
+  steps:["Écaler et couper les œufs en deux.","Mélanger gochujang, soja, sésame, agave.","Napper les œufs de sauce.","Parsemer oignon vert et graines de sésame."]},
+ // ---------- PICKLES & FERMENTS (suivis dans le tracker) ----------
+ {id:"r37",name:"Pickles de carottes express",cuisine:"pickles",vegan:true,time:15,servings:6,season:[],tracker:true,readyHours:24,bestHours:72,keepDays:21,
+  ing:[["3","","carottes","légumes"],["15","cl","vinaigre (blanc/cidre)","épicerie"],["15","cl","eau","épicerie"],["1","c.à s.","sucre","épicerie"],["1","c.à c.","sel","épicerie"],["1","c.à c.","graines (aneth/moutarde)","épices"]],
+  steps:["Couper les carottes en bâtonnets, tasser dans un bocal propre.","Chauffer eau, vinaigre, sucre, sel jusqu'à dissolution.","Verser la saumure chaude sur les carottes, ajouter les graines.","Fermer, laisser refroidir puis réfrigérer. Prêt après 24 h, meilleur à 3 jours."]},
+ {id:"r38",name:"Pickles de radis roses",cuisine:"pickles",vegan:true,time:12,servings:4,season:[4,5,6],tracker:true,readyHours:24,bestHours:48,keepDays:21,
+  ing:[["1","botte","radis","légumes"],["12","cl","vinaigre","épicerie"],["12","cl","eau","épicerie"],["1","c.à s.","sucre","épicerie"],["1","c.à c.","sel","épicerie"],["1","gousse","ail","légumes"]],
+  steps:["Trancher les radis finement, mettre en bocal avec l'ail.","Dissoudre sucre et sel dans eau + vinaigre.","Couvrir les radis de saumure.","Réfrigérer : prêt dès 24 h, top à 48 h."]},
+ {id:"r39",name:"Đồ chua — carotte & daikon mariné",cuisine:"vietnamien",vegan:true,time:15,servings:6,season:[],tracker:true,readyHours:24,bestHours:48,keepDays:21,
+  ing:[["1","","carotte","légumes"],["1","","daikon (radis blanc)","légumes"],["12","cl","vinaigre de riz","épicerie"],["12","cl","eau","épicerie"],["2","c.à s.","sucre","épicerie"],["1","c.à c.","sel","épicerie"]],
+  steps:["Tailler carotte et daikon en fins bâtonnets, saler 10 min, rincer.","Mélanger eau, vinaigre, sucre.","Immerger les légumes en bocal.","Réfrigérer : croquant dès 1 h, idéal après 24 h. Parfait dans un bánh mì."]},
+ {id:"r40",name:"Pickles de chou rouge",cuisine:"pickles",vegan:true,time:15,servings:8,season:[10,11,12,1,2],tracker:true,readyHours:24,bestHours:48,keepDays:21,
+  ing:[["1/4","","chou rouge","légumes"],["20","cl","vinaigre","épicerie"],["15","cl","eau","épicerie"],["1","c.à s.","sucre","épicerie"],["1","c.à c.","sel","épicerie"],["1","c.à c.","cumin / baies de genièvre","épices"]],
+  steps:["Émincer finement le chou, tasser en bocal.","Chauffer eau, vinaigre, sucre, sel.","Verser sur le chou avec les épices.","Réfrigérer après refroidissement. Prêt à 24 h."]},
+ {id:"r41",name:"Gingembre mariné (gari)",cuisine:"japonais",vegan:true,time:15,servings:10,season:[],tracker:true,readyHours:24,bestHours:48,keepDays:30,
+  ing:[["150","g","gingembre frais","frais"],["10","cl","vinaigre de riz","épicerie"],["2","c.à s.","sucre","épicerie"],["1","c.à c.","sel","épicerie"]],
+  steps:["Peler et trancher le gingembre très finement, saler 5 min.","Blanchir 1 min, égoutter, mettre en bocal.","Chauffer vinaigre + sucre, verser sur le gingembre.","Réfrigérer : prêt à 24 h, rosit légèrement."]},
+ {id:"r42",name:"Kimchi express de chou",cuisine:"coréen",vegan:true,time:30,servings:8,season:[10,11,12,1,2],tracker:true,readyHours:48,bestHours:96,keepDays:30,
+  ing:[["1/2","","chou chinois","légumes"],["2","c.à s.","gochugaru","épices"],["2","gousses","ail","légumes"],["2","cm","gingembre","frais"],["1","c.à s.","sauce soja","épicerie"],["1","c.à c.","sucre","épicerie"],["2","","oignon vert","légumes"],["2","c.à s.","gros sel","épicerie"]],
+  steps:["Saler le chou en morceaux 1 h, rincer, essorer.","Mixer ail, gingembre, gochugaru, soja, sucre en pâte.","Masser le chou avec la pâte et l'oignon vert, tasser en bocal.","Laisser 1-2 jours à température ambiante puis réfrigérer. Prêt à 2 jours, meilleur à 4."]},
+ // ---------- SIMPLES & RAPIDES (⚡) ----------
+ {id:"r43",name:"Pâtes à l'ail & huile d'olive (aglio e olio)",cuisine:"italien",vegan:true,quick:true,time:15,servings:2,season:[],
+  ing:[["200","g","spaghetti","féculents"],["4","gousses","ail","légumes"],["5","c.à s.","huile d'olive","épicerie"],["1","","piment (optionnel)","légumes"],["","","persil, sel","herbes"]],
+  steps:["Cuire les pâtes al dente.","Faire blondir l'ail émincé et le piment dans l'huile.","Mélanger avec les pâtes + une louche d'eau de cuisson.","Persil et poivre. Servir."]},
+ {id:"r44",name:"Riz sauté express aux légumes",cuisine:"chinois",vegan:true,quick:true,time:15,servings:2,season:[],
+  ing:[["250","g","riz cuit (froid)","féculents"],["200","g","légumes (au choix)","légumes"],["2","c.à s.","sauce soja","épicerie"],["1","gousse","ail","légumes"],["2","","oignon vert","légumes"],["1","c.à c.","huile de sésame","épicerie"]],
+  steps:["Saisir les légumes à feu vif.","Ajouter le riz froid et l'ail.","Sauce soja + huile de sésame.","Parsemer d'oignon vert."]},
+ {id:"r45",name:"Curry express pois chiches, épinards & coco",cuisine:"indien",vegan:true,quick:true,time:20,servings:3,season:[],
+  ing:[["400","g","pois chiches cuits","légumineuses"],["100","g","épinards","légumes"],["200","ml","lait de coco","épicerie"],["2","c.à c.","pâte de curry","épices"],["1","gousse","ail","légumes"]],
+  steps:["Chauffer la pâte de curry avec l'ail.","Ajouter pois chiches + lait de coco, 10 min.","Incorporer les épinards.","Servir avec du riz."]},
+ {id:"r46",name:"Bol de riz, œuf & sauce soja",cuisine:"japonais",vegan:false,veganSwap:false,quick:true,time:10,servings:1,season:[],
+  ing:[["1","bol","riz chaud","féculents"],["1","","œuf","frais"],["1","c.à s.","sauce soja","épicerie"],["1","c.à c.","huile de sésame","épicerie"],["1","","oignon vert","légumes"],["1","feuille","nori","épicerie"]],
+  steps:["Réchauffer le riz.","Cuire un œuf au plat.","Arroser de soja et d'huile de sésame.","Oignon vert et nori émietté."]},
+ {id:"r47",name:"Soupe miso express au tofu",cuisine:"japonais",vegan:true,quick:true,time:10,servings:2,season:[],
+  ing:[["50","cl","eau / bouillon","épicerie"],["2","c.à s.","pâte de miso","épicerie"],["100","g","tofu","frais"],["1","c.à s.","wakamé séché","épicerie"],["1","","oignon vert","légumes"]],
+  steps:["Chauffer l'eau sans la faire bouillir.","Délayer le miso à part puis l'ajouter.","Mettre le tofu en dés et le wakamé.","Oignon vert, servir aussitôt."]},
+ {id:"r48",name:"Tartine avocat-citron",cuisine:"perso",vegan:true,quick:true,time:5,servings:1,season:[],
+  ing:[["2","tranches","pain","féculents"],["1","","avocat","légumes"],["1/2","","citron","légumes"],["","","sel, piment ou sésame","épices"]],
+  steps:["Toaster le pain.","Écraser l'avocat avec le citron et le sel.","Étaler généreusement.","Piment ou graines de sésame."]},
+ {id:"r49",name:"Poêlée de gnocchi & épinards",cuisine:"italien",vegan:false,veganSwap:true,quick:true,time:15,servings:2,season:[],
+  ing:[["400","g","gnocchi","féculents"],["150","g","épinards","légumes"],["2","gousses","ail","légumes"],["2","c.à s.","huile d'olive","épicerie"],["30","g","parmesan","frais"]],
+  steps:["Poêler les gnocchi jusqu'à doré (sans les bouillir).","Ajouter l'ail puis les épinards.","Parmesan et poivre.","Servir bien chaud."]},
+ {id:"r50",name:"Nouilles sautées soja-sésame",cuisine:"coréen",vegan:true,quick:true,time:15,servings:2,season:[],
+  ing:[["200","g","nouilles","féculents"],["3","c.à s.","sauce soja","épicerie"],["1","c.à s.","huile de sésame","épicerie"],["1","gousse","ail","légumes"],["2","","oignon vert","légumes"],["1","","carotte","légumes"]],
+  steps:["Cuire les nouilles, égoutter.","Sauter la carotte râpée et l'ail.","Ajouter les nouilles, soja et sésame.","Oignon vert, sésame."]},
+ {id:"r51",name:"Omelette aux fines herbes",cuisine:"français",vegan:false,veganSwap:false,quick:true,time:10,servings:2,season:[],
+  ing:[["4","","œufs","frais"],["","","persil, ciboulette","herbes"],["1","noix","beurre","frais"],["","","sel, poivre","épices"]],
+  steps:["Battre les œufs avec les herbes, sel, poivre.","Cuire dans le beurre mousseux.","Plier l'omelette encore baveuse.","Servir avec une salade ou du pain."]},
+ {id:"r52",name:"Plantains poêlés & haricots rouges",cuisine:"antillais",vegan:true,quick:true,time:15,servings:2,season:[],
+  ing:[["2","","bananes plantain","légumes"],["400","g","haricots rouges cuits","légumineuses"],["1","gousse","ail","légumes"],["1","c.à c.","épices colombo / piment","épices"],["","","huile, sel","épicerie"]],
+  steps:["Trancher et poêler les plantains jusqu'à caramélisation.","Réchauffer les haricots avec l'ail et les épices.","Saler.","Servir plantains et haricots ensemble."]},
+ // ================== CUISINES DU MONDE (base partageable) ==================
+ // --- Thaï ---
+ {id:"r53",name:"Pad thaï au poulet",cuisine:"thaï",diet:"viande",vegan:false,veganSwap:false,time:30,servings:3,season:[],
+  ing:[["250","g","nouilles de riz","féculents"],["2","","blancs de poulet","viande"],["1","","œuf","frais"],["100","g","pousses de soja","légumes"],["40","g","cacahuètes","épicerie"],["3","c.à s.","sauce tamarin + nuoc-mâm","épicerie"],["2","","oignon vert","légumes"]],
+  steps:["Tremper les nouilles. Saisir le poulet en lamelles.","Pousser sur le côté, brouiller l'œuf.","Ajouter nouilles + sauce, sauter.","Pousses de soja, cacahuètes, oignon vert."]},
+ {id:"r54",name:"Curry vert thaï au poulet",cuisine:"thaï",diet:"viande",vegan:false,veganSwap:false,time:30,servings:4,season:[],
+  ing:[["2","","blancs de poulet","viande"],["2","c.à s.","pâte de curry vert","épices"],["400","ml","lait de coco","épicerie"],["1","","courgette / aubergine","légumes"],["1","c.à s.","nuoc-mâm","épicerie"],["","","basilic thaï","herbes"],["","","riz","féculents"]],
+  steps:["Faire revenir la pâte de curry.","Ajouter le poulet puis le lait de coco.","Légumes + nuoc-mâm, mijoter 15 min.","Basilic thaï. Servir avec du riz."]},
+ {id:"r55",name:"Soupe Tom kha au tofu",cuisine:"thaï",diet:"vegan",vegan:true,time:25,servings:3,season:[],
+  ing:[["400","ml","lait de coco","épicerie"],["200","g","tofu","frais"],["150","g","champignons","légumes"],["3","cm","galanga / gingembre","frais"],["1","tige","citronnelle","herbes"],["1","","citron vert","légumes"],["1","c.à s.","sauce soja","épicerie"]],
+  steps:["Infuser citronnelle et galanga dans le lait de coco + eau.","Ajouter champignons et tofu.","Mijoter 10 min.","Citron vert et sauce soja hors du feu."]},
+ // --- Mexicain ---
+ {id:"r56",name:"Tacos al pastor (porc mariné)",cuisine:"mexicain",diet:"viande",vegan:false,veganSwap:false,time:40,servings:4,season:[],
+  ing:[["500","g","échine de porc","viande"],["8","","tortillas de maïs","féculents"],["2","tranches","ananas","légumes"],["1","","oignon (cuit)","légumes"],["2","c.à s.","épices achiote / paprika","épices"],["","","coriandre","herbes"]],
+  steps:["Mariner le porc aux épices, saisir à feu vif.","Réchauffer les tortillas.","Garnir de porc, ananas grillé, oignon.","Coriandre et citron vert."]},
+ {id:"r57",name:"Chili sin carne",cuisine:"mexicain",diet:"vegan",vegan:true,time:40,servings:4,season:[],
+  ing:[["400","g","haricots rouges cuits","légumineuses"],["150","g","maïs","légumes"],["400","g","tomates concassées (cuites)","épicerie"],["1","","poivron","légumes"],["1","","oignon (cuit)","légumes"],["2","c.à c.","cumin + paprika fumé","épices"],["","","riz","féculents"]],
+  steps:["Faire revenir oignon, poivron et épices.","Ajouter tomates, haricots et maïs.","Mijoter 25 min.","Servir avec du riz."]},
+ {id:"r58",name:"Guacamole",cuisine:"mexicain",diet:"vegan",vegan:true,quick:true,time:10,servings:3,season:[],
+  ing:[["2","","avocats mûrs","légumes"],["1","","tomate (crue)","légumes"],["1/2","","oignon rouge cru","légumes"],["1","","citron vert","légumes"],["","","coriandre, piment","herbes"]],
+  steps:["Écraser les avocats.","Ajouter tomate, oignon, piment en petits dés.","Citron vert, coriandre, sel.","Servir avec des tortillas."]},
+ {id:"r59",name:"Enchiladas haricots & fromage",cuisine:"mexicain",diet:"vegetarien",vegan:false,veganSwap:true,time:45,servings:4,season:[],
+  ing:[["8","","tortillas","féculents"],["400","g","haricots noirs cuits","légumineuses"],["120","g","fromage râpé","frais"],["400","g","sauce tomate (cuite)","épicerie"],["1","","oignon (cuit)","légumes"],["1","c.à c.","cumin","épices"]],
+  steps:["Garnir les tortillas de haricots et oignon.","Rouler dans un plat, napper de sauce.","Couvrir de fromage.","Cuire 20 min à 200 °C."]},
+ // --- Moyen-Orient / Liban ---
+ {id:"r60",name:"Houmous",cuisine:"libanais",diet:"vegan",vegan:true,quick:true,time:10,servings:4,season:[],
+  ing:[["400","g","pois chiches cuits","légumineuses"],["2","c.à s.","tahini","épicerie"],["1","","citron","légumes"],["1","gousse","ail","légumes"],["3","c.à s.","huile d'olive","épicerie"],["1","c.à c.","cumin","épices"]],
+  steps:["Mixer pois chiches, tahini, ail, citron.","Détendre avec un peu d'eau.","Dresser, filet d'huile d'olive.","Saupoudrer de cumin / paprika."]},
+ {id:"r61",name:"Falafels",cuisine:"libanais",diet:"vegan",vegan:true,time:35,servings:4,season:[],
+  ing:[["250","g","pois chiches secs trempés","légumineuses"],["","","persil + coriandre","herbes"],["1","","oignon (cuit)","légumes"],["2","gousses","ail","légumes"],["2","c.à c.","cumin + coriandre moulue","épices"],["2","c.à s.","farine","épicerie"]],
+  steps:["Mixer pois chiches crus trempés, herbes, ail, épices.","Ajouter la farine, façonner des boulettes.","Frire ou cuire au four jusqu'à doré.","Servir en pita avec sauce tahini."]},
+ {id:"r62",name:"Taboulé libanais",cuisine:"libanais",diet:"vegan",vegan:true,time:20,servings:4,season:[6,7,8],
+  ing:[["80","g","boulgour fin","féculents"],["3","bottes","persil plat","herbes"],["","","menthe","herbes"],["2","","tomates (crues)","légumes"],["1","","citron","légumes"],["2","","oignon vert","légumes"]],
+  steps:["Réhydrater le boulgour.","Hacher finement persil et menthe.","Mélanger avec tomates, oignon vert, citron, huile d'olive.","Réfrigérer avant de servir."]},
+ {id:"r63",name:"Moujadara (lentilles, riz, oignons)",cuisine:"libanais",diet:"vegan",vegan:true,time:40,servings:4,season:[],
+  ing:[["200","g","lentilles brunes","légumineuses"],["150","g","riz","féculents"],["3","","oignons (caramélisés)","légumes"],["1","c.à c.","cumin","épices"],["3","c.à s.","huile d'olive","épicerie"]],
+  steps:["Cuire les lentilles à mi-cuisson.","Ajouter le riz et de l'eau, cuire ensemble.","Caraméliser longuement les oignons.","Servir le riz-lentilles couvert d'oignons."]},
+ {id:"r64",name:"Shakshuka (œufs pochés à la tomate)",cuisine:"moyen-orient",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:25,servings:3,season:[],
+  ing:[["4","","œufs","frais"],["400","g","tomates concassées (cuites)","épicerie"],["1","","poivron","légumes"],["1","","oignon (cuit)","légumes"],["2","gousses","ail","légumes"],["1","c.à c.","cumin + paprika","épices"],["","","coriandre","herbes"]],
+  steps:["Faire revenir oignon, poivron, ail, épices.","Ajouter les tomates, mijoter 10 min.","Casser les œufs dans la sauce, couvrir.","Cuire 5 min, parsemer de coriandre."]},
+ // --- Grec ---
+ {id:"r65",name:"Moussaka grecque",cuisine:"grec",diet:"viande",vegan:false,veganSwap:false,time:80,servings:6,season:[],
+  ing:[["2","","aubergines","légumes"],["500","g","viande hachée (agneau/bœuf)","viande"],["400","g","tomates (cuites)","épicerie"],["1","","oignon (cuit)","légumes"],["50","cl","béchamel","frais"],["1","pincée","cannelle","épices"]],
+  steps:["Poêler les tranches d'aubergine.","Cuire la viande avec oignon, tomates, cannelle.","Monter aubergines / viande, couvrir de béchamel.","Cuire 45 min à 180 °C."]},
+ {id:"r66",name:"Gemista (légumes farcis au riz)",cuisine:"grec",diet:"vegan",vegan:true,time:70,servings:4,season:[7,8,9],
+  ing:[["4","","tomates + poivrons (cuits)","légumes"],["200","g","riz","féculents"],["1","","oignon (cuit)","légumes"],["","","persil + menthe","herbes"],["4","c.à s.","huile d'olive","épicerie"]],
+  steps:["Évider tomates et poivrons.","Mélanger riz, oignon, herbes, pulpe.","Farcir et arroser d'huile d'olive.","Cuire 50 min au four."]},
+ {id:"r67",name:"Salade grecque (horiatiki)",cuisine:"grec",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:10,servings:2,season:[6,7,8],
+  ing:[["2","","tomates (crues)","légumes"],["1","","concombre","légumes"],["100","g","feta","frais"],["50","g","olives","légumes"],["1/2","","oignon rouge cru","légumes"],["","","origan, huile d'olive","herbes"]],
+  steps:["Couper tomates, concombre et oignon.","Disposer dans un plat.","Poser la feta et les olives.","Origan, huile d'olive, servir frais."]},
+ {id:"r68",name:"Spanakopita (feuilleté épinards-feta)",cuisine:"grec",diet:"vegetarien",vegan:false,veganSwap:false,time:55,servings:6,season:[3,4,5],
+  ing:[["500","g","épinards","légumes"],["200","g","feta","frais"],["1","paquet","pâte filo","féculents"],["2","","oignon vert","légumes"],["","","aneth","herbes"],["2","","œufs","frais"]],
+  steps:["Faire tomber les épinards, égoutter.","Mélanger feta émiettée, œufs, aneth.","Monter en couches de filo beurrées.","Cuire 35 min à 180 °C."]},
+ {id:"r69",name:"Souvlaki de porc",cuisine:"grec",diet:"viande",vegan:false,veganSwap:false,time:30,servings:4,season:[],
+  ing:[["600","g","épaule de porc","viande"],["4","","pains pita","féculents"],["2","gousses","ail","légumes"],["1","","citron","légumes"],["","","origan","herbes"],["3","c.à s.","huile d'olive","épicerie"]],
+  steps:["Mariner le porc en dés (ail, citron, origan, huile).","Enfiler en brochettes, griller.","Réchauffer les pitas.","Servir avec tomate cuite et oignon."]},
+ // --- Maghreb ---
+ {id:"r70",name:"Tajine de légumes",cuisine:"marocain",diet:"vegan",vegan:true,time:50,servings:4,season:[],
+  ing:[["2","","carottes","légumes"],["1","","courgette","légumes"],["2","","pommes de terre","légumes"],["200","g","pois chiches cuits","légumineuses"],["2","c.à c.","ras el-hanout","épices"],["1","","oignon (cuit)","légumes"],["","","semoule","féculents"]],
+  steps:["Faire revenir oignon et épices.","Ajouter les légumes en morceaux et les pois chiches.","Couvrir d'eau, mijoter 35 min.","Servir avec de la semoule."]},
+ {id:"r71",name:"Tajine de poulet citron & olives",cuisine:"marocain",diet:"viande",vegan:false,veganSwap:false,time:60,servings:4,season:[],
+  ing:[["4","","cuisses de poulet","viande"],["1","","citron confit","légumes"],["80","g","olives vertes","légumes"],["1","","oignon (cuit)","légumes"],["1","pincée","safran + gingembre","épices"],["","","coriandre","herbes"]],
+  steps:["Dorer le poulet avec oignon et épices.","Ajouter eau, citron confit, mijoter 40 min.","Ajouter les olives en fin de cuisson.","Coriandre. Servir avec semoule."]},
+ {id:"r72",name:"Couscous aux sept légumes",cuisine:"maghrébin",diet:"vegan",vegan:true,time:60,servings:5,season:[],
+  ing:[["400","g","semoule","féculents"],["1","","navet + carotte + courgette","légumes"],["200","g","courge","légumes"],["200","g","pois chiches cuits","légumineuses"],["2","c.à c.","ras el-hanout","épices"],["","","coriandre","herbes"]],
+  steps:["Mijoter les légumes dans un bouillon épicé.","Cuire la semoule à la vapeur.","Égrener à l'huile.","Servir légumes et bouillon sur la semoule."]},
+ // --- Turc ---
+ {id:"r73",name:"Menemen (œufs brouillés turcs)",cuisine:"turc",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:20,servings:2,season:[],
+  ing:[["4","","œufs","frais"],["3","","tomates (cuites)","légumes"],["1","","poivron vert","légumes"],["1","","oignon (cuit)","légumes"],["1","c.à c.","paprika","épices"],["","","huile d'olive","épicerie"]],
+  steps:["Faire fondre oignon et poivron.","Ajouter tomates et paprika, cuire 8 min.","Verser les œufs battus, brouiller doucement.","Servir avec du pain."]},
+ {id:"r74",name:"Köfte (boulettes turques)",cuisine:"turc",diet:"viande",vegan:false,veganSwap:false,time:35,servings:4,season:[],
+  ing:[["500","g","viande hachée (bœuf/agneau)","viande"],["1","","oignon (cuit)","légumes"],["","","persil + menthe","herbes"],["1","c.à c.","cumin + paprika","épices"],["50","g","chapelure","féculents"]],
+  steps:["Mélanger viande, oignon râpé, herbes, épices.","Façonner des boulettes allongées.","Griller ou poêler 10 min.","Servir avec riz et légumes grillés."]},
+ {id:"r75",name:"Soupe de lentilles turque (mercimek)",cuisine:"turc",diet:"vegan",vegan:true,quick:true,time:35,servings:4,season:[1,2,11,12],
+  ing:[["200","g","lentilles corail","légumineuses"],["1","","carotte","légumes"],["1","","oignon (cuit)","légumes"],["1","c.à c.","cumin + paprika","épices"],["1","","citron","légumes"]],
+  steps:["Faire revenir oignon, carotte, épices.","Ajouter lentilles + eau, cuire 25 min.","Mixer onctueux.","Servir avec un trait de citron."]},
+ {id:"r76",name:"İmam bayıldı (aubergines fondantes)",cuisine:"turc",diet:"vegan",vegan:true,time:60,servings:4,season:[7,8,9],
+  ing:[["4","","aubergines","légumes"],["3","","tomates (cuites)","légumes"],["2","","oignons (cuits)","légumes"],["3","gousses","ail","légumes"],["","","persil","herbes"],["4","c.à s.","huile d'olive","épicerie"]],
+  steps:["Fendre et précuire les aubergines.","Préparer un confit oignon-tomate-ail.","Farcir les aubergines.","Cuire 40 min au four, servir tiède."]},
+ // --- Espagnol ---
+ {id:"r77",name:"Paella de légumes",cuisine:"espagnol",diet:"vegan",vegan:true,time:45,servings:4,season:[],
+  ing:[["300","g","riz rond","féculents"],["1","","poivron","légumes"],["150","g","haricots verts","légumes"],["1","","cœur d'artichaut","légumes"],["1","pincée","safran + paprika","épices"],["150","g","pois chiches cuits","légumineuses"]],
+  steps:["Saisir les légumes dans l'huile d'olive.","Nacrer le riz, ajouter safran et paprika.","Mouiller de bouillon, cuire sans remuer 18 min.","Laisser reposer puis servir."]},
+ {id:"r78",name:"Paella de fruits de mer",cuisine:"espagnol",diet:"poisson",vegan:false,veganSwap:false,time:50,servings:4,season:[],
+  ing:[["300","g","riz rond","féculents"],["400","g","fruits de mer (crevettes, moules)","poisson"],["1","","poivron","légumes"],["200","g","tomate (cuite)","épicerie"],["1","pincée","safran","épices"],["100","g","petits pois","légumes"]],
+  steps:["Faire un sofrito tomate-poivron.","Nacrer le riz, safran, bouillon.","Disposer les fruits de mer.","Cuire 18 min sans remuer, reposer."]},
+ {id:"r79",name:"Tortilla española",cuisine:"espagnol",diet:"vegetarien",vegan:false,veganSwap:false,time:35,servings:4,season:[],
+  ing:[["600","g","pommes de terre","légumes"],["6","","œufs","frais"],["1","","oignon (cuit)","légumes"],["","","huile d'olive, sel","épicerie"]],
+  steps:["Confire pommes de terre et oignon à l'huile.","Mélanger aux œufs battus.","Cuire en omelette épaisse, retourner.","Servir tiède en parts."]},
+ {id:"r80",name:"Gazpacho andalou",cuisine:"espagnol",diet:"vegan",vegan:true,quick:true,time:15,servings:4,season:[6,7,8],
+  ing:[["6","","tomates (crues)","légumes"],["1","","concombre","légumes"],["1","","poivron","légumes"],["1","gousse","ail","légumes"],["3","c.à s.","huile d'olive + vinaigre","épicerie"],["1","tranche","pain","féculents"]],
+  steps:["Mixer tous les légumes avec le pain trempé.","Ajouter huile et vinaigre.","Assaisonner, mixer lisse.","Servir très frais."]},
+ // --- Italien (plus) ---
+ {id:"r81",name:"Spaghetti carbonara",cuisine:"italien",diet:"viande",vegan:false,veganSwap:false,time:25,servings:2,season:[],
+  ing:[["200","g","spaghetti","féculents"],["100","g","guanciale / pancetta","viande"],["2","","œufs","frais"],["40","g","pecorino + parmesan","frais"],["","","poivre noir","épices"]],
+  steps:["Cuire les pâtes al dente.","Dorer le guanciale.","Hors du feu, lier avec œufs + fromage + eau de cuisson.","Beaucoup de poivre. Servir aussitôt."]},
+ {id:"r82",name:"Pâtes au pesto",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:15,servings:2,season:[],
+  ing:[["200","g","pâtes","féculents"],["1","botte","basilic","herbes"],["30","g","pignons","épicerie"],["40","g","parmesan","frais"],["1","gousse","ail","légumes"],["5","c.à s.","huile d'olive","épicerie"]],
+  steps:["Mixer basilic, pignons, ail, parmesan, huile.","Cuire les pâtes.","Mélanger hors du feu avec le pesto.","Un peu d'eau de cuisson pour lier."]},
+ {id:"r83",name:"Minestrone",cuisine:"italien",diet:"vegan",vegan:true,time:40,servings:4,season:[],
+  ing:[["200","g","haricots blancs cuits","légumineuses"],["1","","courgette + carotte + céleri","légumes"],["100","g","petites pâtes","féculents"],["400","g","tomate (cuite)","épicerie"],["","","basilic","herbes"]],
+  steps:["Faire un soffritto de légumes.","Ajouter tomate, haricots et eau.","Cuire les pâtes dedans.","Basilic et huile d'olive."]},
+ {id:"r84",name:"Caprese (tomate-mozzarella)",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:10,servings:2,season:[6,7,8],
+  ing:[["2","","tomates (crues)","légumes"],["125","g","mozzarella","frais"],["","","basilic","herbes"],["2","c.à s.","huile d'olive","épicerie"]],
+  steps:["Trancher tomates et mozzarella.","Alterner sur un plat.","Basilic frais.","Huile d'olive, sel, poivre."]},
+ // --- Français (plus) ---
+ {id:"r85",name:"Quiche lorraine",cuisine:"français",diet:"viande",vegan:false,veganSwap:false,time:50,servings:4,season:[],
+  ing:[["1","","pâte brisée","féculents"],["150","g","lardons","viande"],["3","","œufs","frais"],["20","cl","crème","frais"],["","","muscade","épices"]],
+  steps:["Faire revenir les lardons.","Battre œufs + crème + muscade.","Garnir la pâte, verser l'appareil.","Cuire 35 min à 180 °C."]},
+ {id:"r86",name:"Bœuf bourguignon",cuisine:"français",diet:"viande",vegan:false,veganSwap:false,time:150,servings:5,season:[1,2,11,12],
+  ing:[["800","g","bœuf à mijoter","viande"],["3","","carottes","légumes"],["1","","oignon (cuit)","légumes"],["200","g","champignons","légumes"],["50","cl","vin rouge","épicerie"],["","","bouquet garni","herbes"]],
+  steps:["Saisir la viande, réserver.","Suer carottes et oignon, singer.","Déglacer au vin, remettre la viande.","Mijoter 2 h, ajouter champignons en fin."]},
+ {id:"r87",name:"Salade niçoise",cuisine:"français",diet:"poisson",vegan:false,veganSwap:false,time:20,servings:3,season:[6,7,8],
+  ing:[["160","g","thon","poisson"],["3","","œufs durs","frais"],["150","g","haricots verts","légumes"],["3","","pommes de terre","légumes"],["50","g","olives","légumes"],["2","","tomates (crues)","légumes"]],
+  steps:["Cuire haricots verts, pommes de terre et œufs.","Dresser avec tomates et thon.","Ajouter les olives.","Vinaigrette à l'huile d'olive."]},
+ {id:"r88",name:"Soupe au pistou",cuisine:"français",diet:"vegan",vegan:true,time:45,servings:4,season:[6,7,8,9],
+  ing:[["200","g","haricots blancs + coco","légumineuses"],["1","","courgette + pomme de terre","légumes"],["150","g","haricots verts","légumes"],["80","g","petites pâtes","féculents"],["1","botte","basilic + ail (pistou)","herbes"]],
+  steps:["Cuire les légumes et haricots en soupe.","Ajouter les pâtes.","Piler basilic, ail, huile d'olive.","Incorporer le pistou hors du feu."]},
+ // --- Chinois (plus) ---
+ {id:"r89",name:"Mapo tofu (végétarien)",cuisine:"chinois",diet:"vegan",vegan:true,time:25,servings:3,season:[],
+  ing:[["400","g","tofu soyeux/ferme","frais"],["150","g","champignons hachés","légumes"],["1","c.à s.","pâte de soja pimentée (doubanjiang)","épicerie"],["2","gousses","ail + gingembre","légumes"],["1","c.à c.","poivre du Sichuan","épices"],["2","","oignon vert","légumes"]],
+  steps:["Faire revenir ail, gingembre et doubanjiang.","Ajouter les champignons.","Ajouter le tofu en cubes + un peu d'eau, mijoter.","Poivre du Sichuan, oignon vert. Servir sur riz."]},
+ {id:"r90",name:"Poulet kung pao",cuisine:"chinois",diet:"viande",vegan:false,veganSwap:false,time:30,servings:3,season:[],
+  ing:[["400","g","blanc de poulet","viande"],["40","g","cacahuètes","épicerie"],["1","","poivron","légumes"],["4","","piments séchés","épices"],["2","gousses","ail + gingembre","légumes"],["2","c.à s.","sauce soja + vinaigre","épicerie"]],
+  steps:["Saisir le poulet en dés.","Ajouter ail, gingembre, piments, poivron.","Sauce soja-vinaigre, laisser glacer.","Cacahuètes et oignon vert."]},
+ {id:"r91",name:"Bœuf aux brocolis",cuisine:"chinois",diet:"viande",vegan:false,veganSwap:false,time:25,servings:3,season:[],
+  ing:[["400","g","bœuf émincé","viande"],["1","","brocoli","légumes"],["3","c.à s.","sauce soja + huître","épicerie"],["2","gousses","ail + gingembre","légumes"],["","","riz","féculents"]],
+  steps:["Saisir le bœuf à feu très vif.","Ajouter brocoli et ail-gingembre.","Sauce soja-huître, sauter 3 min.","Servir avec du riz."]},
+ {id:"r92",name:"Gyoza aux légumes",cuisine:"chinois",diet:"vegan",vegan:true,time:40,servings:4,season:[],
+  ing:[["24","","feuilles à gyoza","féculents"],["200","g","chou","légumes"],["1","","carotte","légumes"],["100","g","champignons","légumes"],["2","gousses","ail + gingembre","légumes"],["1","c.à s.","sauce soja + sésame","épicerie"]],
+  steps:["Hacher et faire suer les légumes.","Garnir et plier les gyoza.","Cuire à la poêle puis vapeur (eau + couvercle).","Servir avec sauce soja-vinaigre."]},
+ // --- Japonais (plus) ---
+ {id:"r93",name:"Maki saumon-avocat",cuisine:"japonais",diet:"poisson",vegan:false,veganSwap:false,time:40,servings:2,season:[],
+  ing:[["250","g","riz à sushi","féculents"],["150","g","saumon cru (sashimi)","poisson"],["1","","avocat","légumes"],["3","feuilles","nori","épicerie"],["2","c.à s.","vinaigre de riz","épicerie"]],
+  steps:["Cuire et assaisonner le riz au vinaigre.","Étaler sur le nori.","Garnir saumon + avocat, rouler.","Trancher au couteau humide."]},
+ {id:"r94",name:"Katsudon (porc pané sur riz)",cuisine:"japonais",diet:"viande",vegan:false,veganSwap:false,time:35,servings:2,season:[],
+  ing:[["2","","escalopes de porc","viande"],["50","g","panko","épicerie"],["2","","œufs","frais"],["1","","oignon (cuit)","légumes"],["10","cl","dashi + sauce soja","épicerie"],["","","riz","féculents"]],
+  steps:["Paner et frire le porc (tonkatsu).","Mijoter oignon dans le bouillon dashi-soja.","Ajouter le porc tranché, verser l'œuf battu.","Glisser sur un bol de riz."]},
+ {id:"r95",name:"Soba aux légumes",cuisine:"japonais",diet:"vegan",vegan:true,quick:true,time:20,servings:2,season:[],
+  ing:[["200","g","nouilles soba","féculents"],["3","c.à s.","sauce soja + mirin","épicerie"],["100","g","champignons + épinards","légumes"],["2","","oignon vert","légumes"],["1","c.à c.","sésame","épicerie"]],
+  steps:["Cuire les soba, rincer.","Poêler champignons et épinards.","Mélanger avec sauce soja-mirin.","Oignon vert et sésame."]},
+ // --- Indien (plus) ---
+ {id:"r96",name:"Butter chicken",cuisine:"indien",diet:"viande",vegan:false,veganSwap:false,time:45,servings:4,season:[],
+  ing:[["600","g","poulet","viande"],["400","g","tomates (cuites)","épicerie"],["15","cl","crème","frais"],["30","g","beurre","frais"],["2","c.à c.","garam masala + gingembre + ail","épices"],["","","riz / naan","féculents"]],
+  steps:["Mariner et saisir le poulet.","Mijoter avec tomates et épices.","Ajouter beurre et crème.","Servir avec riz ou naan."]},
+ {id:"r97",name:"Samosas aux légumes",cuisine:"indien",diet:"vegan",vegan:true,time:50,servings:5,season:[],
+  ing:[["12","","feuilles de brick","féculents"],["400","g","pommes de terre + petits pois","légumes"],["2","c.à c.","cumin + curcuma + garam masala","épices"],["","","coriandre","herbes"],["","","huile","épicerie"]],
+  steps:["Écraser pommes de terre et petits pois épicés.","Garnir et plier les samosas en triangles.","Frire ou cuire au four jusqu'à doré.","Servir avec chutney."]},
+ // --- Autres pays ---
+ {id:"r98",name:"Koshary (riz-lentilles-pâtes)",cuisine:"égyptien",diet:"vegan",vegan:true,time:45,servings:4,season:[],
+  ing:[["150","g","riz","féculents"],["100","g","macaroni","féculents"],["150","g","lentilles brunes","légumineuses"],["150","g","pois chiches cuits","légumineuses"],["400","g","sauce tomate (cuite) + ail-vinaigre","épicerie"],["2","","oignons frits","légumes"]],
+  steps:["Cuire séparément riz, lentilles et pâtes.","Mélanger avec les pois chiches.","Napper de sauce tomate épicée.","Couvrir d'oignons frits croustillants."]},
+ {id:"r99",name:"Misir wot (lentilles éthiopiennes)",cuisine:"éthiopien",diet:"vegan",vegan:true,time:40,servings:4,season:[],
+  ing:[["250","g","lentilles corail","légumineuses"],["2","c.à s.","berbéré","épices"],["2","","oignons (cuits)","légumes"],["2","gousses","ail + gingembre","légumes"],["200","g","tomate (cuite)","épicerie"]],
+  steps:["Fondre longuement les oignons.","Ajouter berbéré, ail, gingembre.","Ajouter lentilles, tomate et eau.","Mijoter 25 min. Servir avec injera ou riz."]},
+ {id:"r100",name:"Mafé de légumes (sauce arachide)",cuisine:"sénégalais",diet:"vegan",vegan:true,time:50,servings:4,season:[],
+  ing:[["1","","patate douce","légumes"],["2","","carottes","légumes"],["1/4","","chou","légumes"],["3","c.à s.","pâte d'arachide","épicerie"],["200","g","tomate (cuite)","épicerie"],["1","","oignon (cuit)","légumes"]],
+  steps:["Faire revenir oignon et tomate.","Délayer la pâte d'arachide.","Ajouter les légumes et de l'eau.","Mijoter 30 min. Servir avec du riz."]},
+ {id:"r101",name:"Thiéboudienne (riz au poisson)",cuisine:"sénégalais",diet:"poisson",vegan:false,veganSwap:false,time:70,servings:5,season:[],
+  ing:[["600","g","poisson blanc","poisson"],["400","g","riz cassé","féculents"],["400","g","tomate (cuite)","épicerie"],["1","","carotte + chou + manioc","légumes"],["1","","oignon (cuit)","légumes"],["","","persil + ail","herbes"]],
+  steps:["Farcir et saisir le poisson.","Mijoter les légumes dans la tomate.","Cuire le riz dans le bouillon.","Dresser riz, poisson et légumes."]},
+ {id:"r102",name:"Fish and chips",cuisine:"anglais",diet:"poisson",vegan:false,veganSwap:false,time:40,servings:3,season:[],
+  ing:[["3","","filets de cabillaud","poisson"],["600","g","pommes de terre","légumes"],["150","g","farine + bière (pâte)","épicerie"],["150","g","petits pois","légumes"]],
+  steps:["Tailler et cuire les frites.","Tremper le poisson dans la pâte à la bière.","Frire jusqu'à doré.","Servir avec purée de petits pois."]},
+ {id:"r103",name:"Shepherd's pie",cuisine:"anglais",diet:"viande",vegan:false,veganSwap:false,time:60,servings:4,season:[1,2,11,12],
+  ing:[["500","g","agneau haché","viande"],["800","g","pommes de terre (purée)","légumes"],["2","","carotte + oignon (cuit)","légumes"],["100","g","petits pois","légumes"],["20","cl","bouillon","épicerie"]],
+  steps:["Cuire la viande avec carotte, oignon, petits pois.","Mouiller de bouillon, réduire.","Couvrir de purée.","Gratiner 25 min à 200 °C."]},
+ {id:"r104",name:"Goulash hongrois",cuisine:"hongrois",diet:"viande",vegan:false,veganSwap:false,time:120,servings:5,season:[1,2,11,12],
+  ing:[["800","g","bœuf à mijoter","viande"],["3","c.à s.","paprika","épices"],["2","","oignons (cuits)","légumes"],["1","","poivron","légumes"],["400","g","tomate (cuite)","épicerie"],["3","","pommes de terre","légumes"]],
+  steps:["Fondre les oignons, ajouter le paprika.","Saisir la viande.","Tomate, poivron, eau ; mijoter 1 h 30.","Ajouter les pommes de terre en fin."]},
+ {id:"r105",name:"Pierogi pomme de terre-fromage",cuisine:"polonais",diet:"vegetarien",vegan:false,veganSwap:false,time:60,servings:4,season:[],
+  ing:[["300","g","farine","féculents"],["1","","œuf","frais"],["500","g","pommes de terre","légumes"],["120","g","fromage","frais"],["2","","oignons (cuits)","légumes"]],
+  steps:["Préparer une pâte souple, reposer.","Mélanger purée et fromage.","Garnir et fermer les pierogi.","Pocher puis poêler avec oignons."]},
+ {id:"r106",name:"Bortsch (végétarien)",cuisine:"ukrainien",diet:"vegan",vegan:true,time:60,servings:5,season:[10,11,12,1,2],
+  ing:[["3","","betteraves","légumes"],["1/4","","chou","légumes"],["2","","carotte + pomme de terre","légumes"],["400","g","tomate (cuite)","épicerie"],["","","aneth","herbes"],["1","","citron / vinaigre","épicerie"]],
+  steps:["Cuire betteraves et légumes en bouillon.","Ajouter tomate et chou.","Mijoter 40 min, acidifier au citron.","Servir avec aneth (et crème végétale)."]},
+ {id:"r107",name:"Khachapuri (pain au fromage)",cuisine:"géorgien",diet:"vegetarien",vegan:false,veganSwap:false,time:45,servings:2,season:[],
+  ing:[["300","g","pâte à pain","féculents"],["250","g","fromage (mozza + feta)","frais"],["1","","œuf","frais"],["20","g","beurre","frais"]],
+  steps:["Étaler la pâte en barque.","Garnir de fromage.","Cuire 12 min à four chaud.","Casser un œuf au centre, beurre, servir."]},
+ {id:"r108",name:"Mac and cheese",cuisine:"américain",diet:"vegetarien",vegan:false,veganSwap:true,time:35,servings:4,season:[],
+  ing:[["300","g","macaroni","féculents"],["200","g","cheddar","frais"],["40","cl","lait","frais"],["30","g","beurre + farine","frais"],["1","pincée","muscade","épices"]],
+  steps:["Cuire les macaroni.","Faire une béchamel, fondre le cheddar.","Mélanger pâtes et sauce.","Gratiner 15 min au four."]},
+ {id:"r109",name:"Lomo saltado",cuisine:"péruvien",diet:"viande",vegan:false,veganSwap:false,time:30,servings:3,season:[],
+  ing:[["400","g","bœuf émincé","viande"],["400","g","pommes de terre (frites)","légumes"],["1","","oignon (cuit)","légumes"],["2","","tomates (cuites)","légumes"],["3","c.à s.","sauce soja + vinaigre","épicerie"],["","","riz","féculents"]],
+  steps:["Saisir le bœuf à feu vif.","Ajouter oignon et tomate.","Sauce soja-vinaigre, mélanger aux frites.","Servir avec du riz."]},
+ {id:"r110",name:"Ceviche de poisson",cuisine:"péruvien",diet:"poisson",vegan:false,veganSwap:false,time:25,servings:3,season:[],
+  ing:[["400","g","poisson blanc très frais","poisson"],["4","","citrons verts","légumes"],["1/2","","oignon rouge cru","légumes"],["","","coriandre","herbes"],["1","","piment","épices"],["1","","patate douce / maïs","légumes"]],
+  steps:["Couper le poisson en cubes.","Mariner dans le jus de citron vert 15 min.","Ajouter oignon, piment, coriandre.","Servir avec patate douce ou maïs."]},
+ {id:"r111",name:"Gado-gado (salade indonésienne)",cuisine:"indonésien",diet:"vegan",vegan:true,time:30,servings:3,season:[],
+  ing:[["1/4","","chou + haricots verts","légumes"],["2","","pommes de terre","légumes"],["100","g","pousses de soja","légumes"],["200","g","tofu","frais"],["4","c.à s.","sauce cacahuète","épicerie"]],
+  steps:["Cuire les légumes à la vapeur.","Dorer le tofu.","Dresser légumes et tofu.","Napper de sauce cacahuète."]},
+ {id:"r112",name:"Nasi goreng végétarien",cuisine:"indonésien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:20,servings:2,season:[],
+  ing:[["250","g","riz cuit","féculents"],["1","","œuf","frais"],["1/4","","chou + carotte","légumes"],["2","c.à s.","kecap manis (soja sucré)","épicerie"],["2","gousses","ail + oignon (cuit)","légumes"]],
+  steps:["Faire revenir ail, oignon et légumes.","Ajouter le riz et le kecap manis.","Pousser, brouiller l'œuf.","Mélanger, servir avec oignon frit."]},
+ {id:"r113",name:"Poulet adobo (philippin)",cuisine:"philippin",diet:"viande",vegan:false,veganSwap:false,time:45,servings:4,season:[],
+  ing:[["8","","hauts de cuisse de poulet","viande"],["8","cl","sauce soja + vinaigre","épicerie"],["4","gousses","ail","légumes"],["2","","feuilles de laurier","herbes"],["1","c.à c.","poivre","épices"],["","","riz","féculents"]],
+  steps:["Saisir le poulet.","Mijoter dans soja, vinaigre, ail, laurier.","Réduire jusqu'à sauce sirupeuse.","Servir avec du riz."]},
+ {id:"r114",name:"Caldo verde (végétarien)",cuisine:"portugais",diet:"vegan",vegan:true,time:30,servings:4,season:[10,11,12,1,2],
+  ing:[["300","g","chou kale émincé","légumes"],["500","g","pommes de terre","légumes"],["1","","oignon (cuit)","légumes"],["2","gousses","ail","légumes"],["3","c.à s.","huile d'olive","épicerie"]],
+  steps:["Cuire pommes de terre, oignon, ail.","Mixer en velouté.","Ajouter le chou émincé finement.","Cuire 5 min, filet d'huile d'olive."]},
+ {id:"r115",name:"Pho bo (soupe vietnamienne au bœuf)",cuisine:"vietnamien",diet:"viande",vegan:false,veganSwap:false,time:60,servings:4,season:[],
+  ing:[["200","g","bœuf émincé","viande"],["250","g","nouilles de riz (pho)","féculents"],["1","l","bouillon (anis, cannelle, gingembre)","épices"],["","","coriandre, basilic thaï","herbes"],["100","g","pousses de soja","légumes"],["1","","citron vert","légumes"]],
+  steps:["Infuser le bouillon aux épices grillées.","Cuire les nouilles.","Dresser nouilles + bœuf cru tranché.","Verser le bouillon brûlant, herbes et citron vert."]},
+ {id:"r116",name:"Tteokbokki (gâteaux de riz épicés)",cuisine:"coréen",diet:"vegan",vegan:true,time:25,servings:2,season:[],
+  ing:[["300","g","tteok (gâteaux de riz)","féculents"],["2","c.à s.","gochujang + gochugaru","épices"],["1","c.à c.","sucre","épicerie"],["2","","oignon vert","légumes"],["1","c.à c.","sauce soja","épicerie"]],
+  steps:["Faire bouillir une sauce gochujang-soja-sucre.","Ajouter les tteok.","Mijoter jusqu'à sauce nappante.","Oignon vert et sésame."]},
+ {id:"r117",name:"Bun cha (porc grillé, vermicelles)",cuisine:"vietnamien",diet:"viande",vegan:false,veganSwap:false,time:40,servings:3,season:[],
+  ing:[["400","g","porc haché / poitrine","viande"],["200","g","vermicelles de riz","féculents"],["4","c.à s.","nuoc-mâm + citron vert + sucre","épicerie"],["","","herbes (menthe, coriandre)","herbes"],["1","","carotte (pickle)","légumes"]],
+  steps:["Mariner et griller le porc.","Cuire les vermicelles.","Préparer la sauce nuoc-mâm sucrée-acide.","Servir porc, vermicelles, herbes et pickles séparés."]},
+ {id:"r118",name:"Köttbullar (boulettes suédoises)",cuisine:"suédois",diet:"viande",vegan:false,veganSwap:false,time:40,servings:4,season:[],
+  ing:[["500","g","viande hachée","viande"],["50","g","chapelure + lait","frais"],["1","","oignon (cuit)","légumes"],["20","cl","sauce crème","frais"],["600","g","pommes de terre","légumes"]],
+  steps:["Mélanger viande, chapelure, oignon.","Façonner et dorer les boulettes.","Déglacer en sauce crémeuse.","Servir avec purée (et confiture d'airelles)."]},
+ {id:"r119",name:"Feijoada (brésilienne)",cuisine:"brésilien",diet:"viande",vegan:false,veganSwap:false,time:90,servings:5,season:[],
+  ing:[["400","g","haricots noirs","légumineuses"],["400","g","porc + saucisse fumée","viande"],["1","","oignon (cuit)","légumes"],["3","gousses","ail","légumes"],["2","","feuilles de laurier","herbes"],["","","riz + orange","féculents"]],
+  steps:["Tremper et cuire les haricots noirs.","Faire revenir viandes, oignon, ail.","Réunir et mijoter 1 h.","Servir avec riz, orange et chou."]},
+ {id:"r120",name:"Sundubu jjigae (ragoût de tofu soyeux)",cuisine:"coréen",diet:"vegan",vegan:true,time:25,servings:2,season:[1,2,11,12],
+  ing:[["300","g","tofu soyeux","frais"],["1","c.à s.","gochugaru","épices"],["100","g","champignons","légumes"],["2","","oignon vert","légumes"],["2","gousses","ail","légumes"],["50","cl","bouillon de légumes","épicerie"]],
+  steps:["Faire revenir ail et gochugaru.","Ajouter le bouillon et les champignons.","Incorporer le tofu soyeux en gros morceaux.","Oignon vert, servir bouillant."]},
+ // ================== VAGUE 2 : RAPIDES & EFFICACES (toutes cuisines) ==================
+ {id:"r121",name:"Velouté de courge",cuisine:"français",diet:"vegan",vegan:true,quick:true,time:25,servings:4,season:[10,11,12,1,2],
+  ing:[["800","g","courge / potimarron","légumes"],["1","","oignon (cuit)","légumes"],["20","cl","lait de coco","épicerie"],["1","pincée","muscade","épices"],["","","sel, poivre","épicerie"]],
+  steps:["Faire revenir l'oignon, ajouter la courge en dés.","Couvrir d'eau, cuire 18 min.","Mixer avec le lait de coco.","Muscade, sel, poivre."]},
+ {id:"r122",name:"Salade de lentilles tièdes",cuisine:"français",diet:"vegan",vegan:true,quick:true,time:20,servings:3,season:[],
+  ing:[["200","g","lentilles vertes","légumineuses"],["1","","carotte","légumes"],["2","","oignon vert","légumes"],["1","c.à s.","moutarde + vinaigre","épicerie"],["","","persil, huile d'olive","herbes"]],
+  steps:["Cuire les lentilles 18 min.","Préparer une vinaigrette moutarde.","Mélanger lentilles tièdes, carotte râpée, oignon vert.","Persil et assaisonnement."]},
+ {id:"r123",name:"Pâtes tomate-basilic",cuisine:"italien",diet:"vegan",vegan:true,quick:true,time:15,servings:2,season:[],
+  ing:[["200","g","pâtes","féculents"],["400","g","tomate (cuite)","épicerie"],["1","gousse","ail","légumes"],["","","basilic","herbes"],["2","c.à s.","huile d'olive","épicerie"]],
+  steps:["Cuire les pâtes.","Chauffer la sauce tomate avec l'ail.","Mélanger pâtes et sauce.","Basilic frais et huile d'olive."]},
+ {id:"r124",name:"Polenta crémeuse aux champignons",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:25,servings:3,season:[9,10,11],
+  ing:[["200","g","polenta","féculents"],["250","g","champignons","légumes"],["40","g","parmesan","frais"],["1","gousse","ail","légumes"],["","","persil, huile","herbes"]],
+  steps:["Cuire la polenta dans de l'eau salée.","Poêler les champignons à l'ail.","Crémer la polenta au parmesan.","Garnir de champignons et persil."]},
+ {id:"r125",name:"Œufs cocotte aux épinards",cuisine:"français",diet:"vegetarien",vegan:false,veganSwap:false,quick:true,time:15,servings:2,season:[],
+  ing:[["4","","œufs","frais"],["100","g","épinards","légumes"],["10","cl","crème","frais"],["","","muscade, sel","épices"],["","","pain","féculents"]],
+  steps:["Répartir épinards et crème dans des ramequins.","Casser un œuf dans chacun.","Cuire 12 min au four (bain-marie).","Servir avec des mouillettes."]},
+ {id:"r126",name:"Quesadilla haricots-fromage",cuisine:"mexicain",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:15,servings:2,season:[],
+  ing:[["2","","grandes tortillas","féculents"],["200","g","haricots noirs cuits","légumineuses"],["100","g","fromage râpé","frais"],["1","c.à c.","cumin + paprika","épices"],["","","coriandre","herbes"]],
+  steps:["Écraser les haricots épicés.","Garnir la tortilla, fromage, plier.","Dorer à la poêle des deux côtés.","Couper en parts."]},
+ {id:"r127",name:"Burrito bowl",cuisine:"mexicain",diet:"vegan",vegan:true,quick:true,time:20,servings:2,season:[],
+  ing:[["200","g","riz","féculents"],["200","g","haricots rouges cuits","légumineuses"],["100","g","maïs","légumes"],["1","","avocat","légumes"],["200","g","salsa tomate (cuite)","épicerie"],["","","coriandre, citron vert","herbes"]],
+  steps:["Cuire le riz.","Réchauffer haricots et maïs.","Dresser en bol riz, haricots, maïs, avocat.","Salsa, coriandre, citron vert."]},
+ {id:"r128",name:"Tacos de champignons",cuisine:"mexicain",diet:"vegan",vegan:true,quick:true,time:20,servings:2,season:[],
+  ing:[["300","g","champignons","légumes"],["6","","petites tortillas","féculents"],["1","","oignon (cuit)","légumes"],["1","c.à c.","cumin + paprika fumé","épices"],["1","","avocat","légumes"],["","","coriandre, citron vert","herbes"]],
+  steps:["Saisir les champignons avec oignon et épices.","Réchauffer les tortillas.","Garnir de champignons et avocat.","Coriandre et citron vert."]},
+ {id:"r129",name:"Poke bowl au saumon",cuisine:"hawaïen",diet:"poisson",vegan:false,veganSwap:false,quick:true,time:20,servings:2,season:[],
+  ing:[["200","g","riz","féculents"],["200","g","saumon cru","poisson"],["100","g","edamame","légumes"],["1","","avocat","légumes"],["1","","carotte","légumes"],["2","c.à s.","sauce soja + sésame","épicerie"]],
+  steps:["Cuire le riz, laisser tiédir.","Couper le saumon en dés, mariner au soja.","Dresser riz, saumon, edamame, avocat, carotte.","Sésame et sauce soja."]},
+ {id:"r130",name:"Poke bowl tofu",cuisine:"hawaïen",diet:"vegan",vegan:true,quick:true,time:20,servings:2,season:[],
+  ing:[["200","g","riz","féculents"],["200","g","tofu ferme","frais"],["100","g","edamame","légumes"],["1","","avocat","légumes"],["1","","carotte","légumes"],["2","c.à s.","sauce soja + sésame","épicerie"]],
+  steps:["Cuire le riz.","Dorer le tofu, glacer au soja.","Dresser riz, tofu, edamame, avocat, carotte.","Sésame et sauce soja."]},
+ {id:"r131",name:"Riz sauté au kimchi",cuisine:"coréen",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:15,servings:2,season:[],
+  ing:[["250","g","riz cuit","féculents"],["150","g","kimchi","épicerie"],["1","","œuf","frais"],["2","","oignon vert","légumes"],["1","c.à c.","huile de sésame","épicerie"]],
+  steps:["Sauter le kimchi à feu vif.","Ajouter le riz froid.","Pousser, cuire un œuf au plat.","Huile de sésame et oignon vert."]},
+ {id:"r132",name:"Udon en bouillon",cuisine:"japonais",diet:"vegan",vegan:true,quick:true,time:15,servings:2,season:[],
+  ing:[["2","portions","nouilles udon","féculents"],["75","cl","bouillon + sauce soja + mirin","épicerie"],["100","g","champignons + épinards","légumes"],["2","","oignon vert","légumes"]],
+  steps:["Chauffer le bouillon soja-mirin.","Pocher champignons et épinards.","Cuire les udon, répartir en bols.","Verser le bouillon, oignon vert."]},
+ {id:"r133",name:"Pad krapow (bœuf au basilic thaï)",cuisine:"thaï",diet:"viande",vegan:false,veganSwap:false,quick:true,time:20,servings:2,season:[],
+  ing:[["300","g","bœuf haché","viande"],["2","gousses","ail + piment","légumes"],["2","c.à s.","sauce soja + huître","épicerie"],["1","botte","basilic thaï","herbes"],["","","riz","féculents"]],
+  steps:["Saisir ail et piment.","Ajouter le bœuf, saisir à feu vif.","Sauces, laisser glacer.","Basilic thaï hors du feu. Servir sur riz (œuf au plat optionnel)."]},
+ {id:"r134",name:"Salade thaï de nouilles",cuisine:"thaï",diet:"vegan",vegan:true,quick:true,time:20,servings:2,season:[],
+  ing:[["150","g","vermicelles de riz","féculents"],["1","","carotte","légumes"],["100","g","chou","légumes"],["40","g","cacahuètes","épicerie"],["3","c.à s.","sauce soja + citron vert + sucre","épicerie"],["","","coriandre, menthe","herbes"]],
+  steps:["Réhydrater les vermicelles.","Râper carotte et chou.","Mélanger avec la sauce acidulée.","Cacahuètes et herbes."]},
+ {id:"r135",name:"Dal tadka (lentilles épicées)",cuisine:"indien",diet:"vegan",vegan:true,quick:true,time:25,servings:3,season:[],
+  ing:[["200","g","lentilles corail","légumineuses"],["1","","oignon (cuit)","légumes"],["2","gousses","ail + gingembre","légumes"],["1","c.à c.","cumin + curcuma","épices"],["","","coriandre","herbes"]],
+  steps:["Cuire les lentilles avec le curcuma.","Préparer un tadka : cumin, ail, oignon dorés.","Verser sur les lentilles.","Coriandre. Servir avec du riz."]},
+ {id:"r136",name:"Curry d'œufs",cuisine:"indien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:25,servings:3,season:[],
+  ing:[["6","","œufs durs","frais"],["400","g","tomate (cuite)","épicerie"],["1","","oignon (cuit)","légumes"],["2","c.à c.","curry / garam masala","épices"],["10","cl","lait de coco","épicerie"]],
+  steps:["Préparer une sauce oignon-tomate-épices.","Ajouter le lait de coco.","Plonger les œufs durs coupés en deux.","Mijoter 5 min. Servir avec du riz."]},
+ {id:"r137",name:"Saag tofu express",cuisine:"indien",diet:"vegan",vegan:true,quick:true,time:20,servings:3,season:[1,2,3,9,10],
+  ing:[["300","g","épinards","légumes"],["250","g","tofu ferme","frais"],["2","gousses","ail + gingembre","légumes"],["1","c.à c.","garam masala","épices"],["10","cl","lait de coco","épicerie"]],
+  steps:["Mixer les épinards blanchis.","Dorer le tofu en cubes.","Réunir avec ail, gingembre, épices, coco.","Mijoter 5 min."]},
+ {id:"r138",name:"Fattoush",cuisine:"libanais",diet:"vegan",vegan:true,quick:true,time:15,servings:3,season:[6,7,8],
+  ing:[["2","","tomates (crues)","légumes"],["1","","concombre","légumes"],["1","","pain pita grillé","féculents"],["","","persil + menthe","herbes"],["1","","citron + sumac","épicerie"]],
+  steps:["Couper tomates, concombre, herbes.","Griller et briser le pita.","Mélanger avec citron, sumac, huile d'olive.","Ajouter le pain juste avant de servir."]},
+ {id:"r139",name:"Manakish za'atar",cuisine:"libanais",diet:"vegan",vegan:true,quick:true,time:20,servings:2,season:[],
+  ing:[["1","","pâte à pain","féculents"],["3","c.à s.","za'atar","épices"],["4","c.à s.","huile d'olive","épicerie"]],
+  steps:["Étaler la pâte.","Mélanger za'atar et huile d'olive.","Étaler sur la pâte.","Cuire 10 min à four chaud."]},
+ {id:"r140",name:"Halloumi grillé & légumes",cuisine:"chypriote",diet:"vegetarien",vegan:false,veganSwap:false,quick:true,time:15,servings:2,season:[6,7,8,9],
+  ing:[["200","g","halloumi","frais"],["1","","courgette","légumes"],["1","","poivron","légumes"],["1","","citron","légumes"],["","","menthe, huile d'olive","herbes"]],
+  steps:["Griller les tranches de halloumi.","Griller courgette et poivron.","Dresser ensemble.","Citron, menthe, huile d'olive."]},
+ {id:"r141",name:"Omelette feta-épinards",cuisine:"grec",diet:"vegetarien",vegan:false,veganSwap:false,quick:true,time:12,servings:2,season:[],
+  ing:[["4","","œufs","frais"],["80","g","feta","frais"],["80","g","épinards","légumes"],["","","aneth, huile d'olive","herbes"]],
+  steps:["Faire tomber les épinards.","Battre les œufs, ajouter feta et aneth.","Cuire en omelette.","Plier et servir."]},
+ {id:"r142",name:"Pâtes au thon",cuisine:"italien",diet:"poisson",vegan:false,veganSwap:false,quick:true,time:15,servings:2,season:[],
+  ing:[["200","g","pâtes","féculents"],["1","boîte","thon","poisson"],["400","g","tomate (cuite)","épicerie"],["1","gousse","ail","légumes"],["","","persil, huile d'olive","herbes"]],
+  steps:["Cuire les pâtes.","Chauffer tomate et ail.","Ajouter le thon émietté.","Mélanger aux pâtes, persil."]},
+ {id:"r143",name:"Saumon poêlé & légumes",cuisine:"français",diet:"poisson",vegan:false,veganSwap:false,quick:true,time:20,servings:2,season:[],
+  ing:[["2","","pavés de saumon","poisson"],["200","g","haricots verts","légumes"],["2","","pommes de terre","légumes"],["1","","citron","légumes"],["","","aneth, huile d'olive","herbes"]],
+  steps:["Cuire pommes de terre et haricots verts.","Poêler le saumon côté peau.","Citron et aneth.","Servir ensemble."]},
+ {id:"r144",name:"Tacos de poisson",cuisine:"mexicain",diet:"poisson",vegan:false,veganSwap:false,quick:true,time:20,servings:2,season:[],
+  ing:[["300","g","poisson blanc","poisson"],["6","","tortillas","féculents"],["150","g","chou rouge","légumes"],["1","","avocat","légumes"],["1","","citron vert + coriandre","herbes"],["1","c.à c.","paprika + cumin","épices"]],
+  steps:["Épicer et poêler le poisson.","Réchauffer les tortillas.","Garnir poisson, chou, avocat.","Citron vert et coriandre."]},
+ {id:"r145",name:"Poulet teriyaki express",cuisine:"japonais",diet:"viande",vegan:false,veganSwap:false,quick:true,time:20,servings:2,season:[],
+  ing:[["2","","blancs de poulet","viande"],["3","c.à s.","sauce soja + mirin","épicerie"],["1","c.à s.","sucre","épicerie"],["","","riz","féculents"],["2","","oignon vert","légumes"]],
+  steps:["Saisir le poulet en lamelles.","Ajouter soja, mirin, sucre.","Laisser glacer.","Servir sur riz, oignon vert et sésame."]},
+ {id:"r146",name:"Wok de poulet aux légumes",cuisine:"chinois",diet:"viande",vegan:false,veganSwap:false,quick:true,time:20,servings:3,season:[],
+  ing:[["300","g","poulet","viande"],["300","g","légumes (brocoli, poivron, carotte)","légumes"],["3","c.à s.","sauce soja + huître","épicerie"],["2","gousses","ail + gingembre","légumes"],["","","riz / nouilles","féculents"]],
+  steps:["Saisir le poulet à feu vif.","Ajouter les légumes croquants.","Ail, gingembre, sauces.","Servir sur riz ou nouilles."]},
+ {id:"r147",name:"Quesadilla au poulet",cuisine:"mexicain",diet:"viande",vegan:false,veganSwap:false,quick:true,time:15,servings:2,season:[],
+  ing:[["2","","grandes tortillas","féculents"],["200","g","poulet cuit","viande"],["100","g","fromage râpé","frais"],["1","","poivron","légumes"],["1","c.à c.","cumin + paprika","épices"]],
+  steps:["Mélanger poulet, poivron, épices.","Garnir la tortilla, fromage, plier.","Dorer à la poêle.","Couper en parts."]},
+ {id:"r148",name:"Frittata aux légumes",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:false,quick:true,time:20,servings:3,season:[],
+  ing:[["6","","œufs","frais"],["1","","courgette","légumes"],["100","g","pommes de terre cuites","légumes"],["40","g","parmesan","frais"],["","","basilic","herbes"]],
+  steps:["Poêler courgette et pommes de terre.","Verser les œufs battus au parmesan.","Cuire doucement puis finir au four.","Basilic, couper en parts."]},
+ {id:"r149",name:"Wrap thon-crudités",cuisine:"perso",diet:"poisson",vegan:false,veganSwap:false,quick:true,time:10,servings:1,season:[],
+  ing:[["1","","grande tortilla","féculents"],["1","boîte","thon","poisson"],["1","","carotte râpée","légumes"],["2","c.à s.","fromage frais / mayo","frais"],["","","salade, citron","légumes"]],
+  steps:["Étaler le fromage frais sur la tortilla.","Garnir thon, carotte, salade.","Citron.","Rouler serré et couper."]},
+ {id:"r150",name:"Salade de quinoa",cuisine:"perso",diet:"vegan",vegan:true,quick:true,time:20,servings:3,season:[],
+  ing:[["200","g","quinoa","féculents"],["200","g","pois chiches cuits","légumineuses"],["1","","poivron rôti","légumes"],["","","persil + menthe","herbes"],["1","","citron + huile d'olive","épicerie"]],
+  steps:["Cuire le quinoa, laisser tiédir.","Mélanger pois chiches et poivron.","Herbes, citron, huile d'olive.","Servir frais."]},
+ {id:"r151",name:"Couscous express aux légumes",cuisine:"maghrébin",diet:"vegan",vegan:true,quick:true,time:20,servings:3,season:[],
+  ing:[["250","g","semoule","féculents"],["200","g","pois chiches cuits","légumineuses"],["1","","courgette + carotte","légumes"],["2","c.à c.","ras el-hanout","épices"],["","","coriandre, raisins secs","herbes"]],
+  steps:["Sauter les légumes avec les épices.","Hydrater la semoule.","Mélanger légumes, pois chiches, semoule.","Coriandre et raisins secs."]},
+ {id:"r152",name:"Soupe miso-udon aux légumes",cuisine:"japonais",diet:"vegan",vegan:true,quick:true,time:15,servings:2,season:[],
+  ing:[["2","portions","nouilles udon","féculents"],["3","c.à s.","pâte de miso","épicerie"],["75","cl","eau","épicerie"],["100","g","chou + champignons","légumes"],["2","","oignon vert","légumes"]],
+  steps:["Chauffer l'eau, délayer le miso (sans bouillir).","Pocher chou et champignons.","Cuire les udon.","Dresser, oignon vert."]},
+ {id:"r153",name:"Gimbap (rouleau de riz coréen)",cuisine:"coréen",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:25,servings:3,season:[],
+  ing:[["300","g","riz","féculents"],["4","feuilles","nori","épicerie"],["1","","carotte + épinards","légumes"],["1","","œuf (omelette)","frais"],["1","c.à c.","huile de sésame","épicerie"]],
+  steps:["Assaisonner le riz au sésame.","Sauter carotte et épinards, faire une omelette.","Étaler riz sur le nori, garnir.","Rouler serré et trancher."]},
+ {id:"r154",name:"Pad see ew aux légumes",cuisine:"thaï",diet:"vegan",vegan:true,quick:true,time:20,servings:2,season:[],
+  ing:[["200","g","nouilles de riz larges","féculents"],["150","g","brocoli chinois / chou","légumes"],["200","g","tofu","frais"],["3","c.à s.","sauce soja + sucré","épicerie"],["2","gousses","ail","légumes"]],
+  steps:["Saisir l'ail et le tofu.","Ajouter les légumes.","Nouilles et sauces, sauter à feu vif.","Servir bien chaud."]},
+ {id:"r155",name:"Burger maison",cuisine:"américain",diet:"viande",vegan:false,veganSwap:false,quick:true,time:25,servings:2,season:[],
+  ing:[["300","g","bœuf haché","viande"],["2","","pains à burger","féculents"],["2","tranches","cheddar","frais"],["1","","oignon (cuit)","légumes"],["","","salade, sauce","légumes"]],
+  steps:["Façonner et saisir les steaks.","Fondre le cheddar dessus.","Toaster les pains.","Monter avec oignon, salade et sauce."]},
+ {id:"r156",name:"Chili con carne express",cuisine:"mexicain",diet:"viande",vegan:false,veganSwap:false,quick:true,time:25,servings:4,season:[],
+  ing:[["400","g","bœuf haché","viande"],["400","g","haricots rouges cuits","légumineuses"],["400","g","tomate (cuite)","épicerie"],["1","","oignon (cuit) + poivron","légumes"],["2","c.à c.","cumin + paprika","épices"],["","","riz","féculents"]],
+  steps:["Saisir le bœuf avec oignon et poivron.","Ajouter épices, tomate et haricots.","Mijoter 15 min.","Servir avec du riz."]},
+ {id:"r157",name:"Soupe de nouilles au poulet",cuisine:"asiatique",diet:"viande",vegan:false,veganSwap:false,quick:true,time:20,servings:2,season:[1,2,11,12],
+  ing:[["200","g","nouilles","féculents"],["200","g","poulet","viande"],["75","cl","bouillon + gingembre + soja","épicerie"],["100","g","pak choï / épinards","légumes"],["2","","oignon vert","légumes"]],
+  steps:["Pocher le poulet dans le bouillon parfumé.","Cuire les nouilles.","Ajouter les légumes verts.","Dresser, oignon vert."]},
+ {id:"r158",name:"Wrap falafel-houmous",cuisine:"libanais",diet:"vegan",vegan:true,quick:true,time:10,servings:1,season:[],
+  ing:[["1","","pain pita / tortilla","féculents"],["4","","falafels","légumineuses"],["3","c.à s.","houmous","légumineuses"],["","","salade, persil","légumes"],["1","","citron","légumes"]],
+  steps:["Étaler le houmous sur le pain.","Ajouter falafels et salade.","Citron et persil.","Rouler et servir."]},
+ {id:"r159",name:"Curry de poulet coco express",cuisine:"thaï",diet:"viande",vegan:false,veganSwap:false,quick:true,time:25,servings:3,season:[],
+  ing:[["400","g","poulet","viande"],["2","c.à s.","pâte de curry","épices"],["400","ml","lait de coco","épicerie"],["1","","poivron + courgette","légumes"],["","","riz","féculents"]],
+  steps:["Saisir le poulet.","Ajouter la pâte de curry et le lait de coco.","Légumes, mijoter 12 min.","Servir avec du riz."]},
+ {id:"r160",name:"Tartine ricotta & tomates rôties",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:15,servings:2,season:[7,8,9],
+  ing:[["2","tranches","pain de campagne","féculents"],["100","g","ricotta","frais"],["200","g","tomates (rôties)","légumes"],["","","basilic, huile d'olive","herbes"],["1","gousse","ail","légumes"]],
+  steps:["Rôtir les tomates au four 10 min.","Toaster le pain, frotter d'ail.","Étaler la ricotta.","Tomates rôties, basilic, huile d'olive."]},
+ // ================== VAGUE 3 : ENCORE PLUS DE RAPIDES ==================
+ {id:"r161",name:"Soupe de tomate maison",cuisine:"français",diet:"vegan",vegan:true,quick:true,time:20,servings:4,season:[],
+  ing:[["800","g","tomate (cuite) / pelées","épicerie"],["1","","oignon (cuit)","légumes"],["1","gousse","ail","légumes"],["","","basilic","herbes"],["1","filet","huile d'olive","épicerie"]],
+  steps:["Faire revenir oignon et ail.","Ajouter les tomates et un peu d'eau.","Mijoter 12 min, mixer.","Basilic et huile d'olive."]},
+ {id:"r162",name:"Velouté de brocoli",cuisine:"français",diet:"vegan",vegan:true,quick:true,time:20,servings:3,season:[10,11,12,1,2,3],
+  ing:[["1","","brocoli","légumes"],["1","","pomme de terre","légumes"],["1","","oignon (cuit)","légumes"],["","","sel, poivre, muscade","épices"]],
+  steps:["Faire revenir l'oignon.","Ajouter brocoli et pomme de terre, couvrir d'eau.","Cuire 15 min.","Mixer, assaisonner."]},
+ {id:"r163",name:"Soupe petits pois & menthe",cuisine:"français",diet:"vegan",vegan:true,quick:true,time:15,servings:3,season:[4,5,6],
+  ing:[["400","g","petits pois","légumes"],["1","","oignon (cuit)","légumes"],["","","menthe","herbes"],["","","sel, poivre","épices"]],
+  steps:["Faire fondre l'oignon.","Ajouter les petits pois et de l'eau.","Cuire 8 min.","Mixer avec la menthe."]},
+ {id:"r164",name:"Croque-monsieur végétarien",cuisine:"français",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:15,servings:2,season:[],
+  ing:[["4","tranches","pain de mie","féculents"],["80","g","emmental","frais"],["20","cl","béchamel","frais"],["","","muscade","épices"]],
+  steps:["Tartiner de béchamel.","Garnir d'emmental, fermer.","Couvrir de fromage.","Gratiner 8 min au four."]},
+ {id:"r165",name:"Pan-bagnat (sandwich niçois)",cuisine:"français",diet:"poisson",vegan:false,veganSwap:false,quick:true,time:15,servings:2,season:[6,7,8],
+  ing:[["2","","pains ronds","féculents"],["1","boîte","thon","poisson"],["2","","œufs durs","frais"],["2","","tomates (crues)","légumes"],["50","g","olives","légumes"],["","","huile d'olive","épicerie"]],
+  steps:["Ouvrir les pains, arroser d'huile d'olive.","Garnir thon, œuf, tomate, olives.","Refermer et presser.","Laisser reposer 10 min."]},
+ {id:"r166",name:"Pommes de terre sautées & œuf",cuisine:"français",diet:"vegetarien",vegan:false,veganSwap:false,quick:true,time:20,servings:2,season:[],
+  ing:[["500","g","pommes de terre cuites","légumes"],["2","","œufs","frais"],["1","gousse","ail","légumes"],["","","persil","herbes"],["","","huile, sel","épicerie"]],
+  steps:["Sauter les pommes de terre jusqu'à doré.","Ajouter ail et persil.","Cuire les œufs au plat.","Servir ensemble."]},
+ {id:"r167",name:"Bruschetta tomate-basilic",cuisine:"italien",diet:"vegan",vegan:true,quick:true,time:10,servings:2,season:[6,7,8],
+  ing:[["4","tranches","pain","féculents"],["3","","tomates (crues)","légumes"],["1","gousse","ail","légumes"],["","","basilic","herbes"],["2","c.à s.","huile d'olive","épicerie"]],
+  steps:["Griller le pain, frotter d'ail.","Couper les tomates en dés assaisonnés.","Garnir le pain.","Basilic et huile d'olive."]},
+ {id:"r168",name:"Pasta arrabiata",cuisine:"italien",diet:"vegan",vegan:true,quick:true,time:15,servings:2,season:[],
+  ing:[["200","g","penne","féculents"],["400","g","tomate (cuite)","épicerie"],["2","gousses","ail","légumes"],["1","","piment","légumes"],["","","persil, huile d'olive","herbes"]],
+  steps:["Faire revenir ail et piment.","Ajouter la tomate, mijoter.","Cuire les pâtes.","Mélanger, persil."]},
+ {id:"r169",name:"Cacio e pepe",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:false,quick:true,time:15,servings:2,season:[],
+  ing:[["200","g","spaghetti","féculents"],["60","g","pecorino","frais"],["","","poivre noir","épices"]],
+  steps:["Cuire les pâtes, garder l'eau.","Torréfier le poivre.","Émulsionner pecorino + eau de cuisson.","Lier les pâtes à la crème de fromage."]},
+ {id:"r170",name:"Caponata d'aubergine",cuisine:"italien",diet:"vegan",vegan:true,quick:true,time:25,servings:3,season:[7,8,9],
+  ing:[["2","","aubergines","légumes"],["2","","tomates (cuites)","légumes"],["1","","oignon (cuit)","légumes"],["50","g","olives + câpres","légumes"],["1","c.à s.","vinaigre","épicerie"]],
+  steps:["Poêler les aubergines en dés.","Ajouter oignon et tomates.","Olives, câpres, vinaigre (aigre-doux).","Mijoter 10 min, servir tiède."]},
+ {id:"r171",name:"Panzanella (salade de pain)",cuisine:"italien",diet:"vegan",vegan:true,quick:true,time:15,servings:3,season:[6,7,8],
+  ing:[["200","g","pain rassis","féculents"],["3","","tomates (crues)","légumes"],["1/2","","oignon rouge cru","légumes"],["","","basilic","herbes"],["3","c.à s.","huile d'olive + vinaigre","épicerie"]],
+  steps:["Faire griller le pain, le casser.","Couper tomates et oignon.","Mélanger avec huile et vinaigre.","Laisser s'imbiber, basilic."]},
+ {id:"r172",name:"Risotto à la courge",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:25,servings:3,season:[10,11,12],
+  ing:[["250","g","riz arborio","féculents"],["300","g","courge","légumes"],["1","","oignon (cuit)","légumes"],["75","cl","bouillon","épicerie"],["40","g","parmesan","frais"]],
+  steps:["Nacrer le riz avec l'oignon.","Ajouter la courge en dés.","Mouiller au bouillon louche par louche.","Parmesan en fin de cuisson."]},
+ {id:"r173",name:"Riz cantonais aux œufs",cuisine:"chinois",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:15,servings:2,season:[],
+  ing:[["250","g","riz cuit (froid)","féculents"],["2","","œufs","frais"],["100","g","petits pois + carotte","légumes"],["2","c.à s.","sauce soja","épicerie"],["2","","oignon vert","légumes"]],
+  steps:["Brouiller les œufs, réserver.","Sauter les légumes.","Ajouter le riz et la sauce soja.","Réincorporer les œufs, oignon vert."]},
+ {id:"r174",name:"Chow mein aux légumes",cuisine:"chinois",diet:"vegan",vegan:true,quick:true,time:20,servings:2,season:[],
+  ing:[["200","g","nouilles chinoises","féculents"],["200","g","chou + carotte + poivron","légumes"],["3","c.à s.","sauce soja + sésame","épicerie"],["2","gousses","ail + gingembre","légumes"]],
+  steps:["Cuire les nouilles.","Sauter les légumes à feu vif.","Ajouter nouilles et sauces.","Mélanger, servir."]},
+ {id:"r175",name:"Yaki udon",cuisine:"japonais",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:15,servings:2,season:[],
+  ing:[["2","portions","udon","féculents"],["200","g","chou + champignons","légumes"],["3","c.à s.","sauce soja + mirin","épicerie"],["1","","œuf","frais"],["2","","oignon vert","légumes"]],
+  steps:["Sauter les légumes.","Ajouter les udon.","Sauces, faire glacer.","Œuf brouillé, oignon vert."]},
+ {id:"r176",name:"Tamago sando (sandwich à l'œuf)",cuisine:"japonais",diet:"vegetarien",vegan:false,veganSwap:false,quick:true,time:12,servings:2,season:[],
+  ing:[["4","tranches","pain de mie","féculents"],["4","","œufs durs","frais"],["2","c.à s.","mayonnaise","frais"],["1","c.à c.","moutarde","épicerie"]],
+  steps:["Écraser les œufs durs.","Mélanger avec mayo et moutarde.","Garnir le pain de mie.","Couper en deux."]},
+ {id:"r177",name:"Bibim guksu (nouilles froides épicées)",cuisine:"coréen",diet:"vegan",vegan:true,quick:true,time:15,servings:2,season:[6,7,8],
+  ing:[["200","g","nouilles fines (somyeon)","féculents"],["2","c.à s.","gochujang + vinaigre + sucre","épices"],["1","","carotte","légumes"],["2","","oignon vert","légumes"],["1","c.à c.","huile de sésame","épicerie"]],
+  steps:["Cuire les nouilles, rincer à froid.","Préparer la sauce gochujang aigre-douce.","Mélanger nouilles, carotte, sauce.","Sésame et oignon vert."]},
+ {id:"r178",name:"Galette de kimchi (kimchi jeon)",cuisine:"coréen",diet:"vegan",vegan:true,quick:true,time:20,servings:2,season:[],
+  ing:[["200","g","kimchi","épicerie"],["120","g","farine","épicerie"],["15","cl","eau","épicerie"],["2","","oignon vert","légumes"],["","","huile","épicerie"]],
+  steps:["Mélanger kimchi haché, farine, eau.","Ajouter l'oignon vert.","Cuire en galette fine et croustillante.","Couper et servir avec sauce soja."]},
+ {id:"r179",name:"Huevos rancheros",cuisine:"mexicain",diet:"vegetarien",vegan:false,veganSwap:false,quick:true,time:20,servings:2,season:[],
+  ing:[["2","","tortillas","féculents"],["2","","œufs","frais"],["200","g","haricots noirs cuits","légumineuses"],["200","g","salsa tomate (cuite)","épicerie"],["","","coriandre","herbes"]],
+  steps:["Réchauffer tortillas et haricots.","Cuire les œufs au plat.","Dresser tortilla, haricots, œuf.","Salsa chaude et coriandre."]},
+ {id:"r180",name:"Soupe de haricots noirs",cuisine:"mexicain",diet:"vegan",vegan:true,quick:true,time:25,servings:3,season:[],
+  ing:[["400","g","haricots noirs cuits","légumineuses"],["1","","oignon (cuit)","légumes"],["2","gousses","ail","légumes"],["1","c.à c.","cumin + paprika fumé","épices"],["1","","citron vert","légumes"]],
+  steps:["Faire revenir oignon, ail, épices.","Ajouter les haricots et de l'eau.","Mijoter 12 min, mixer en partie.","Citron vert, coriandre."]},
+ {id:"r181",name:"Ful medames (fèves épicées)",cuisine:"égyptien",diet:"vegan",vegan:true,quick:true,time:15,servings:3,season:[],
+  ing:[["400","g","fèves cuites","légumineuses"],["1","gousse","ail","légumes"],["1","","citron","légumes"],["1","c.à c.","cumin","épices"],["3","c.à s.","huile d'olive","épicerie"]],
+  steps:["Réchauffer les fèves avec l'ail.","Écraser grossièrement.","Cumin, citron, huile d'olive.","Servir avec du pain."]},
+ {id:"r182",name:"Zaalouk (caviar d'aubergine marocain)",cuisine:"marocain",diet:"vegan",vegan:true,quick:true,time:25,servings:3,season:[7,8,9],
+  ing:[["2","","aubergines","légumes"],["2","","tomates (cuites)","légumes"],["2","gousses","ail","légumes"],["1","c.à c.","cumin + paprika","épices"],["","","coriandre, huile d'olive","herbes"]],
+  steps:["Cuire aubergines et tomates à couvert.","Écraser avec l'ail et les épices.","Laisser réduire.","Coriandre et huile d'olive."]},
+ {id:"r183",name:"Briam (légumes rôtis grecs)",cuisine:"grec",diet:"vegan",vegan:true,quick:true,time:25,servings:4,season:[7,8,9],
+  ing:[["2","","courgettes","légumes"],["3","","pommes de terre","légumes"],["3","","tomates (cuites)","légumes"],["1","","oignon (cuit)","légumes"],["","","origan, huile d'olive","herbes"]],
+  steps:["Trancher tous les légumes.","Disposer dans un plat, huile d'olive et origan.","Rôtir 20 min au four chaud.","Servir tiède."]},
+ {id:"r184",name:"Gözleme épinards-feta",cuisine:"turc",diet:"vegetarien",vegan:false,veganSwap:false,quick:true,time:20,servings:2,season:[],
+  ing:[["2","","galettes fines (yufka)","féculents"],["150","g","épinards","légumes"],["100","g","feta","frais"],["","","persil","herbes"]],
+  steps:["Faire tomber les épinards.","Mélanger avec la feta.","Garnir et plier les galettes.","Dorer à la poêle sèche."]},
+ {id:"r185",name:"Dolma (feuilles de vigne farcies)",cuisine:"turc",diet:"vegan",vegan:true,quick:true,time:25,servings:3,season:[],
+  ing:[["20","","feuilles de vigne","légumes"],["150","g","riz","féculents"],["1","","oignon (cuit)","légumes"],["","","menthe + aneth","herbes"],["1","","citron, huile d'olive","épicerie"]],
+  steps:["Mélanger riz, oignon, herbes.","Garnir et rouler les feuilles.","Cuire à couvert avec eau, citron, huile.","Servir froid."]},
+ {id:"r186",name:"Rouleaux de printemps frais",cuisine:"vietnamien",diet:"vegan",vegan:true,quick:true,time:25,servings:3,season:[],
+  ing:[["8","","galettes de riz","féculents"],["100","g","vermicelles de riz","féculents"],["150","g","tofu","frais"],["1","","carotte","légumes"],["","","menthe, coriandre","herbes"]],
+  steps:["Cuire les vermicelles, dorer le tofu.","Tremper les galettes de riz.","Garnir herbes, carotte, tofu, vermicelles.","Rouler serré, servir avec sauce cacahuète."]},
+ {id:"r187",name:"Khao soi (curry de nouilles)",cuisine:"thaï",diet:"viande",vegan:false,veganSwap:false,quick:true,time:25,servings:3,season:[],
+  ing:[["300","g","poulet","viande"],["200","g","nouilles aux œufs","féculents"],["2","c.à s.","pâte de curry","épices"],["400","ml","lait de coco","épicerie"],["1","","citron vert + oignon vert","légumes"]],
+  steps:["Faire revenir la pâte de curry.","Ajouter le poulet et le lait de coco.","Cuire les nouilles à part.","Dresser, citron vert et oignon vert."]},
+ {id:"r188",name:"Jollof rice au poulet",cuisine:"ouest-africain",diet:"viande",vegan:false,veganSwap:false,quick:true,time:25,servings:4,season:[],
+  ing:[["300","g","riz","féculents"],["300","g","poulet","viande"],["400","g","tomate (cuite)","épicerie"],["1","","oignon (cuit) + poivron","légumes"],["1","c.à c.","épices (curry, thym, piment)","épices"]],
+  steps:["Saisir le poulet, réserver.","Mijoter tomate, oignon, poivron, épices.","Ajouter le riz et le bouillon.","Cuire à couvert avec le poulet."]},
+ {id:"r189",name:"Chakalaka (légumes épicés)",cuisine:"sud-africain",diet:"vegan",vegan:true,quick:true,time:20,servings:4,season:[],
+  ing:[["2","","carottes râpées","légumes"],["1","","poivron","légumes"],["400","g","haricots blancs cuits","légumineuses"],["400","g","tomate (cuite)","épicerie"],["1","c.à c.","curry + piment","épices"]],
+  steps:["Faire revenir poivron et carotte.","Ajouter curry et tomate.","Incorporer les haricots.","Mijoter 10 min, servir."]},
+ {id:"r190",name:"Sabich (pita aubergine-œuf)",cuisine:"israélien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:20,servings:2,season:[],
+  ing:[["2","","pains pita","féculents"],["1","","aubergine","légumes"],["2","","œufs durs","frais"],["3","c.à s.","tahini","épicerie"],["","","persil","herbes"]],
+  steps:["Poêler les tranches d'aubergine.","Garnir les pitas d'aubergine et d'œuf.","Sauce tahini.","Persil et un trait de citron."]}
+];
+
+/* ============================ ÉTAT ============================ */
+const LS={recipes:"mijote_recipes",fridge:"mijote_fridge",plan:"mijote_plan",dislikes:"mijote_dislikes",vegan:"mijote_vegan",shopState:"mijote_shop",jars:"mijote_jars",mig:"mijote_mig",vegOnly:"mijote_vegonly",opened:"mijote_opened",validated:"mijote_validated"};
+const DEFAULT_DISLIKES=["olives","tomates crues","oignons crus","concombre","camembert","brie","chèvre","yaourt","oats","flocons d'avoine"];
+let state={
+  recipes: load(LS.recipes, null) || SEED.map(r=>({...r})),
+  fridge: load(LS.fridge, []),
+  plan: load(LS.plan, {}),            // {0:{midi:[],soir:[]}} par jour
+  dislikes: load(LS.dislikes, DEFAULT_DISLIKES.slice()),
+  vegan: load(LS.vegan, false),
+  shopChecked: load(LS.shopState, {}),
+  jars: load(LS.jars, []),            // bocaux suivis : {id,recipeId,name,start,readyHours,bestHours,keepDays}
+  vegOnly: load(LS.vegOnly, true),    // masquer viande & poisson pour Ellie (ON par défaut ; OFF pour partager)
+  opened: load(LS.opened, []),        // aliments ouverts : {id,name,openedTs,keepDays}
+  validated: load(LS.validated, null) // menu validé : clé ISO du lundi de la semaine, ou null
+};
+// migrations légères pour bases déjà enregistrées (appelée dans init, après définition des helpers)
+function runMigrations(){
+  const done=load(LS.mig,[]); let changed=false;
+  if(!done.includes("concombre")){ if(!state.dislikes.some(d=>(d||"").toLowerCase().includes("concombre")))state.dislikes.push("concombre"); done.push("concombre"); changed=true; }
+  if(!done.includes("eggpickles2")){ SEED.forEach(s=>{ if(!state.recipes.some(r=>r.id===s.id) && /^r3[1-9]|^r4[0-2]/.test(s.id))state.recipes.push({...s}); }); done.push("eggpickles2"); changed=true; }
+  if(!done.includes("quick1")){ SEED.forEach(s=>{ if(s.quick && !state.recipes.some(r=>r.id===s.id))state.recipes.push({...s}); }); done.push("quick1"); changed=true; }
+  if(!done.includes("world1")){ SEED.forEach(s=>{ const num=parseInt((s.id||"").slice(1)); if(num>=53 && !state.recipes.some(r=>r.id===s.id))state.recipes.push({...s}); }); done.push("world1"); changed=true; }
+  if(!done.includes("simple2")){ SEED.forEach(s=>{ const num=parseInt((s.id||"").slice(1)); if(num>=121 && !state.recipes.some(r=>r.id===s.id))state.recipes.push({...s}); }); done.push("simple2"); changed=true; }
+  if(!done.includes("simple3")){ SEED.forEach(s=>{ const num=parseInt((s.id||"").slice(1)); if(num>=161 && !state.recipes.some(r=>r.id===s.id))state.recipes.push({...s}); }); done.push("simple3"); changed=true; }
+  if(changed){ save(LS.mig,done); persist(); }
+}
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function persist(){save(LS.recipes,state.recipes);save(LS.fridge,state.fridge);save(LS.plan,state.plan);save(LS.dislikes,state.dislikes);save(LS.vegan,state.vegan);save(LS.shopState,state.shopChecked);save(LS.jars,state.jars);save(LS.vegOnly,state.vegOnly);save(LS.opened,state.opened);save(LS.validated,state.validated);}
+
+/* ============================ UTILS ============================ */
+const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
+const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+const DAYS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2200);}
+function uid(){return "u"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+// un ingrédient est-il « non aimé » ?
+function dislikeHit(text){
+  const n=norm(text);
+  for(const d of state.dislikes){
+    const dn=norm(d);
+    if(!dn)continue;
+    // "olives" ne doit pas matcher "huile d'olive"
+    if(dn==="olives"||dn==="olive"){ if(/\bolives?\b/.test(n)&&!/huile/.test(n))return d; continue;}
+    if(dn==="tomates crues"){ if(/tomate/.test(n)&&!/cuit|concass|sauce|mijot/.test(n))return d; continue;}
+    if(dn==="oignons crus"){ if(/oignon/.test(n)&&!/cuit|fondu|revenu|caram|vert|nouveau|cive|ciboul/.test(n))return d; continue;}
+    // yaourt : OK comme ingrédient cuit dans un plat ; exclu seulement en nature/standalone
+    if(dn==="yaourt"){ if(/yaourt/.test(n)&&!/coco|soja|vegetal|a cuire|cuire/.test(n)&&/nature|grec|brass|au petit|petit.?dej|seul|bol de/.test(n))return d; continue;}
+    if(n.includes(dn))return d;
+  }
+  return null;
+}
+function recipeDislikes(r){
+  const hits=new Set();
+  r.ing.forEach(i=>{const h=dislikeHit(i[2]);if(h)hits.add(h);});
+  return [...hits];
+}
+function isVeganView(r){ return r.vegan || ((state.vegan)&&r.veganSwap); }
+function dietOf(r){ return r.diet || (r.vegan?"vegan":(r.veganSwap?"veganizable":"vegetarien")); }
+function isVegMe(r){ const d=dietOf(r); return d!=="poisson" && d!=="viande"; } // végétarien-compatible
+function dietBadgeClass(r){ const d=dietOf(r); return d==="poisson"?"fish":(d==="viande"?"meat":"veg"); }
+function dietLabel(r){ const d=dietOf(r);
+  return d==="vegan"?"Vegan":d==="veganizable"?"Vegan possible":d==="poisson"?"🐟 Poisson":d==="viande"?"🍖 Viande":"Végétarien"; }
+function currentMonth(){ return new Date().getMonth()+1; }
+function inSeason(r){ const m=currentMonth(); return !r.season||r.season.length===0||r.season.includes(m); }
+
+/* ============================ NAV ============================ */
+$("#tabs").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-v]"); if(!b)return;
+  $$("#tabs button").forEach(x=>x.classList.toggle("active",x===b));
+  $$(".view").forEach(v=>v.classList.remove("active"));
+  $("#v-"+b.dataset.v).classList.add("active");
+  if(b.dataset.v==="accueil")renderHome();
+  if(b.dataset.v==="recettes")renderRecipes();
+  if(b.dataset.v==="semaine")renderWeek();
+  if(b.dataset.v==="courses")renderShop();
+  if(b.dataset.v==="pickles"){renderOpened();renderJars();}
+  if(b.dataset.v==="reglages")renderDislikes();
+});
+function gotoTab(v){
+  $$("#tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===v));
+  $$(".view").forEach(x=>x.classList.remove("active"));
+  $("#v-"+v).classList.add("active");
+}
+window.gotoTab=gotoTab;
+
+/* ============================ FRIGO ============================ */
+function renderFridge(){
+  const wrap=$("#fridgeChips"); wrap.innerHTML="";
+  state.fridge.forEach((f,i)=>{
+    const c=document.createElement("span"); c.className="chip x";
+    c.innerHTML=`${f} <span>×</span>`;
+    c.onclick=()=>{state.fridge.splice(i,1);persist();renderFridge();renderFridgeResults();};
+    wrap.appendChild(c);
+  });
+  // suggestions de saison
+  const m=currentMonth();
+  const sugg=SEASON[m].filter(s=>!state.fridge.some(f=>norm(f)===norm(s))).slice(0,8);
+  $("#fridgeSugg").innerHTML = sugg.length? "De saison : "+sugg.map(s=>`<a href="#" data-s="${s}" class="ssg">+ ${s}</a>`).join("&nbsp;&nbsp;"):"";
+  $$(".ssg").forEach(a=>a.onclick=ev=>{ev.preventDefault();addFridge(a.dataset.s);});
+}
+function addFridge(v){
+  v=v.trim(); if(!v)return;
+  v.split(",").map(x=>x.trim()).filter(Boolean).forEach(x=>{
+    if(!state.fridge.some(f=>norm(f)===norm(x)))state.fridge.push(x);
+  });
+  persist();renderFridge();renderFridgeResults();
+}
+$("#fridgeAdd").onclick=()=>{addFridge($("#fridgeInput").value);$("#fridgeInput").value="";};
+$("#fridgeInput").addEventListener("keydown",e=>{if(e.key==="Enter"){addFridge($("#fridgeInput").value);$("#fridgeInput").value="";}});
+
+function matchScore(r){
+  const have=state.fridge.map(norm);
+  let hit=0;
+  r.ing.forEach(i=>{ const n=norm(i[2]); if(have.some(h=>n.includes(h)||h.includes(n)))hit++; });
+  return {hit,total:r.ing.length,pct:r.ing.length?hit/r.ing.length:0};
+}
+function renderFridgeResults(){
+  const seasonOnly=$("#seasonOnly").checked;
+  let list=state.recipes.filter(r=>{
+    if(state.vegOnly && !isVegMe(r))return false;
+    if(state.vegan && !isVeganView(r))return false;
+    if(recipeDislikes(r).length)return false;
+    if(seasonOnly && !inSeason(r))return false;
+    return true;
+  });
+  list=list.map(r=>({r,s:matchScore(r)}));
+  if(state.fridge.length){ list.sort((a,b)=> b.s.pct-a.s.pct || b.s.hit-a.s.hit ); }
+  else { list.sort((a,b)=> (inSeason(b.r)?1:0)-(inSeason(a.r)?1:0) ); }
+  $("#fridgeCount").textContent=`${list.length} recette${list.length>1?"s":""}`;
+  const box=$("#fridgeResults"); box.innerHTML="";
+  list.forEach(({r,s})=>box.appendChild(recipeCard(r,s)));
+  if(!list.length)box.innerHTML=`<div class="empty"><div class="ic">🍃</div>Aucune recette ne correspond. Élargis tes filtres.</div>`;
+}
+$("#seasonOnly").onchange=renderFridgeResults;
+
+/* carte recette */
+function recipeCard(r,score){
+  const el=document.createElement("div"); el.className="card recipe";
+  const seasonB=inSeason(r)?`<span class="badge season">de saison</span>`:"";
+  let matchHtml="";
+  if(score && state.fridge.length){
+    matchHtml=`<div class="match"><i style="width:${Math.round(score.pct*100)}%"></i></div>
+      <div class="tiny muted">${score.hit}/${score.total} ingrédient${score.hit>1?"s":""} dans ton frigo</div>`;
+  }
+  el.innerHTML=`
+    <div class="spread"><span class="title">${r.name}</span></div>
+    <div class="row" style="gap:6px">
+      <span class="badge ${dietBadgeClass(r)}">${dietLabel(r)}</span>${r.quick?'<span class="badge quick">⚡ Rapide</span>':''}${seasonB}
+    </div>
+    <div class="meta"><span class="chip cuisine">${r.cuisine}</span><span class="chip">⏱ ${r.time} min</span><span class="chip">👥 ${r.servings}</span></div>
+    ${matchHtml}`;
+  el.onclick=()=>openRecipe(r.id);
+  return el;
+}
+
+/* ============================ MODAL RECETTE ============================ */
+function openRecipe(id){
+  const r=state.recipes.find(x=>x.id===id); if(!r)return;
+  const veganOn = isVeganView(r);
+  const dis=recipeDislikes(r);
+  const ingHtml=r.ing.map(i=>{
+    const name=i[2]; const have=state.fridge.some(f=>{const n=norm(name),h=norm(f);return n.includes(h)||h.includes(n);});
+    let swap=""; if(veganOn && !r.vegan){ const key=Object.keys(VEGAN_SWAPS).find(k=>norm(name).includes(norm(k))); if(key)swap=`<div class="swap">↳ vegan : ${VEGAN_SWAPS[key]}</div>`; }
+    const q=[i[0],i[1]].filter(Boolean).join(" ");
+    return `<li><span class="${have?'have':''}">${have?'✓ ':''}${name}${swap}</span><span class="muted">${q}</span></li>`;
+  }).join("");
+  const stepsHtml=r.steps.map(s=>`<li>${s}</li>`).join("");
+  const disWarn=dis.length?`<div class="card" style="border-color:rgba(242,178,92,.4);margin-bottom:14px"><b style="color:var(--warn)">⚠ Contient :</b> ${dis.join(", ")} <span class="muted small">(dans tes aliments non aimés)</span></div>`:"";
+  $("#modal").innerHTML=`
+    <div class="mhead"><span class="close-x" onclick="closeModal()">×</span>
+      <h2 style="margin:0 0 6px;max-width:90%">${r.name}</h2>
+      <div class="row" style="gap:6px"><span class="badge ${dietBadgeClass(r)}">${dietLabel(r)}</span><span class="chip cuisine">${r.cuisine}</span><span class="chip">⏱ ${r.time} min</span><span class="chip">👥 ${r.servings} pers.</span></div>
+    </div>
+    <div class="mbody">
+      ${disWarn}
+      ${(!r.vegan&&r.veganSwap)?`<label class="row small" style="gap:8px;cursor:pointer;margin-bottom:12px"><span class="toggle ${veganOn?'on':''}" id="mdVegan"><i></i></span><span class="muted">Voir la version vegan</span></label>`:""}
+      <h3>Ingrédients</h3>
+      <ul class="ing">${ingHtml}</ul>
+      <h3 style="margin-top:16px">Préparation</h3>
+      <ol class="steps">${stepsHtml}</ol>
+      ${r.notes?`<div class="muted small" style="margin-top:12px">📝 ${r.notes}</div>`:""}
+    </div>
+    <div class="mfoot">
+      <button class="btn danger" onclick="deleteRecipe('${r.id}')">Supprimer</button>
+      <button class="btn" onclick="editRecipe('${r.id}')">✏️ Personnaliser</button>
+      <button class="btn primary" onclick="addToWeekPrompt('${r.id}')">+ Ajouter à ma semaine</button>
+    </div>`;
+  $("#modalBg").classList.add("open");
+  const t=$("#mdVegan"); if(t)t.onclick=()=>{ state.vegan=!state.vegan; $("#veganGlobal").classList.toggle("on",state.vegan); persist(); openRecipe(id); };
+}
+function closeModal(){$("#modalBg").classList.remove("open");}
+$("#modalBg").onclick=e=>{if(e.target===$("#modalBg"))closeModal();};
+window.closeModal=closeModal;
+
+function deleteRecipe(id){
+  if(!confirm("Supprimer cette recette de ta base ?"))return;
+  state.recipes=state.recipes.filter(r=>r.id!==id);
+  // retirer de la semaine
+  Object.keys(state.plan).forEach(d=>state.plan[d]=(state.plan[d]||[]).filter(x=>x!==id));
+  persist();closeModal();renderFridgeResults();renderRecipes();toast("Recette supprimée");
+}
+window.deleteRecipe=deleteRecipe;
+
+/* ============================ RECETTES (liste) ============================ */
+function fillCuisineFilter(){
+  const sel=$("#cuisineFilter");
+  const cuis=[...new Set(state.recipes.map(r=>r.cuisine))].sort();
+  sel.innerHTML=`<option value="">Toutes cuisines</option>`+cuis.map(c=>`<option>${c}</option>`).join("");
+}
+function renderRecipes(){
+  fillCuisineFilter();
+  const q=norm($("#recipeSearch").value), cf=$("#cuisineFilter").value, df=$("#dietFilter").value, qk=$("#quickFilter").checked;
+  let list=state.recipes.filter(r=>{
+    const dr=dietOf(r);
+    if(q && !norm(r.name).includes(q) && !r.ing.some(i=>norm(i[2]).includes(q)))return false;
+    if(cf && r.cuisine!==cf)return false;
+    if(qk && !r.quick)return false;
+    // réglage « végé pour moi » : masque viande/poisson, sauf si on les demande explicitement
+    if(state.vegOnly && !isVegMe(r) && df!=="poisson" && df!=="viande")return false;
+    if(df==="vegan" && dr!=="vegan")return false;
+    if(df==="vegetarien" && !isVegMe(r))return false;
+    if(df==="veganizable" && !(r.vegan||r.veganSwap))return false;
+    if(df==="poisson" && dr!=="poisson")return false;
+    if(df==="viande" && dr!=="viande")return false;
+    return true;
+  });
+  $("#recipeCount").textContent=`${list.length} recette${list.length>1?"s":""} dans ta base`;
+  const box=$("#recipeList"); box.innerHTML="";
+  list.forEach(r=>{ const c=recipeCard(r); if(recipeDislikes(r).length)c.classList.add("dim"); box.appendChild(c); });
+  if(!list.length)box.innerHTML=`<div class="empty"><div class="ic">📭</div>Aucune recette.</div>`;
+}
+["#recipeSearch","#cuisineFilter","#dietFilter","#quickFilter"].forEach(s=>$(s).addEventListener("input",renderRecipes));
+$("#quickFilter").addEventListener("change",renderRecipes);
+
+/* ============================ SEMAINE ============================ */
+const MEALS=[["midi","☀️ Midi"],["soir","🌙 Soir"]];
+// normalise le plan d'un jour vers {midi:[],soir:[]} (gère l'ancien format tableau)
+function ensureMeals(i){
+  let p=state.plan[i];
+  if(Array.isArray(p))p={midi:p.slice(),soir:[]};
+  if(!p||typeof p!=="object")p={midi:[],soir:[]};
+  if(!Array.isArray(p.midi))p.midi=[]; if(!Array.isArray(p.soir))p.soir=[];
+  state.plan[i]=p; return p;
+}
+function allPlannedIds(){ const ids=[]; for(let i=0;i<7;i++){const m=ensureMeals(i);ids.push(...m.midi,...m.soir);} return ids; }
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+/* --- validation du menu : clé du lundi de la semaine en cours --- */
+function mondayKey(d){ d=new Date(d); const day=(d.getDay()+6)%7; d.setHours(0,0,0,0); d.setDate(d.getDate()-day); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function currentWeekKey(){ return mondayKey(new Date()); }
+function todayIndex(){ return (new Date().getDay()+6)%7; } // 0 = lundi
+// au démarrage : si le menu validé date d'une semaine passée, on le réinitialise (reset le dimanche soir)
+function checkWeekReset(){
+  if(state.validated && state.validated!==currentWeekKey()){
+    state.validated=null; state.plan={}; state.shopChecked={}; persist();
+  }
+}
+function validateWeek(){
+  if(!allPlannedIds().filter(Boolean).length){ toast("Ajoute d'abord des repas à ta semaine"); return; }
+  state.validated=currentWeekKey(); persist();
+  renderWeek(); renderHome();
+  gotoTab("accueil");
+  toast("Menu validé ✓ — affiché sur l'accueil");
+}
+function unvalidateWeek(){ state.validated=null; persist(); renderWeek(); renderHome(); }
+function renderWeekValidInfo(){
+  const box=$("#weekValidInfo"); if(!box)return;
+  if(state.validated===currentWeekKey()){
+    box.innerHTML=`<div class="validated-banner">✓ Menu validé pour cette semaine — toujours modifiable ci-dessous. <button class="btn sm" id="weekUnvalidate" style="margin-left:auto">Annuler la validation</button></div>`;
+    $("#weekUnvalidate").onclick=unvalidateWeek;
+  } else { box.innerHTML=""; }
+}
+
+function renderWeek(){
+  const w=$("#week"); w.innerHTML="";
+  DAYS.forEach((d,i)=>{
+    const day=document.createElement("div"); day.className="day";
+    const meals=ensureMeals(i);
+    const sections=MEALS.map(([key,lbl])=>{
+      const slots=meals[key].map((id,si)=>{
+        const r=state.recipes.find(x=>x.id===id);
+        return `<div class="slot">${r?r.name:"—"}<span class="rm" data-d="${i}" data-k="${key}" data-s="${si}">×</span></div>`;
+      }).join("");
+      return `<div class="meal"><div class="meal-lbl">${lbl}</div>${slots}<button class="add" data-day="${i}" data-meal="${key}">+</button></div>`;
+    }).join("");
+    day.innerHTML=`<h4>${d}</h4>${sections}`;
+    w.appendChild(day);
+  });
+  $$("#week .add").forEach(b=>b.onclick=()=>openPicker(+b.dataset.day,null,b.dataset.meal));
+  $$("#week .rm").forEach(b=>b.onclick=()=>{const d=+b.dataset.d,k=b.dataset.k,s=+b.dataset.s;ensureMeals(d)[k].splice(s,1);persist();renderWeek();});
+  renderWeekValidInfo();
+}
+$("#weekValidate").onclick=validateWeek;
+$("#weekClear").onclick=()=>{if(confirm("Vider toute la semaine ?")){state.plan={};state.validated=null;persist();renderWeek();}};
+$("#weekRandom").onclick=()=>{
+  const pool=state.recipes.filter(r=>!recipeDislikes(r).length && (!state.vegOnly||isVegMe(r)) && (!state.vegan||isVeganView(r)));
+  if(pool.length<2){toast("Ajoute d'abord quelques recettes");return;}
+  if(allPlannedIds().filter(Boolean).length && !confirm("Remplacer toute la semaine par une sélection au hasard (midi + soir) ?"))return;
+  let bag=[]; const draw=()=>{ if(!bag.length)bag=shuffle(pool.map(r=>r.id)); return bag.pop(); };
+  state.plan={};
+  for(let i=0;i<7;i++)state.plan[i]={midi:[draw()],soir:[draw()]};
+  persist(); renderWeek(); toast("Semaine remplie au hasard 🎲 — à toi de trier !");
+};
+// --- Menu optimisé (anti-gâchis : maximise le partage d'ingrédients) ---
+const STAPLES=["sel","poivre","huile","eau","sucre"]; // ignorés (on les a toujours)
+function recipeIngSet(r){ const S=new Set(); r.ing.forEach(i=>{const n=norm(i[2]); if(n&&!STAPLES.some(s=>n.includes(s)))S.add(n);}); return S; }
+function weekOptimized(){
+  const filtered=state.recipes.filter(r=>!recipeDislikes(r).length && (!state.vegOnly||isVegMe(r)) && (!state.vegan||isVeganView(r)));
+  if(filtered.length<2)return null;
+  const pool=shuffle(filtered);
+  const sets=new Map(pool.map(r=>[r.id,recipeIngSet(r)]));
+  const quickPool=pool.filter(r=>r.quick);
+  const pantry=new Set(), used=new Set();
+  // choisit la recette qui réutilise le plus le garde-manger (pénalise les nouveaux achats)
+  function pick(cands,allowRepeat){
+    let best=null,bs=-1e9;
+    for(const r of cands){
+      if(!allowRepeat && used.has(r.id))continue;
+      const s=sets.get(r.id); let sh=0,nw=0; s.forEach(x=>pantry.has(x)?sh++:nw++);
+      const sc=sh*2 - nw + (inSeason(r)?0.5:0);
+      if(sc>bs){bs=sc;best=r;}
+    }
+    return best;
+  }
+  const take=r=>{ if(r){ used.add(r.id); sets.get(r.id).forEach(x=>pantry.add(x)); } return r; };
+  // graine : une recette rapide, de saison et « riche », avec un peu d'aléa pour varier
+  const seedBase=(quickPool.length?quickPool:pool).slice().sort((a,b)=>(inSeason(b)-inSeason(a))||(sets.get(b.id).size-sets.get(a.id).size)).slice(0,6);
+  const firstQuick=seedBase[Math.floor(Math.random()*seedBase.length)];
+  const days=[];
+  for(let i=0;i<7;i++){
+    // créneau 1 = TOUJOURS une recette rapide (≥1 plat simple/jour)
+    let q = (i===0 && firstQuick) ? firstQuick
+          : (quickPool.length ? (pick(quickPool,false)||pick(quickPool,true)) : (pick(pool,false)||pick(pool,true)));
+    take(q);
+    // créneau 2 = n'importe quelle recette qui maximise le réemploi
+    let o = take(pick(pool,false)||pick(pool,true));
+    // alterne la position midi/soir pour varier
+    days.push(Math.random()<0.5?[q,o]:[o,q]);
+  }
+  return days; // 7 paires [midi, soir]
+}
+$("#weekOptim").onclick=()=>{
+  const days=weekOptimized();
+  if(!days){toast("Ajoute d'abord quelques recettes");return;}
+  if(allPlannedIds().filter(Boolean).length && !confirm("Remplacer toute la semaine par un menu optimisé anti-gâchis ?"))return;
+  state.plan={};
+  for(let i=0;i<7;i++)state.plan[i]={midi:[days[i][0].id],soir:[days[i][1].id]};
+  persist(); renderWeek();
+  const all=days.flat().filter(Boolean);
+  const counts={}; all.forEach(r=>recipeIngSet(r).forEach(x=>counts[x]=(counts[x]||0)+1));
+  const shared=Object.values(counts).filter(c=>c>=2).length, distinct=Object.keys(counts).length;
+  toast(`Menu optimisé 🧩 — ${distinct} ingrédients, ${shared} partagés · 1 plat ⚡/jour`);
+};
+$("#weekToShop").onclick=()=>{gotoTab("courses");renderShop();};
+
+function addToWeekPrompt(id){ closeModal(); openPicker(null,id); }
+window.addToWeekPrompt=addToWeekPrompt;
+
+// picker : si dayIndex donné → choisir une recette pour (jour,service) ; sinon → choisir jour+service pour recipeId
+function openPicker(dayIndex,recipeId,meal){
+  const m=$("#pickModal");
+  if(dayIndex!==null && dayIndex!==undefined){
+    const mealLbl=(MEALS.find(x=>x[0]===meal)||["","Repas"])[1];
+    const opts=state.recipes.filter(r=>!recipeDislikes(r).length && (!state.vegOnly||isVegMe(r))).map(r=>`<button class="btn" style="justify-content:flex-start;width:100%;margin-bottom:6px" data-id="${r.id}">${r.name} <span class="muted small">· ${r.cuisine}</span></button>`).join("");
+    m.innerHTML=`<div class="mhead"><span class="close-x" onclick="closePick()">×</span><h3 style="margin:0">${DAYS[dayIndex]} · ${mealLbl}</h3></div>
+      <div class="mbody" style="max-height:60vh;overflow:auto"><input id="pickSearch" placeholder="Filtrer…" style="margin-bottom:10px"><div id="pickList">${opts}</div></div>`;
+    $("#pickBg").classList.add("open");
+    $("#pickSearch").oninput=()=>{const q=norm($("#pickSearch").value);$$("#pickList button").forEach(b=>b.style.display=norm(b.textContent).includes(q)?"":"none");};
+    $$("#pickList button").forEach(b=>b.onclick=()=>{ ensureMeals(dayIndex)[meal].push(b.dataset.id); persist(); closePick(); renderWeek(); toast("Ajouté à "+DAYS[dayIndex]+" "+mealLbl); });
+  } else {
+    const rows=DAYS.map((d,i)=>{const mm=ensureMeals(i);
+      return `<div class="row" style="justify-content:space-between;margin-bottom:7px"><span>${d}</span><span class="row" style="gap:6px">
+        <button class="btn sm" data-day="${i}" data-meal="midi">☀️ Midi (${mm.midi.length})</button>
+        <button class="btn sm" data-day="${i}" data-meal="soir">🌙 Soir (${mm.soir.length})</button></span></div>`;}).join("");
+    m.innerHTML=`<div class="mhead"><span class="close-x" onclick="closePick()">×</span><h3 style="margin:0">Quel jour / service ?</h3></div><div class="mbody" style="max-height:60vh;overflow:auto">${rows}</div>`;
+    $("#pickBg").classList.add("open");
+    $$("#pickModal button[data-day]").forEach(b=>b.onclick=()=>{const i=+b.dataset.day,k=b.dataset.meal;ensureMeals(i)[k].push(recipeId);persist();closePick();toast("Ajouté à "+DAYS[i]+" "+(k==="soir"?"🌙 Soir":"☀️ Midi"));});
+  }
+}
+function closePick(){$("#pickBg").classList.remove("open");}
+window.closePick=closePick;
+$("#pickBg").onclick=e=>{if(e.target===$("#pickBg"))closePick();};
+
+/* ============================ COURSES ============================ */
+const SHOP_ORDER=["légumes","légumineuses","féculents","viande","poisson","frais","épicerie","épices","herbes","autres"];
+// agrège les ingrédients de la semaine, moins ce qui est déjà dans le frigo
+function shopAgg(){
+  const agg={}; // key -> {name,cat,parts:[]}
+  allPlannedIds().forEach(id=>{
+    const r=state.recipes.find(x=>x.id===id); if(!r)return;
+    r.ing.forEach(i=>{
+      const name=i[2], cat=i[3]||"autres"; const key=norm(name);
+      if(state.fridge.some(f=>{const n=norm(name),h=norm(f);return n.includes(h)||h.includes(n);}))return;
+      if(!agg[key])agg[key]={name,cat,parts:[]};
+      const q=[i[0],i[1]].filter(Boolean).join(" "); if(q)agg[key].parts.push(q);
+    });
+  });
+  return agg;
+}
+function buildShopText(){
+  const agg=shopAgg();
+  const cats={}; Object.entries(agg).forEach(([k,v])=>{(cats[v.cat]=cats[v.cat]||[]).push(v);});
+  const lines=[];
+  SHOP_ORDER.filter(c=>cats[c]).forEach(c=>{
+    lines.push("— "+c.toUpperCase());
+    cats[c].sort((a,b)=>a.name.localeCompare(b.name)).forEach(it=>{
+      const q=[...new Set(it.parts)].join(" + "); lines.push("• "+it.name+(q?" ("+q+")":""));
+    });
+  });
+  return lines.join("\n");
+}
+function copyShop(){
+  const txt=buildShopText();
+  if(!txt){ toast("Liste vide — valide d'abord un menu"); return; }
+  navigator.clipboard.writeText(txt).then(()=>toast("Liste de courses copiée ✓"),()=>toast("Copie impossible"));
+}
+window.copyShop=copyShop;
+function renderShop(){
+  const agg=shopAgg();
+  const cats={}; Object.entries(agg).forEach(([k,v])=>{(cats[v.cat]=cats[v.cat]||[]).push({k,...v});});
+  const order=SHOP_ORDER;
+  const box=$("#shopList"); box.innerHTML="";
+  if(!Object.keys(agg).length){ box.innerHTML=`<div class="empty"><div class="ic">🛒</div>Ta liste est vide. Planifie des repas dans « Ma semaine ».</div>`; return; }
+  order.filter(c=>cats[c]).forEach(c=>{
+    const div=document.createElement("div"); div.className="shop-cat";
+    div.innerHTML=`<h4>${c}</h4>`;
+    cats[c].sort((a,b)=>a.name.localeCompare(b.name)).forEach(it=>{
+      const checked=state.shopChecked[it.k]?"checked":"";
+      const row=document.createElement("div"); row.className="shop-item"+(checked?" done":"");
+      row.innerHTML=`<input type="checkbox" ${checked}><span>${it.name}</span><span class="q">${[...new Set(it.parts)].join(" + ")||""}</span>`;
+      row.querySelector("input").onchange=e=>{state.shopChecked[it.k]=e.target.checked;persist();row.classList.toggle("done",e.target.checked);};
+      div.appendChild(row);
+    });
+    box.appendChild(div);
+  });
+}
+$("#shopReset").onclick=()=>{state.shopChecked={};persist();renderShop();};
+$("#shopCopy").onclick=copyShop;
+
+/* ============================ ACCUEIL ============================ */
+function renderHome(){
+  const box=$("#homeContent"); if(!box)return;
+  const ti=todayIndex();
+  const validated = state.validated===currentWeekKey();
+  let html="";
+  if(!validated){
+    html+=`<div class="hero stack">
+      <h2 style="margin:0">Bienvenue 👋</h2>
+      <div class="muted">Tu n'as pas encore de menu validé pour cette semaine.</div>
+      <div class="row"><button class="btn primary" onclick="gotoTab('semaine');renderWeek()">🗓️ Planifier ma semaine</button>
+      <button class="btn" onclick="gotoTab('frigo')">🧊 Partir de mon frigo</button></div>
+    </div>`;
+  } else {
+    html+=`<div class="spread" style="margin-bottom:14px;flex-wrap:wrap"><h2 style="margin:0">🍽️ Mon menu de la semaine</h2>
+      <div class="row"><button class="btn sm" onclick="copyShop()">📋 Copier la liste de courses</button>
+      <button class="btn sm" onclick="gotoTab('courses');renderShop()">🛒 Voir la liste</button>
+      <button class="btn sm" onclick="gotoTab('semaine');renderWeek()">✏️ Modifier</button></div></div>`;
+    html+=`<div class="grid g3" id="homeWeek"></div>`;
+  }
+  // aliments à consommer bientôt
+  const soon=openedSoon();
+  if(soon.length){
+    html+=`<div class="sub-h"><h3>⏳ À consommer bientôt</h3><span class="ln"></span><button class="btn sm" onclick="gotoTab('pickles');renderOpened();renderJars()">Gérer →</button></div>
+      <div class="grid g2" id="homeSoon"></div>`;
+  }
+  box.innerHTML=html;
+
+  if(validated){
+    const wk=$("#homeWeek");
+    DAYS.forEach((d,i)=>{
+      const m=ensureMeals(i);
+      const meal=([["midi","☀️ Midi"],["soir","🌙 Soir"]]).map(([k,lbl])=>{
+        const dishes=m[k].map(id=>{const r=state.recipes.find(x=>x.id===id);return r?`<a class="dish" data-rid="${r.id}">${r.name}</a>`:`<span class="dish muted">—</span>`;}).join(", ")||`<span class="dish muted">—</span>`;
+        return `<div class="home-meal"><span class="lbl">${lbl}</span><span class="dish">${dishes}</span></div>`;
+      }).join("");
+      const el=document.createElement("div"); el.className="home-day"+(i===ti?" today":"");
+      el.innerHTML=`<h4>${d}${i===ti?`<span class="tag-today">AUJOURD'HUI</span>`:""}</h4>${meal}`;
+      wk.appendChild(el);
+    });
+    $$("#homeWeek a.dish[data-rid]").forEach(a=>a.onclick=()=>openRecipe(a.dataset.rid));
+  }
+  if(soon.length){
+    const sb=$("#homeSoon");
+    soon.forEach(o=>sb.appendChild(openedCard(o)));
+  }
+}
+
+/* ============================ TRACKER ALIMENTS OUVERTS ============================ */
+// durées de conservation indicatives après ouverture (jours)
+const OPENED_PRESETS=[
+  {n:"Lait ouvert",d:4},{n:"Lait végétal ouvert",d:4},{n:"Crème fraîche",d:5},
+  {n:"Jus de fruits",d:4},{n:"Lait de coco (boîte ouverte)",d:4},{n:"Tofu (égoutté)",d:3},
+  {n:"Fromage râpé",d:7},{n:"Fromage pâte dure",d:14},{n:"Houmous",d:4},{n:"Pesto",d:7},
+  {n:"Sauce tomate ouverte",d:5},{n:"Légumineuses cuites (boîte)",d:3},{n:"Légumes coupés",d:3},
+  {n:"Salade lavée",d:3},{n:"Herbes fraîches",d:5},{n:"Restes cuisinés",d:3},
+  {n:"Beurre",d:30},{n:"Moutarde",d:60},{n:"Pâte à tartiner",d:30},{n:"Œufs",d:21}
+];
+function openedStatus(o){
+  const elapsed=(Date.now()-o.openedTs)/86400000;
+  const left=o.keepDays-elapsed;
+  const pct=Math.max(3,Math.min(100,Math.round(elapsed/o.keepDays*100)));
+  let cls="ok"; if(left<0)cls="late"; else if(left<=2)cls="soon";
+  return {left,pct,cls};
+}
+function openedSoon(){ // périmés ou ≤2j restants, trié par urgence
+  return state.opened.map(o=>({o,s:openedStatus(o)})).filter(x=>x.s.left<=2).sort((a,b)=>a.s.left-b.s.left).map(x=>x.o);
+}
+function leftLabel(left){
+  if(left<0)return `Périmé depuis ${Math.ceil(-left)} j`;
+  if(left<1)return "À manger aujourd'hui";
+  return `Encore ${Math.floor(left)} j`;
+}
+function openedCard(o){
+  const s=openedStatus(o);
+  const exp=new Date(o.openedTs+o.keepDays*86400000).toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
+  const opened=new Date(o.openedTs).toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
+  const el=document.createElement("div"); el.className="card trk "+s.cls;
+  el.innerHTML=`
+    <div class="spread"><b>${o.name}</b><button class="btn sm danger" data-rm="${o.id}">✓ Fini</button></div>
+    <div class="bar"><i style="width:${s.pct}%"></i></div>
+    <div class="left">${leftLabel(s.left)}</div>
+    <div class="tiny muted">Ouvert le ${opened} · à consommer avant le ${exp}</div>`;
+  el.querySelector("[data-rm]").onclick=()=>{ state.opened=state.opened.filter(x=>x.id!==o.id); persist(); renderOpened(); renderHome(); };
+  return el;
+}
+function renderOpenedPresets(){
+  const box=$("#openedPresets"); if(!box)return;
+  box.innerHTML=OPENED_PRESETS.map(p=>`<button data-n="${p.n}" data-d="${p.d}">${p.n} <span class="muted">· ${p.d}j</span></button>`).join("");
+  $$("#openedPresets button").forEach(b=>b.onclick=()=>{ addOpened(b.dataset.n,+b.dataset.d); });
+  // ajuste la durée par défaut du champ manuel quand on tape un nom connu
+}
+function addOpened(name,days){
+  name=(name||"").trim(); if(!name){toast("Donne un nom à l'aliment");return;}
+  state.opened.push({id:uid(),name,openedTs:Date.now(),keepDays:Math.max(1,days||4)});
+  persist(); renderOpened(); renderHome(); toast(name+" ajouté au tracker 🧊");
+}
+function renderOpened(){
+  const box=$("#openedList"); if(!box)return;
+  box.innerHTML="";
+  if(!state.opened.length){ box.innerHTML=`<div class="empty"><div class="ic">🧊</div>Aucun aliment ouvert suivi.<br>Clique un aliment ci-dessus dès que tu l'ouvres.</div>`; return; }
+  [...state.opened].map(o=>({o,s:openedStatus(o)})).sort((a,b)=>a.s.left-b.s.left).forEach(x=>box.appendChild(openedCard(x.o)));
+}
+$("#openedAdd").onclick=()=>{ addOpened($("#openedName").value,+$("#openedDays").value); $("#openedName").value=""; };
+$("#openedName").addEventListener("keydown",e=>{ if(e.key==="Enter")$("#openedAdd").click(); });
+// pré-remplit la durée du champ manuel si le nom tapé correspond à un preset connu
+$("#openedName").addEventListener("input",()=>{
+  const q=norm($("#openedName").value); if(!q)return;
+  const hit=OPENED_PRESETS.find(p=>norm(p.n).includes(q)||q.includes(norm(p.n)));
+  if(hit)$("#openedDays").value=hit.d;
+});
+
+/* ============================ TRACKER PICKLES ============================ */
+function fmtDur(h){ // heures -> "Xj Yh" / "Xh" / "<1h"
+  if(h<=0)return"0 h"; if(h<1)return"< 1 h";
+  const d=Math.floor(h/24), r=Math.round(h%24);
+  if(d>0)return r? `${d} j ${r} h` : `${d} j`;
+  return `${Math.round(h)} h`;
+}
+function fmtDate(ts){ return new Date(ts).toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}); }
+function trackableRecipes(){ return state.recipes.filter(r=>r.tracker && r.readyHours); }
+
+function renderJars(){
+  const box=$("#jarList"); box.innerHTML="";
+  if(!state.jars.length){ box.innerHTML=`<div class="empty"><div class="ic">🫙</div>Aucun bocal en cours.<br>Clique « Démarrer un bocal » quand tu lances des pickles ou des œufs marinés.</div>`; return; }
+  const now=Date.now();
+  // les plus récents / non prêts en premier
+  [...state.jars].sort((a,b)=>b.start-a.start).forEach(j=>{
+    const elapsedH=(now-j.start)/3600000;
+    const ready=elapsedH>=j.readyHours;
+    const best=j.bestHours||j.readyHours;
+    const expired=j.keepDays && elapsedH>=j.keepDays*24;
+    const pct=Math.max(4,Math.min(100,Math.round(elapsedH/j.readyHours*100)));
+    let cls="waiting",status="",sub="";
+    if(expired){ cls="expired"; status="⚠ À jeter / vérifier"; sub=`Dépasse la durée de conservation (${j.keepDays} j).`; }
+    else if(ready){ cls="ready"; status="✓ Prêt à manger";
+      if(elapsedH<best)sub=`Encore meilleur dans ${fmtDur(best-elapsedH)}.`;
+      else sub=`À consommer avant le ${fmtDate(j.start+j.keepDays*86400000)}.`;
+    } else { cls="waiting"; status=`Prêt dans ${fmtDur(j.readyHours-elapsedH)}`; sub=`Lancé le ${fmtDate(j.start)}.`; }
+    const el=document.createElement("div"); el.className="card jar "+cls;
+    el.innerHTML=`
+      <div class="spread"><b>${j.name}</b><button class="btn sm danger" data-rm="${j.id}">Supprimer</button></div>
+      <div class="bar"><i style="width:${ready?100:pct}%"></i></div>
+      <div class="status">${status}</div>
+      <div class="muted small">${sub}</div>
+      <div class="tiny muted">Prêt après ${fmtDur(j.readyHours)} · idéal à ${fmtDur(best)} · se garde ${j.keepDays} j</div>`;
+    box.appendChild(el);
+  });
+  $$("#jarList [data-rm]").forEach(b=>b.onclick=()=>{ if(confirm("Retirer ce bocal du suivi ?")){ state.jars=state.jars.filter(x=>x.id!==b.dataset.rm); persist(); renderJars(); } });
+}
+$("#jarNew").onclick=()=>{
+  const recs=trackableRecipes();
+  const m=$("#pickModal");
+  if(!recs.length){ toast("Aucune recette « à laisser reposer » dans ta base"); return; }
+  const opts=recs.map(r=>`<button class="btn" style="justify-content:flex-start;width:100%;margin-bottom:6px" data-id="${r.id}">${r.name} <span class="muted small">· prêt après ${fmtDur(r.readyHours)}</span></button>`).join("");
+  m.innerHTML=`<div class="mhead"><span class="close-x" onclick="closePick()">×</span><h3 style="margin:0">Quel bocal lances-tu ?</h3></div>
+    <div class="mbody" style="max-height:60vh;overflow:auto">${opts}</div>`;
+  $("#pickBg").classList.add("open");
+  $$("#pickModal button[data-id]").forEach(b=>b.onclick=()=>{
+    const r=state.recipes.find(x=>x.id===b.dataset.id);
+    state.jars.push({id:uid(),recipeId:r.id,name:r.name,start:Date.now(),readyHours:r.readyHours,bestHours:r.bestHours||r.readyHours,keepDays:r.keepDays||14});
+    persist(); closePick(); renderJars(); toast("Bocal lancé 🫙 — c'est parti !");
+  });
+};
+
+/* ============================ CONVERTISSEUR ============================ */
+function initConvert(){
+  const sel=$("#convIng"); sel.innerHTML=Object.keys(DENSITY).map(k=>`<option>${k}</option>`).join("");
+  const pres=$("#convPresets"); pres.innerHTML=CONTAINERS.map(c=>`<button data-cl="${c.cl}">${c.n} (${c.cl}cl)</button>`).join("");
+  $$("#convPresets button").forEach(b=>b.onclick=()=>{$("#convVol").value=b.dataset.cl;$$("#convPresets button").forEach(x=>x.classList.toggle("active",x===b));$("#convWeight").value="";convFromVol();});
+  sel.onchange=()=>{ if($("#convVol").value)convFromVol(); else if($("#convWeight").value)convFromWeight(); };
+  $("#convVol").addEventListener("input",convFromVol);
+  $("#convWeight").addEventListener("input",convFromWeight);
+  // équivalences rapides
+  $("#convQuick").innerHTML=QUICK.map(q=>{
+    const g=Math.round(q.cl*10*DENSITY[q.ing]);
+    return `<div class="card" style="padding:12px"><div class="small">${q.n}</div><div style="font-size:1.3rem;font-weight:700;color:var(--accent)">≈ ${g} g</div></div>`;
+  }).join("");
+  convFromVol();
+}
+function convFromVol(){
+  const d=DENSITY[$("#convIng").value]; const cl=parseFloat($("#convVol").value);
+  $("#convDensity").textContent=`densité ≈ ${d} g/ml`;
+  if(isNaN(cl)){$("#convOut").textContent="—";return;}
+  const g=cl*10*d; $("#convWeight").value=Math.round(g*10)/10;
+  $("#convLabel").textContent=`${cl} cl de ${$("#convIng").value.toLowerCase()}`;
+  $("#convOut").textContent=`${Math.round(g)} g`;
+}
+function convFromWeight(){
+  const d=DENSITY[$("#convIng").value]; const g=parseFloat($("#convWeight").value);
+  $("#convDensity").textContent=`densité ≈ ${d} g/ml`;
+  if(isNaN(g)){$("#convOut").textContent="—";return;}
+  const cl=g/d/10; $("#convVol").value=Math.round(cl*10)/10;
+  $("#convLabel").textContent=`${g} g de ${$("#convIng").value.toLowerCase()}`;
+  $("#convOut").textContent=`${Math.round(cl*10)/10} cl  (≈ ${(cl/25).toFixed(2)} ecocup)`;
+}
+
+/* ============================ AJOUT / IMPORT ============================ */
+// parse "200 g lentilles corail" -> ["200","g","lentilles corail",cat]
+const UNITS=["g","kg","ml","cl","l","c.à.s","c.à.c","c.à s","c.à c","cuillère","cuillères","càs","càc","pincée","gousse","gousses","boîte","sachet","tranche","tranches","portion","portions","verre","feuille","feuilles","cm"];
+function parseIngLine(line){
+  line=line.trim(); if(!line)return null;
+  const m=line.match(/^([\d.,/]+)\s*([a-zàéèêç.]+)?\s+(.*)$/i);
+  if(m){
+    let unit=m[2]||""; if(unit && !UNITS.some(u=>norm(u)===norm(unit))){ // l'unité n'en est pas une -> fait partie du nom
+       return [m[1],"",(unit+" "+m[3]).trim(),guessCat(unit+" "+m[3])];
+    }
+    return [m[1],unit,m[3].trim(),guessCat(m[3])];
+  }
+  return ["","",line,guessCat(line)];
+}
+function guessCat(name){
+  const n=norm(name);
+  if(/lentille|pois chiche|haricot|feve|legumineuse/.test(n))return"légumineuses";
+  if(/riz|pate|nouille|farine|gnocchi|semoule|polenta|pain|quinoa|boulgour|tortilla|macaroni|spaghetti|soba|pita/.test(n))return"féculents";
+  if(/poulet|boeuf|porc|agneau|veau|jambon|lardon|saucisse|merguez|dinde|canard|chorizo|viande|guanciale|pancetta|kofte|bacon/.test(n))return"viande";
+  if(/poisson|saumon|thon|cabillaud|crevette|morue|colin|maquereau|sardine|fruits de mer|moule|calmar|gambas|hareng|anchois/.test(n))return"poisson";
+  if(/lait|creme|fromage|beurre|oeuf|yaourt|tofu|paneer|mozzar|parmesan|gruyere|reblochon|feta|cheddar|ricotta/.test(n))return"frais";
+  if(/sel|poivre|curcuma|cumin|curry|masala|epice|piment|cannelle|muscade|paprika|gochu/.test(n))return"épices";
+  if(/persil|coriandre|basilic|thym|menthe|romarin|herbe|ciboulette/.test(n))return"herbes";
+  if(/carotte|courgette|aubergine|poivron|tomate|oignon|ail|epinard|chou|patate|pomme de terre|poireau|champignon|legume|brocoli|salade|concombre|banane|plantain|courge|celeri/.test(n))return"légumes";
+  return"épicerie";
+}
+function saveRecipe(r){ state.recipes.unshift(r); persist(); }
+
+$("#mSave").onclick=()=>{
+  const name=$("#mName").value.trim(); if(!name){toast("Donne un nom à la recette");return;}
+  const ing=$("#mIng").value.split("\n").map(parseIngLine).filter(Boolean);
+  const steps=$("#mSteps").value.split("\n").map(s=>s.trim()).filter(Boolean);
+  const r={id:uid(),name,cuisine:$("#mCuisine").value.trim()||"perso",vegan:$("#mVegan").classList.contains("on"),veganSwap:!$("#mVegan").classList.contains("on"),time:+$("#mTime").value||30,servings:+$("#mServings").value||4,season:[],ing,steps,custom:true};
+  saveRecipe(r);
+  ["#mName","#mCuisine","#mIng","#mSteps"].forEach(s=>$(s).value="");$("#mVegan").classList.remove("on");
+  toast("Recette enregistrée ✓"); renderFridgeResults();
+};
+$("#mVegan").onclick=()=>$("#mVegan").classList.toggle("on");
+
+// import depuis texte collé (JSON bookmarklet OU texte brut)
+$("#pasteImport").onclick=()=>{
+  const raw=$("#pasteInput").value.trim(); if(!raw){toast("Colle d'abord du texte");return;}
+  let r=null;
+  try{ const j=JSON.parse(raw); r=fromJsonLd(j); }catch(e){ r=fromPlainText(raw); }
+  if(r){ openImportPreview(r); } else toast("Impossible d'analyser ce texte");
+};
+function fromPlainText(txt){
+  const lines=txt.split("\n").map(l=>l.trim()).filter(Boolean);
+  if(!lines.length)return null;
+  return {id:uid(),name:lines[0],cuisine:"perso",vegan:false,veganSwap:true,time:30,servings:4,season:[],
+    ing:lines.slice(1).map(parseIngLine).filter(Boolean),steps:[],custom:true};
+}
+function fromJsonLd(j){
+  // accepte un objet Recipe schema.org (ou @graph)
+  let rec=j;
+  if(j["@graph"])rec=j["@graph"].find(x=>(x["@type"]||"").toString().includes("Recipe"))||j;
+  if(Array.isArray(j))rec=j.find(x=>(x["@type"]||"").toString().includes("Recipe"))||j[0];
+  if(j.recipe)rec=j.recipe; // format custom bookmarklet
+  const name=rec.name||rec.title||"Recette importée";
+  const ingArr=rec.recipeIngredient||rec.ingredients||[];
+  const ing=(Array.isArray(ingArr)?ingArr:[]).map(s=>parseIngLine(String(s))).filter(Boolean);
+  let steps=[];
+  const ri=rec.recipeInstructions||rec.instructions||rec.steps||[];
+  if(Array.isArray(ri))steps=ri.map(s=>typeof s==="string"?s:(s.text||s.name||"")).filter(Boolean);
+  else if(typeof ri==="string")steps=ri.split(/\n|\. /).map(s=>s.trim()).filter(Boolean);
+  return {id:uid(),name,cuisine:(rec.recipeCuisine||"perso").toString().toLowerCase(),vegan:false,veganSwap:true,
+    time:30,servings:parseInt(rec.recipeYield)||4,season:[],ing,steps,source:rec.url||"",custom:true};
+}
+function openImportPreview(r){
+  const m=$("#pickModal");
+  const dis=recipeDislikes(r);
+  m.innerHTML=`<div class="mhead"><span class="close-x" onclick="closePick()">×</span><h3 style="margin:0">Aperçu de l'import</h3></div>
+    <div class="mbody" style="max-height:60vh;overflow:auto">
+      <label class="fld">Nom</label><input id="ipName" value="${(r.name||'').replace(/"/g,'&quot;')}">
+      <div class="row" style="margin-top:8px"><div style="flex:1"><label class="fld">Cuisine</label><input id="ipCuisine" value="${r.cuisine||'perso'}"></div></div>
+      <div style="margin-top:8px"><label class="fld">${r.ing.length} ingrédient(s)</label><div class="muted small">${r.ing.map(i=>[i[0],i[1],i[2]].filter(Boolean).join(" ")).join(" · ")||"—"}</div></div>
+      <div style="margin-top:8px"><label class="fld">${r.steps.length} étape(s)</label><div class="muted small">${r.steps.slice(0,3).join(" ")||"—"}…</div></div>
+      ${dis.length?`<div class="card" style="margin-top:10px;border-color:rgba(242,178,92,.4)"><b style="color:var(--warn)">⚠</b> contient ${dis.join(", ")} — tu pourras personnaliser après.</div>`:""}
+    </div>
+    <div class="mfoot"><button class="btn" onclick="closePick()">Annuler</button><button class="btn primary" id="ipSave">Ajouter à ma base</button></div>`;
+  $("#pickBg").classList.add("open");
+  $("#ipSave").onclick=()=>{ r.name=$("#ipName").value.trim()||r.name; r.cuisine=$("#ipCuisine").value.trim()||"perso"; saveRecipe(r); closePick(); $("#pasteInput").value=""; toast("Recette ajoutée ✓"); renderFridgeResults(); };
+}
+
+// import par URL (tente plusieurs proxies CORS, parse JSON-LD)
+$("#urlImport").onclick=async()=>{
+  const url=$("#urlInput").value.trim(); if(!url){toast("Colle une URL");return;}
+  const st=$("#urlStatus"); st.textContent="⏳ Récupération de la page…";
+  const proxies=[u=>"https://r.jina.ai/"+u, u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u)];
+  let html=null;
+  for(const p of proxies){ try{ const res=await fetch(p(url)); if(res.ok){ html=await res.text(); if(html&&html.length>200)break; } }catch(e){} }
+  if(!html){ st.innerHTML=`❌ Impossible de récupérer la page automatiquement (sécurité du navigateur).<br>Utilise plutôt le <b>bookmarklet</b> ci-contre, ou copie-colle le texte.`; return; }
+  // chercher un bloc JSON-LD Recipe
+  let recipe=null;
+  const re=/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi; let mm;
+  while((mm=re.exec(html))){ try{ const j=JSON.parse(mm[1].trim()); const r=fromJsonLd(j); if(r&&r.ing.length){recipe=r;break;} }catch(e){} }
+  if(!recipe){ // fallback : titre + texte
+    const t=(html.match(/<title>([^<]+)<\/title>/i)||[])[1]||"Recette importée";
+    st.innerHTML=`⚠ Pas de données structurées trouvées. Import partiel (titre seulement). Essaie le bookmarklet pour un meilleur résultat.`;
+    recipe={id:uid(),name:t.trim(),cuisine:"perso",vegan:false,veganSwap:true,time:30,servings:4,season:[],ing:[],steps:[],source:url,custom:true};
+  } else st.textContent="✓ Recette trouvée !";
+  recipe.source=url; openImportPreview(recipe);
+};
+
+// bookmarklet : extrait JSON-LD sur la page courante et le copie dans le presse-papier
+function buildBookmarklet(){
+  const code=`(function(){try{var R=null;var S=document.querySelectorAll('script[type="application/ld+json"]');for(var i=0;i<S.length;i++){try{var j=JSON.parse(S[i].textContent);var arr=j['@graph']||(Array.isArray(j)?j:[j]);for(var k=0;k<arr.length;k++){var t=(arr[k]['@type']||'')+'';if(t.indexOf('Recipe')>-1){R=arr[k];break}}if(R)break}catch(e){}}if(!R){R={name:document.title,recipeIngredient:[],recipeInstructions:[]}}var out=JSON.stringify({recipe:R});function cp(txt){var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta)}if(navigator.clipboard){navigator.clipboard.writeText(out).then(function(){alert('✓ Recette copiée ! Colle-la dans Mijote (onglet Ajouter).')},function(){cp(out);alert('✓ Recette copiée ! Colle-la dans Mijote.')})}else{cp(out);alert('✓ Recette copiée ! Colle-la dans Mijote.')}}catch(e){alert('Erreur : '+e.message)}})();`;
+  return "javascript:"+encodeURIComponent(code);
+}
+function initBookmarklet(){
+  const bm=buildBookmarklet();
+  $("#bmLink").href=bm;
+  $("#bmLink").onclick=e=>{e.preventDefault();toast("Glisse ce bouton dans ta barre de favoris ↑");};
+  $("#bmCode").textContent=bm;
+  $("#bmCopy").onclick=()=>navigator.clipboard.writeText(bm).then(()=>toast("Code copié ✓"));
+}
+
+/* ============================ RÉGLAGES ============================ */
+function renderDislikes(){
+  const wrap=$("#dislikeChips"); wrap.innerHTML="";
+  state.dislikes.forEach((d,i)=>{
+    const c=document.createElement("span"); c.className="chip x"; c.innerHTML=`${d} <span>×</span>`;
+    c.onclick=()=>{state.dislikes.splice(i,1);persist();renderDislikes();renderFridgeResults();};
+    wrap.appendChild(c);
+  });
+}
+$("#dislikeAdd").onclick=()=>{const v=$("#dislikeInput").value.trim();if(v){state.dislikes.push(v);$("#dislikeInput").value="";persist();renderDislikes();renderFridgeResults();}};
+$("#dislikeInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("#dislikeAdd").click();});
+
+$("#exportBtn").onclick=()=>{
+  const data=JSON.stringify({recipes:state.recipes,dislikes:state.dislikes,plan:state.plan,fridge:state.fridge,jars:state.jars,version:2},null,2);
+  const blob=new Blob([data],{type:"application/json"}); const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="mijote-sauvegarde.json"; a.click(); toast("Export téléchargé ✓");
+};
+$("#importFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const rd=new FileReader(); rd.onload=()=>{ try{ const j=JSON.parse(rd.result);
+    if(j.recipes)state.recipes=j.recipes; if(j.dislikes)state.dislikes=j.dislikes; if(j.plan)state.plan=j.plan; if(j.fridge)state.fridge=j.fridge; if(j.jars)state.jars=j.jars;
+    persist(); renderAll(); toast("Sauvegarde importée ✓"); }catch(err){toast("Fichier invalide");} };
+  rd.readAsText(f);
+};
+$("#resetBtn").onclick=()=>{ if(confirm("Réinitialiser la base de recettes d'origine ? Tes ajouts perso seront perdus.")){ state.recipes=SEED.map(r=>({...r})); state.plan={}; persist(); renderAll(); toast("Base réinitialisée"); } };
+
+/* ============================ VEGAN GLOBAL ============================ */
+$("#veganGlobal").onclick=()=>{ state.vegan=!state.vegan; $("#veganGlobal").classList.toggle("on",state.vegan); persist(); renderFridgeResults(); };
+$("#vegOnlyToggle").onclick=()=>{ state.vegOnly=!state.vegOnly; $("#vegOnlyToggle").classList.toggle("on",state.vegOnly); persist(); renderFridgeResults(); renderRecipes(); toast(state.vegOnly?"Viande & poisson masqués":"Toutes les recettes affichées (mode partage)"); };
+
+/* ============================ INIT ============================ */
+function renderSeason(){
+  const m=currentMonth(); const list=SEASON[m].slice(0,6).join(", ");
+  $("#seasonPill").innerHTML=`📍 Lyon · <b>${MONTHS_FULL[m-1]}</b> · de saison : ${list}…`;
+}
+function renderAll(){ renderSeason(); renderHome(); renderFridge(); renderFridgeResults(); renderDislikes(); renderOpened(); renderJars(); $("#veganGlobal").classList.toggle("on",state.vegan); $("#vegOnlyToggle").classList.toggle("on",state.vegOnly); }
+function init(){
+  runMigrations();
+  checkWeekReset();
+  renderOpenedPresets();
+  renderAll(); initConvert(); initBookmarklet();
+}
+init();
+</script>
+</body>
+</html>
