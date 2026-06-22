@@ -64,13 +64,13 @@ header.top{
 .brand .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:17px}
 .season-pill{margin-left:auto;background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:13px;color:var(--txt2);white-space:nowrap}
 .season-pill b{color:var(--accent)}
-nav.tabs{max-width:var(--maxw);margin:0 auto;padding:0 10px;display:flex;gap:2px;overflow-x:auto}
+nav.tabs{max-width:var(--maxw);margin:0 auto;padding:6px 10px;display:flex;flex-wrap:wrap;gap:4px}
 nav.tabs button{
-  padding:11px 14px;color:var(--txt2);border-bottom:2px solid transparent;
-  white-space:nowrap;font-weight:550;border-radius:0;font-size:14px;
+  padding:8px 13px;color:var(--txt2);border:1px solid transparent;
+  white-space:nowrap;font-weight:550;border-radius:9px;font-size:14px;
 }
-nav.tabs button:hover{color:var(--txt)}
-nav.tabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+nav.tabs button:hover{color:var(--txt);background:var(--bg3)}
+nav.tabs button.active{color:var(--accent);background:rgba(126,224,168,.12);border-color:rgba(126,224,168,.3)}
 main{max-width:var(--maxw);margin:0 auto;padding:22px 18px 80px}
 .view{display:none;animation:fade .25s ease} .view.active{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
@@ -155,6 +155,51 @@ main{max-width:var(--maxw);margin:0 auto;padding:22px 18px 80px}
 .home-meal a.dish:hover{color:var(--accent);border-color:var(--accent)}
 .validated-banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(126,224,168,.1);border:1px solid rgba(126,224,168,.3);border-radius:10px;padding:10px 14px;color:var(--accent);font-weight:550}
 
+/* dashboard accueil — 3 colonnes équilibrées */
+.dash{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+@media(max-width:880px){.dash{grid-template-columns:1fr}}
+.dash-col{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:14px;display:flex;flex-direction:column;gap:10px;min-height:120px}
+.dash-col>.dash-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0}
+.dash-col .dash-head h3{margin:0;font-size:.98rem;display:flex;align-items:center;gap:7px}
+.dash-col .dash-head .lnk{font-size:12.5px;color:var(--txt2);background:none;border:none;padding:2px 4px}
+.dash-col .dash-head .lnk:hover{color:var(--accent)}
+.dash-empty{color:var(--txt3);font-size:13px;text-align:center;padding:14px 6px;line-height:1.6}
+.dash-empty .ic{font-size:26px;display:block;margin-bottom:4px;opacity:.6}
+/* mini jour (colonne semaine) */
+.mday{border:1px solid var(--line);border-radius:9px;padding:7px 10px;background:var(--bg2)}
+.mday.today{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2) inset}
+.mday .mday-h{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--txt2);display:flex;gap:6px;align-items:center;margin-bottom:3px}
+.mday .mday-h .tag-today{background:var(--accent2);color:#06231a;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px}
+.mday .mline{font-size:12.5px;display:flex;gap:6px}
+.mday .mline .lbl{color:var(--txt3);flex:none}
+.mday .mline a{color:var(--txt);cursor:pointer;border-bottom:1px dotted var(--txt3)}
+.mday .mline a:hover{color:var(--accent);border-color:var(--accent)}
+.mday .mline .muted{color:var(--txt3)}
+/* mini carte bocal / péremption */
+.mini{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:var(--bg2);display:flex;flex-direction:column;gap:6px}
+.mini .mini-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mini b{font-size:13.5px;font-weight:600}
+.mini .bar{height:6px;border-radius:999px;background:var(--bg3);overflow:hidden}
+.mini .bar>i{display:block;height:100%}
+.mini .st{font-size:12px;font-weight:600}
+.mini.ok .bar>i,.mini.ready .bar>i{background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.mini.soon .bar>i,.mini.waiting .bar>i{background:linear-gradient(90deg,var(--warn),#f7d08a)}
+.mini.late .bar>i,.mini.expired .bar>i{background:linear-gradient(90deg,var(--danger),#f0989e)}
+.mini.ok .st,.mini.ready .st{color:var(--accent)}
+.mini.soon .st,.mini.waiting .st{color:var(--warn)}
+.mini.late .st,.mini.expired .st{color:var(--danger)}
+
+/* frigo unifié : item avec péremption */
+.fr-chip{display:inline-flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;color:var(--txt)}
+.fr-chip .x{cursor:pointer;color:var(--txt3)}
+.fr-chip .x:hover{color:var(--danger)}
+.fr-chip .clock{cursor:pointer;color:var(--txt3);font-size:12px}
+.fr-chip .clock:hover{color:var(--warn)}
+.fr-chip.soon{border-color:rgba(242,178,92,.45)}
+.fr-chip.late{border-color:rgba(224,108,117,.5)}
+.fr-chip .dleft{font-size:11px;font-weight:600}
+.fr-chip.ok .dleft{color:var(--accent2)} .fr-chip.soon .dleft{color:var(--warn)} .fr-chip.late .dleft{color:var(--danger)}
+
 /* modal */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
 .modal-bg.open{display:flex}
@@ -194,6 +239,17 @@ ol.steps li:last-child{border:none}
 .day .slot .rm:hover{color:var(--danger)}
 .day .add{width:100%;border:1px dashed var(--line);border-radius:8px;padding:6px;color:var(--txt3);font-size:18px}
 .day .add:hover{color:var(--accent);border-color:var(--accent2)}
+.day .slot .lo-act{position:absolute;top:3px;right:20px;color:var(--txt3);font-size:12px;cursor:pointer}
+.day .slot .lo-act:hover{color:var(--accent)}
+.day .slot.leftover{background:transparent;border-style:dashed;color:var(--txt2)}
+.day .slot.leftover .ico{margin-right:3px}
+.ctrlbar{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:11px 14px;margin-bottom:14px}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper .lbl{font-size:13px;color:var(--txt2);font-weight:600}
+.stepper .count{min-width:26px;text-align:center;font-size:17px;font-weight:700}
+.stepper .btn.sm{min-width:32px;font-size:16px;font-weight:700;padding:4px 0}
+.restes-toggle{max-width:520px}
+.shop-summary{margin-bottom:12px;padding:8px 11px;background:var(--bg2);border:1px solid var(--line);border-radius:9px}
 
 /* shopping */
 .shop-cat{margin-bottom:14px}
@@ -227,13 +283,11 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
   </div>
   <nav class="tabs" id="tabs">
     <button data-v="accueil" class="active">🏠 Accueil</button>
-    <button data-v="frigo">🧊 Frigo → Recettes</button>
+    <button data-v="frigo">🧊 Mon frigo</button>
     <button data-v="recettes">📖 Recettes</button>
     <button data-v="semaine">🗓️ Ma semaine</button>
-    <button data-v="courses">🛒 Liste de courses</button>
+    <button data-v="courses">🛒 Courses</button>
     <button data-v="convert">⚖️ Convertisseur</button>
-    <button data-v="pickles">🧊 Tracker frigo</button>
-    <button data-v="ajouter">➕ Ajouter</button>
     <button data-v="reglages">⚙️ Réglages</button>
   </nav>
 </header>
@@ -244,26 +298,38 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
     <div id="homeContent"></div>
   </section>
 
-  <!-- FRIGO -->
+  <!-- FRIGO (inventaire unifié + péremption + pickles) -->
   <section class="view" id="v-frigo">
-    <div class="spread" style="margin-bottom:14px">
-      <div><h2 style="margin:0">Qu'as-tu dans le frigo&nbsp;?</h2>
-      <div class="muted small">Ajoute tes ingrédients, on classe les recettes par correspondance.</div></div>
+    <div class="spread" style="margin-bottom:6px">
+      <div><h2 style="margin:0">🧊 Mon frigo &amp; placard</h2>
+      <div class="muted small">Un seul inventaire : ajoute tes aliments, indique une date de péremption pour ceux qui se gâtent, et cuisine avec ce que tu as.</div></div>
     </div>
     <div class="card stack">
       <div class="row">
-        <input id="fridgeInput" placeholder="Ex : pois chiches, épinards, riz…  (Entrée pour ajouter)" style="flex:1;min-width:200px">
+        <input id="fridgeInput" placeholder="Ajouter un aliment… (ex : pois chiches, épinards, riz)" style="flex:1;min-width:200px">
+        <div style="width:160px"><input id="fridgeDays" type="number" min="1" placeholder="périme dans… (j)" title="jours avant péremption (optionnel)"></div>
         <button class="btn primary" id="fridgeAdd">Ajouter</button>
       </div>
-      <div class="row" id="fridgeChips"></div>
+      <div class="tiny muted">Champ « périme dans » vide = aliment de placard sans date. Rempli = on suit la péremption et on t'alerte.</div>
+      <div class="small muted">Ajout rapide d'un produit ouvert (péremption indicative pré-remplie) :</div>
+      <div class="preset-pick" id="openedPresets"></div>
       <div class="row small muted" id="fridgeSugg"></div>
     </div>
-    <div class="row" style="margin:18px 0 10px">
+
+    <div class="sub-h"><h3>📦 Mon inventaire</h3><span class="ln"></span><span class="muted small" id="fridgeInvCount"></span></div>
+    <div class="row" id="fridgeChips"></div>
+
+    <div class="sub-h"><h3>🍳 Ce que je peux cuisiner</h3><span class="ln"></span></div>
+    <div class="row" style="margin:0 0 12px">
       <label class="row small" style="gap:8px;cursor:pointer"><span class="muted">Mode vegan</span><span class="toggle" id="veganGlobal"><i></i></span></label>
       <label class="row small" style="gap:8px;cursor:pointer;margin-left:8px"><input type="checkbox" id="seasonOnly" style="width:auto"><span class="muted">De saison seulement</span></label>
       <span class="muted small" id="fridgeCount" style="margin-left:auto"></span>
     </div>
     <div class="grid g2" id="fridgeResults"></div>
+
+    <div class="sub-h"><h3>🫙 Pickles &amp; marinades maison</h3><span class="ln"></span><button class="btn sm primary" id="jarNew">+ Démarrer un bocal</button></div>
+    <div class="muted small" style="margin:4px 0 14px">Lance un bocal, on calcule quand il est prêt à manger (et jusqu'à quand le garder).</div>
+    <div class="grid g2" id="jarList"></div>
   </section>
 
   <!-- RECETTES -->
@@ -271,6 +337,7 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
     <div class="spread" style="margin-bottom:14px;flex-wrap:wrap">
       <h2 style="margin:0">Mes recettes</h2>
       <div class="row">
+        <button class="btn sm primary" onclick="gotoTab('ajouter')">➕ Ajouter</button>
         <input id="recipeSearch" placeholder="Rechercher…" style="width:180px">
         <select id="cuisineFilter" style="width:auto"></select>
         <select id="dietFilter" style="width:auto">
@@ -296,6 +363,19 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
         <button class="btn sm" id="weekToShop">🛒 Liste de courses</button>
         <button class="btn sm primary" id="weekValidate">✓ Valider le menu</button>
       </div>
+    </div>
+    <div class="ctrlbar">
+      <div class="stepper">
+        <span class="lbl">👥 Cuisiner pour</span>
+        <button class="btn sm" id="peopleMinus" aria-label="Moins une personne">−</button>
+        <span id="peopleCount" class="count">1</span>
+        <button class="btn sm" id="peoplePlus" aria-label="Plus une personne">+</button>
+        <span class="lbl">pers.</span>
+      </div>
+      <label class="row small restes-toggle" style="gap:8px;cursor:pointer">
+        <span class="toggle" id="restesToggle"><i></i></span>
+        <span class="muted">♻️ Mode restes — cuisiner en plus grande fournée et manger les restes un jour suivant (max 2× les portions)</span>
+      </label>
     </div>
     <div id="weekValidInfo" style="margin-bottom:12px"></div>
     <div class="week" id="week"></div>
@@ -344,34 +424,11 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
     <div class="grid g3" id="convQuick"></div>
   </section>
 
-  <!-- TRACKER FRIGO -->
-  <section class="view" id="v-pickles">
-    <div class="spread" style="margin-bottom:6px">
-      <h2 style="margin:0">🧊 Tracker frigo</h2>
-    </div>
-    <div class="muted small" style="margin-bottom:16px">Note quand tu ouvres un aliment : on calcule les jours restants et on t'alerte avant la péremption.</div>
-
-    <div class="card stack">
-      <div class="small muted">Ajout rapide — clique sur l'aliment que tu viens d'ouvrir :</div>
-      <div class="preset-pick" id="openedPresets"></div>
-      <div class="row">
-        <input id="openedName" placeholder="Autre aliment ouvert…" style="flex:1;min-width:160px">
-        <div style="width:130px"><input id="openedDays" type="number" min="1" value="4" title="jours de conservation"></div>
-        <button class="btn primary" id="openedAdd">Ajouter</button>
-      </div>
-      <div class="tiny muted">La durée par défaut s'ajuste selon l'aliment choisi. Tu peux toujours la modifier.</div>
-    </div>
-
-    <div id="openedList" class="grid g2" style="margin-top:16px"></div>
-
-    <div class="sub-h"><h3>🫙 Pickles & marinades maison</h3><span class="ln"></span><button class="btn sm primary" id="jarNew">+ Démarrer un bocal</button></div>
-    <div class="muted small" style="margin:4px 0 14px">Lance un bocal, on calcule le moment où il est prêt à manger (et jusqu'à quand le garder).</div>
-    <div class="grid g2" id="jarList"></div>
-  </section>
 
   <!-- AJOUTER -->
   <section class="view" id="v-ajouter">
-    <h2>Ajouter une recette</h2>
+    <div class="spread" style="margin-bottom:6px"><h2 style="margin:0">Ajouter une recette</h2>
+    <button class="btn sm" onclick="gotoTab('recettes');renderRecipes()">← Retour aux recettes</button></div>
     <div class="grid g2" style="margin-top:6px;align-items:start">
       <div class="card stack">
         <h3>Depuis une URL</h3>
@@ -491,7 +548,8 @@ const VEGAN_SWAPS={
  "crème":"crème de soja ou coco","crème fraîche":"crème de soja","lait":"lait végétal (soja/avoine)",
  "oeuf":"1 c.à s. de fécule + 3 c.à s. d'eau (ou tofu soyeux)","oeufs":"tofu soyeux / fécule",
  "reblochon":"« faux-mage » fondant ou pommes de terre + crème végétale","fromage":"fromage végétal / levure maltée",
- "miel":"sirop d'agave/érable","yaourt":"yaourt végétal (soja/coco)","ghee":"huile de coco / margarine"
+ "miel":"sirop d'agave/érable","yaourt":"yaourt végétal (soja/coco)","ghee":"huile de coco / margarine",
+ "ricotta":"ricotta végétale (amande / tofu soyeux)"
 };
 
 /* ===================== BASE DE ~28 RECETTES ===================== */
@@ -1091,11 +1149,54 @@ const SEED=[
   steps:["Faire revenir poivron et carotte.","Ajouter curry et tomate.","Incorporer les haricots.","Mijoter 10 min, servir."]},
  {id:"r190",name:"Sabich (pita aubergine-œuf)",cuisine:"israélien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:20,servings:2,season:[],
   ing:[["2","","pains pita","féculents"],["1","","aubergine","légumes"],["2","","œufs durs","frais"],["3","c.à s.","tahini","épicerie"],["","","persil","herbes"]],
-  steps:["Poêler les tranches d'aubergine.","Garnir les pitas d'aubergine et d'œuf.","Sauce tahini.","Persil et un trait de citron."]}
+  steps:["Poêler les tranches d'aubergine.","Garnir les pitas d'aubergine et d'œuf.","Sauce tahini.","Persil et un trait de citron."]},
+ // ---------- TARTINES, DIPS, BRUSCHETTA & PINSA (⚡ à tremper / sur pain) ----------
+ {id:"r191",name:"Baba ganoush (caviar d'aubergine)",cuisine:"libanais",diet:"vegan",vegan:true,quick:true,time:30,servings:4,season:[7,8,9],
+  ing:[["2","","aubergines","légumes"],["2","c.à s.","tahini","épicerie"],["1","","citron","légumes"],["1","gousse","ail","légumes"],["2","c.à s.","huile d'olive","épicerie"],["1","c.à c.","cumin","épices"],["","","pain pita","féculents"]],
+  steps:["Rôtir les aubergines au four (200 °C) ou sur flamme jusqu'à tendreté.","Récupérer la chair et l'écraser à la fourchette.","Mélanger tahini, ail, citron, cumin et sel.","Filet d'huile d'olive. Tremper le pain pita."]},
+ {id:"r192",name:"Muhammara (dip poivrons & noix)",cuisine:"libanais",diet:"vegan",vegan:true,quick:true,time:20,servings:4,season:[7,8,9],
+  ing:[["2","","poivrons rouges (rôtis)","légumes"],["80","g","noix","épicerie"],["2","c.à s.","chapelure","épicerie"],["1","gousse","ail","légumes"],["1","c.à s.","mélasse de grenade","épicerie"],["1","c.à c.","cumin","épices"],["3","c.à s.","huile d'olive","épicerie"],["","","pain","féculents"]],
+  steps:["Rôtir les poivrons, retirer peau et pépins.","Mixer poivrons, noix, chapelure et ail.","Ajouter mélasse de grenade, cumin, huile d'olive et sel.","Servir avec du pain à tremper."]},
+ {id:"r193",name:"Caviar de haricots blancs à l'ail",cuisine:"méditerranéen",diet:"vegan",vegan:true,quick:true,time:10,servings:4,season:[],
+  ing:[["250","g","haricots blancs cuits","légumineuses"],["1","gousse","ail","légumes"],["1/2","","citron","légumes"],["3","c.à s.","huile d'olive","épicerie"],["","","persil","herbes"],["1","c.à c.","cumin","épices"],["","","pain","féculents"]],
+  steps:["Mixer haricots blancs, ail et citron.","Détendre avec l'huile d'olive et un peu d'eau.","Cumin, sel, persil ciselé.","Tartiner ou tremper du pain grillé."]},
+ {id:"r194",name:"Dip chaud d'artichauts & parmesan",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:25,servings:4,season:[],
+  ing:[["280","g","cœurs d'artichauts (bocal)","légumes"],["15","cl","crème épaisse","frais"],["50","g","parmesan râpé","frais"],["1","gousse","ail","légumes"],["","","persil","herbes"],["","","pain","féculents"]],
+  steps:["Égoutter et hacher les artichauts.","Mélanger avec crème, parmesan et ail.","Enfourner 15 min à 200 °C jusqu'à gratiné.","Persil. Tremper des mouillettes de pain chaud."]},
+ {id:"r195",name:"Bruschetta tomates rôties & basilic",cuisine:"italien",diet:"vegan",vegan:true,quick:true,time:20,servings:2,season:[6,7,8,9],
+  ing:[["4","tranches","pain de campagne","féculents"],["4","","tomates","légumes"],["1","gousse","ail","légumes"],["2","c.à s.","huile d'olive","épicerie"],["","","basilic","herbes"],["","","sel, poivre","épices"]],
+  steps:["Couper les tomates en quartiers, les rôtir 15 min à 200 °C avec huile et sel.","Griller les tranches de pain.","Frotter le pain avec la gousse d'ail.","Garnir de tomates rôties et de basilic."]},
+ {id:"r196",name:"Bruschetta champignons & persil",cuisine:"italien",diet:"vegan",vegan:true,quick:true,time:20,servings:2,season:[9,10,11],
+  ing:[["4","tranches","pain de campagne","féculents"],["250","g","champignons","légumes"],["2","gousses","ail","légumes"],["2","c.à s.","huile d'olive","épicerie"],["","","persil","herbes"],["","","sel, poivre","épices"]],
+  steps:["Poêler les champignons émincés à feu vif.","Ajouter l'ail et le persil en fin de cuisson.","Griller le pain.","Garnir de champignons, filet d'huile d'olive."]},
+ {id:"r197",name:"Bruschetta haricots blancs & romarin",cuisine:"italien",diet:"vegan",vegan:true,quick:true,time:15,servings:2,season:[],
+  ing:[["4","tranches","pain de campagne","féculents"],["250","g","haricots blancs cuits","légumineuses"],["1","gousse","ail","légumes"],["1","branche","romarin","herbes"],["3","c.à s.","huile d'olive","épicerie"],["","","sel, poivre","épices"]],
+  steps:["Écraser grossièrement les haricots avec l'ail et le romarin.","Réchauffer 2 min dans l'huile d'olive.","Griller le pain.","Tartiner les haricots écrasés, poivrer."]},
+ {id:"r198",name:"Tartine pois chiches écrasés citron-cumin",cuisine:"perso",diet:"vegan",vegan:true,quick:true,time:10,servings:2,season:[],
+  ing:[["2","tranches","pain","féculents"],["200","g","pois chiches cuits","légumineuses"],["1/2","","citron","légumes"],["2","c.à s.","huile d'olive","épicerie"],["1","c.à c.","cumin","épices"],["","","persil","herbes"]],
+  steps:["Écraser les pois chiches à la fourchette.","Mélanger citron, huile d'olive, cumin et sel.","Toaster le pain.","Étaler la purée, persil et graines."]},
+ {id:"r199",name:"Tartine ricotta, courgettes grillées & citron",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:15,servings:2,season:[6,7,8,9],
+  ing:[["2","tranches","pain","féculents"],["1","","courgette","légumes"],["100","g","ricotta","frais"],["1/2","","citron (zeste)","légumes"],["1","c.à s.","huile d'olive","épicerie"],["","","menthe","herbes"]],
+  steps:["Tailler la courgette en lamelles et les griller à la poêle.","Toaster le pain, étaler la ricotta.","Disposer les courgettes grillées.","Zeste de citron, menthe et filet d'huile d'olive."]},
+ {id:"r200",name:"Tartine tomates confites & mozzarella",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:20,servings:2,season:[6,7,8,9],
+  ing:[["2","tranches","pain","féculents"],["6","","tomates cerises","légumes"],["125","g","mozzarella","frais"],["1","gousse","ail","légumes"],["1","c.à s.","huile d'olive","épicerie"],["","","basilic","herbes"]],
+  steps:["Confire les tomates cerises 15 min au four avec ail et huile.","Toaster le pain.","Disposer mozzarella et tomates confites.","Repasser 3 min au four, basilic à la sortie."]},
+ {id:"r201",name:"Tartine houmous, betterave & graines",cuisine:"perso",diet:"vegan",vegan:true,quick:true,time:10,servings:2,season:[10,11,12,1,2],
+  ing:[["2","tranches","pain","féculents"],["4","c.à s.","houmous","légumineuses"],["1","","betterave cuite","légumes"],["1","c.à s.","graines (tournesol/courge)","épicerie"],["1","filet","huile d'olive","épicerie"],["","","persil","herbes"]],
+  steps:["Toaster le pain.","Étaler une couche généreuse de houmous.","Ajouter la betterave en fines tranches.","Parsemer de graines, filet d'huile d'olive."]},
+ {id:"r202",name:"Pinsa bianca ail, romarin & huile d'olive",cuisine:"italien",diet:"vegan",vegan:true,quick:true,time:25,servings:2,season:[],
+  ing:[["1","","pâte à pinsa / pain plat","féculents"],["2","gousses","ail","légumes"],["1","branche","romarin","herbes"],["3","c.à s.","huile d'olive","épicerie"],["","","sel","épices"]],
+  steps:["Étaler la pâte à pinsa.","Badigeonner d'huile d'olive, ail et romarin.","Cuire 12 min à 230 °C jusqu'à dorée.","Saler et couper en lanières à tremper."]},
+ {id:"r203",name:"Pinsa courgettes & ricotta",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:25,servings:2,season:[6,7,8,9],
+  ing:[["1","","pâte à pinsa","féculents"],["1","","courgette","légumes"],["120","g","ricotta","frais"],["1","gousse","ail","légumes"],["2","c.à s.","huile d'olive","épicerie"],["","","basilic","herbes"]],
+  steps:["Étaler la pâte et badigeonner d'huile à l'ail.","Répartir la ricotta et les lamelles de courgette.","Cuire 12 min à 230 °C.","Basilic et poivre à la sortie."]},
+ {id:"r204",name:"Pinsa champignons & mozzarella",cuisine:"italien",diet:"vegetarien",vegan:false,veganSwap:true,quick:true,time:25,servings:2,season:[9,10,11],
+  ing:[["1","","pâte à pinsa","féculents"],["200","g","champignons","légumes"],["125","g","mozzarella","frais"],["1","gousse","ail","légumes"],["2","c.à s.","huile d'olive","épicerie"],["","","persil","herbes"]],
+  steps:["Poêler les champignons à l'ail.","Étaler la pâte, répartir mozzarella et champignons.","Cuire 12 min à 230 °C.","Persil frais à la sortie."]}
 ];
 
 /* ============================ ÉTAT ============================ */
-const LS={recipes:"mijote_recipes",fridge:"mijote_fridge",plan:"mijote_plan",dislikes:"mijote_dislikes",vegan:"mijote_vegan",shopState:"mijote_shop",jars:"mijote_jars",mig:"mijote_mig",vegOnly:"mijote_vegonly",opened:"mijote_opened",validated:"mijote_validated"};
+const LS={recipes:"mijote_recipes",fridge:"mijote_fridge",plan:"mijote_plan",dislikes:"mijote_dislikes",vegan:"mijote_vegan",shopState:"mijote_shop",jars:"mijote_jars",mig:"mijote_mig",vegOnly:"mijote_vegonly",opened:"mijote_opened",validated:"mijote_validated",people:"mijote_people",restes:"mijote_restes"};
 const DEFAULT_DISLIKES=["olives","tomates crues","oignons crus","concombre","camembert","brie","chèvre","yaourt","oats","flocons d'avoine"];
 let state={
   recipes: load(LS.recipes, null) || SEED.map(r=>({...r})),
@@ -1107,7 +1208,9 @@ let state={
   jars: load(LS.jars, []),            // bocaux suivis : {id,recipeId,name,start,readyHours,bestHours,keepDays}
   vegOnly: load(LS.vegOnly, true),    // masquer viande & poisson pour Ellie (ON par défaut ; OFF pour partager)
   opened: load(LS.opened, []),        // aliments ouverts : {id,name,openedTs,keepDays}
-  validated: load(LS.validated, null) // menu validé : clé ISO du lundi de la semaine, ou null
+  validated: load(LS.validated, null),// menu validé : clé ISO du lundi de la semaine, ou null
+  people: Math.max(1, load(LS.people, 1)), // nb de personnes à nourrir cette semaine
+  restes: load(LS.restes, true)       // mode restes : grosses fournées réutilisées un jour suivant
 };
 // migrations légères pour bases déjà enregistrées (appelée dans init, après définition des helpers)
 function runMigrations(){
@@ -1118,11 +1221,28 @@ function runMigrations(){
   if(!done.includes("world1")){ SEED.forEach(s=>{ const num=parseInt((s.id||"").slice(1)); if(num>=53 && !state.recipes.some(r=>r.id===s.id))state.recipes.push({...s}); }); done.push("world1"); changed=true; }
   if(!done.includes("simple2")){ SEED.forEach(s=>{ const num=parseInt((s.id||"").slice(1)); if(num>=121 && !state.recipes.some(r=>r.id===s.id))state.recipes.push({...s}); }); done.push("simple2"); changed=true; }
   if(!done.includes("simple3")){ SEED.forEach(s=>{ const num=parseInt((s.id||"").slice(1)); if(num>=161 && !state.recipes.some(r=>r.id===s.id))state.recipes.push({...s}); }); done.push("simple3"); changed=true; }
+  if(!done.includes("tartines1")){ SEED.forEach(s=>{ const num=parseInt((s.id||"").slice(1)); if(num>=191 && !state.recipes.some(r=>r.id===s.id))state.recipes.push({...s}); }); done.push("tartines1"); changed=true; }
+  // frigo unifié : convertit les anciens noms (strings) en objets et fusionne le tracker "aliments ouverts"
+  if(!done.includes("unifridge1")){
+    normalizeFridge();
+    (state.opened||[]).forEach(o=>{ state.fridge.push({id:o.id||uid(),name:o.name,openedTs:o.openedTs||Date.now(),keepDays:o.keepDays||4}); });
+    state.opened=[];
+    done.push("unifridge1"); changed=true;
+  }
   if(changed){ save(LS.mig,done); persist(); }
 }
+// un item de frigo = {id, name, openedTs:null|ts, keepDays:null|nb}. openedTs+keepDays => suivi de péremption.
+function normalizeFridge(){
+  state.fridge=(state.fridge||[]).map(f=> (typeof f==="string")
+    ? {id:uid(),name:f,openedTs:null,keepDays:null}
+    : {id:f.id||uid(),name:f.name,openedTs:f.openedTs||null,keepDays:f.keepDays||null});
+}
+function fridgeNorm(){ return state.fridge.map(f=>norm(f.name)); }
+function inFridge(name){ const n=norm(name); return state.fridge.some(f=>{const h=norm(f.name);return h&&(n.includes(h)||h.includes(n));}); }
+function fridgeTracked(){ return state.fridge.filter(f=>f.openedTs&&f.keepDays); }
 function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-function persist(){save(LS.recipes,state.recipes);save(LS.fridge,state.fridge);save(LS.plan,state.plan);save(LS.dislikes,state.dislikes);save(LS.vegan,state.vegan);save(LS.shopState,state.shopChecked);save(LS.jars,state.jars);save(LS.vegOnly,state.vegOnly);save(LS.opened,state.opened);save(LS.validated,state.validated);}
+function persist(){save(LS.recipes,state.recipes);save(LS.fridge,state.fridge);save(LS.plan,state.plan);save(LS.dislikes,state.dislikes);save(LS.vegan,state.vegan);save(LS.shopState,state.shopChecked);save(LS.jars,state.jars);save(LS.vegOnly,state.vegOnly);save(LS.opened,state.opened);save(LS.validated,state.validated);save(LS.people,state.people);save(LS.restes,state.restes);}
 
 /* ============================ UTILS ============================ */
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
@@ -1130,6 +1250,36 @@ const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim
 const DAYS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2200);}
 function uid(){return "u"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+/* ---- Portions & restes : helpers ---- */
+// repas/slots « restes » : on stocke l'id source préfixé "L:" dans le plan
+const LEFT_PREFIX="L:";
+function isLeftover(id){ return typeof id==="string" && id.startsWith(LEFT_PREFIX); }
+function baseId(id){ return isLeftover(id)? id.slice(LEFT_PREFIX.length) : id; }
+function recipeOf(id){ return state.recipes.find(x=>x.id===baseId(id)); }
+const UNICODE_FRAC={"½":0.5,"⅓":1/3,"⅔":2/3,"¼":0.25,"¾":0.75,"⅕":0.2,"⅖":0.4,"⅗":0.6,"⅘":0.8,"⅙":1/6,"⅛":0.125,"⅜":0.375,"⅝":0.625,"⅞":0.875};
+// extrait une valeur numérique d'une quantité texte ("2","100","1/2","½","2-3","1,5") ; null si non numérique
+function parseQty(str){
+  if(str==null)return null;
+  let s=String(str).trim(); if(!s)return null;
+  for(const [g,v] of Object.entries(UNICODE_FRAC)){ if(s.includes(g)){ const base=parseFloat(s.replace(g,"").replace(",",".").trim()); return (isNaN(base)?0:base)+v; } }
+  s=s.replace(",",".");
+  let m=s.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/); if(m)return parseFloat(m[1])/parseFloat(m[2]); // fraction 1/2
+  m=s.match(/^(\d+(?:\.\d+)?)\s*[-àa]\s*(\d+(?:\.\d+)?)/); if(m)return (parseFloat(m[1])+parseFloat(m[2]))/2; // fourchette 2-3
+  m=s.match(/^(\d+(?:\.\d+)?)/); if(m)return parseFloat(m[1]);
+  return null;
+}
+// arrondi « joli » pour l'affichage des quantités
+function fmtQty(n){
+  if(n==null||isNaN(n))return "";
+  if(n>=100)return String(Math.round(n/5)*5);
+  if(n>=10)return String(Math.round(n));
+  if(n>=1){ const r=Math.round(n*2)/2; return Number.isInteger(r)?String(r):r.toFixed(1).replace(".",","); }
+  const r=Math.round(n*4)/4; return (Number.isInteger(r)?String(r):r.toString().replace(".",",")); // <1 : pas/quarts
+}
+// facteur d'échelle pour une recette = personnes / portions de base
+function scaleFactor(r){ const base=(r&&r.servings)?r.servings:1; return state.people/base; }
+function totalSlots(){ let n=0; for(let i=0;i<7;i++){const m=ensureMeals(i); n+=m.midi.filter(Boolean).length+m.soir.filter(Boolean).length;} return n; }
 
 // un ingrédient est-il « non aimé » ?
 function dislikeHit(text){
@@ -1168,10 +1318,10 @@ $("#tabs").addEventListener("click",e=>{
   $$(".view").forEach(v=>v.classList.remove("active"));
   $("#v-"+b.dataset.v).classList.add("active");
   if(b.dataset.v==="accueil")renderHome();
+  if(b.dataset.v==="frigo"){renderFridge();renderFridgeResults();renderJars();}
   if(b.dataset.v==="recettes")renderRecipes();
   if(b.dataset.v==="semaine")renderWeek();
   if(b.dataset.v==="courses")renderShop();
-  if(b.dataset.v==="pickles"){renderOpened();renderJars();}
   if(b.dataset.v==="reglages")renderDislikes();
 });
 function gotoTab(v){
@@ -1181,33 +1331,64 @@ function gotoTab(v){
 }
 window.gotoTab=gotoTab;
 
-/* ============================ FRIGO ============================ */
+/* ============================ FRIGO (inventaire unifié) ============================ */
+function shortLeft(left){ if(left<0)return "périmé"; if(left<1)return "auj."; return Math.floor(left)+" j"; }
+function fridgeExpiry(f){ if(!(f.openedTs&&f.keepDays))return null; return openedStatus(f); } // {left,pct,cls}
+function fridgeSoon(){ // items suivis à ≤2 j (ou périmés), triés par urgence
+  return fridgeTracked().map(f=>({f,s:openedStatus(f)})).filter(x=>x.s.left<=2).sort((a,b)=>a.s.left-b.s.left).map(x=>x.f);
+}
+function setFridgeExpiry(f){
+  const cur=(f.openedTs&&f.keepDays)? Math.max(0,Math.ceil((f.openedTs+f.keepDays*86400000-Date.now())/86400000)) : "";
+  const v=prompt(`« ${f.name} » se périme dans combien de jours ?\n(laisse vide pour retirer la date)`, cur);
+  if(v===null)return;
+  const d=parseInt(v);
+  if(!String(v).trim()||isNaN(d)){ f.openedTs=null; f.keepDays=null; }
+  else { f.openedTs=Date.now(); f.keepDays=Math.max(1,d); }
+  persist(); renderFridge(); renderHome();
+}
 function renderFridge(){
-  const wrap=$("#fridgeChips"); wrap.innerHTML="";
-  state.fridge.forEach((f,i)=>{
-    const c=document.createElement("span"); c.className="chip x";
-    c.innerHTML=`${f} <span>×</span>`;
-    c.onclick=()=>{state.fridge.splice(i,1);persist();renderFridge();renderFridgeResults();};
-    wrap.appendChild(c);
-  });
+  const wrap=$("#fridgeChips"); if(!wrap)return; wrap.innerHTML="";
+  if(!state.fridge.length){
+    wrap.innerHTML=`<div class="dash-empty" style="width:100%"><span class="ic">📦</span>Inventaire vide. Ajoute ce que tu as dans le frigo ou le placard ci-dessus.</div>`;
+  } else {
+    const items=state.fridge.map(f=>({f,t:fridgeExpiry(f)}));
+    items.sort((a,b)=>{
+      const at=a.t?0:1, bt=b.t?0:1; if(at!==bt)return at-bt;
+      if(a.t&&b.t)return a.t.left-b.t.left;
+      return norm(a.f.name).localeCompare(norm(b.f.name));
+    });
+    items.forEach(({f,t})=>{
+      const c=document.createElement("span");
+      c.className="fr-chip"+(t?(" "+t.cls):"");
+      const left=t?`<span class="dleft">${shortLeft(t.left)}</span>`:"";
+      const clock=`<span class="clock" title="${t?'Modifier la péremption':'Définir une péremption'}">${t?'⏱':'⏱+'}</span>`;
+      c.innerHTML=`<span class="nm">${f.name}</span>${left}${clock}<span class="x" title="Retirer">×</span>`;
+      c.querySelector(".x").onclick=()=>{ state.fridge=state.fridge.filter(x=>x.id!==f.id); persist(); renderFridge(); renderFridgeResults(); renderHome(); };
+      c.querySelector(".clock").onclick=()=>setFridgeExpiry(f);
+      wrap.appendChild(c);
+    });
+  }
+  const cnt=$("#fridgeInvCount"); if(cnt)cnt.textContent=state.fridge.length?`${state.fridge.length} aliment${state.fridge.length>1?"s":""}`:"";
   // suggestions de saison
   const m=currentMonth();
-  const sugg=SEASON[m].filter(s=>!state.fridge.some(f=>norm(f)===norm(s))).slice(0,8);
-  $("#fridgeSugg").innerHTML = sugg.length? "De saison : "+sugg.map(s=>`<a href="#" data-s="${s}" class="ssg">+ ${s}</a>`).join("&nbsp;&nbsp;"):"";
-  $$(".ssg").forEach(a=>a.onclick=ev=>{ev.preventDefault();addFridge(a.dataset.s);});
+  const sugg=SEASON[m].filter(s=>!state.fridge.some(f=>norm(f.name)===norm(s))).slice(0,8);
+  const sg=$("#fridgeSugg"); if(sg){ sg.innerHTML = sugg.length? "De saison : "+sugg.map(s=>`<a href="#" data-s="${s}" class="ssg">+ ${s}</a>`).join("&nbsp;&nbsp;"):""; $$(".ssg").forEach(a=>a.onclick=ev=>{ev.preventDefault();addFridge(a.dataset.s);}); }
 }
-function addFridge(v){
-  v=v.trim(); if(!v)return;
+function addFridge(v,days){
+  v=(v||"").trim(); if(!v)return;
   v.split(",").map(x=>x.trim()).filter(Boolean).forEach(x=>{
-    if(!state.fridge.some(f=>norm(f)===norm(x)))state.fridge.push(x);
+    const ex=state.fridge.find(f=>norm(f.name)===norm(x));
+    if(ex){ if(days){ ex.openedTs=Date.now(); ex.keepDays=Math.max(1,days); } }
+    else { state.fridge.push({id:uid(),name:x,openedTs:days?Date.now():null,keepDays:days?Math.max(1,days):null}); }
   });
-  persist();renderFridge();renderFridgeResults();
+  persist();renderFridge();renderFridgeResults();renderHome();
 }
-$("#fridgeAdd").onclick=()=>{addFridge($("#fridgeInput").value);$("#fridgeInput").value="";};
-$("#fridgeInput").addEventListener("keydown",e=>{if(e.key==="Enter"){addFridge($("#fridgeInput").value);$("#fridgeInput").value="";}});
+$("#fridgeAdd").onclick=()=>{ const d=parseInt($("#fridgeDays").value); addFridge($("#fridgeInput").value, isNaN(d)?0:d); $("#fridgeInput").value="";$("#fridgeDays").value=""; };
+$("#fridgeInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("#fridgeAdd").click();});
+$("#fridgeDays").addEventListener("keydown",e=>{if(e.key==="Enter")$("#fridgeAdd").click();});
 
 function matchScore(r){
-  const have=state.fridge.map(norm);
+  const have=fridgeNorm();
   let hit=0;
   r.ing.forEach(i=>{ const n=norm(i[2]); if(have.some(h=>n.includes(h)||h.includes(n)))hit++; });
   return {hit,total:r.ing.length,pct:r.ing.length?hit/r.ing.length:0};
@@ -1256,10 +1437,12 @@ function openRecipe(id){
   const r=state.recipes.find(x=>x.id===id); if(!r)return;
   const veganOn = isVeganView(r);
   const dis=recipeDislikes(r);
+  const f=scaleFactor(r);
   const ingHtml=r.ing.map(i=>{
-    const name=i[2]; const have=state.fridge.some(f=>{const n=norm(name),h=norm(f);return n.includes(h)||h.includes(n);});
+    const name=i[2]; const have=inFridge(name);
     let swap=""; if(veganOn && !r.vegan){ const key=Object.keys(VEGAN_SWAPS).find(k=>norm(name).includes(norm(k))); if(key)swap=`<div class="swap">↳ vegan : ${VEGAN_SWAPS[key]}</div>`; }
-    const q=[i[0],i[1]].filter(Boolean).join(" ");
+    const unit=(i[1]||"").trim(); const base=parseQty(i[0]);
+    const q = base!=null ? [fmtQty(base*f),unit].filter(Boolean).join(" ") : [i[0],unit].filter(Boolean).join(" ");
     return `<li><span class="${have?'have':''}">${have?'✓ ':''}${name}${swap}</span><span class="muted">${q}</span></li>`;
   }).join("");
   const stepsHtml=r.steps.map(s=>`<li>${s}</li>`).join("");
@@ -1267,7 +1450,7 @@ function openRecipe(id){
   $("#modal").innerHTML=`
     <div class="mhead"><span class="close-x" onclick="closeModal()">×</span>
       <h2 style="margin:0 0 6px;max-width:90%">${r.name}</h2>
-      <div class="row" style="gap:6px"><span class="badge ${dietBadgeClass(r)}">${dietLabel(r)}</span><span class="chip cuisine">${r.cuisine}</span><span class="chip">⏱ ${r.time} min</span><span class="chip">👥 ${r.servings} pers.</span></div>
+      <div class="row" style="gap:6px"><span class="badge ${dietBadgeClass(r)}">${dietLabel(r)}</span><span class="chip cuisine">${r.cuisine}</span><span class="chip">⏱ ${r.time} min</span><span class="chip">👥 quantités pour ${state.people} pers.</span>${state.people!==r.servings?`<span class="chip muted">base : ${r.servings} pers.</span>`:""}</div>
     </div>
     <div class="mbody">
       ${disWarn}
@@ -1293,8 +1476,8 @@ window.closeModal=closeModal;
 function deleteRecipe(id){
   if(!confirm("Supprimer cette recette de ta base ?"))return;
   state.recipes=state.recipes.filter(r=>r.id!==id);
-  // retirer de la semaine
-  Object.keys(state.plan).forEach(d=>state.plan[d]=(state.plan[d]||[]).filter(x=>x!==id));
+  // retirer de la semaine (repas normaux ET restes)
+  Object.keys(state.plan).forEach(d=>{const p=state.plan[d]; if(!p)return; ["midi","soir"].forEach(k=>{ if(Array.isArray(p[k])) p[k]=p[k].filter(x=>baseId(x)!==id); });});
   persist();closeModal();renderFridgeResults();renderRecipes();toast("Recette supprimée");
 }
 window.deleteRecipe=deleteRecipe;
@@ -1370,14 +1553,18 @@ function renderWeekValidInfo(){
 }
 
 function renderWeek(){
+  syncCtrlBar();
   const w=$("#week"); w.innerHTML="";
   DAYS.forEach((d,i)=>{
     const day=document.createElement("div"); day.className="day";
     const meals=ensureMeals(i);
     const sections=MEALS.map(([key,lbl])=>{
       const slots=meals[key].map((id,si)=>{
-        const r=state.recipes.find(x=>x.id===id);
-        return `<div class="slot">${r?r.name:"—"}<span class="rm" data-d="${i}" data-k="${key}" data-s="${si}">×</span></div>`;
+        const r=recipeOf(id); const lo=isLeftover(id);
+        const name=r?r.name:"—";
+        const label=lo?`<span class="ico">♻️</span>Restes — ${name}`:name;
+        const loBtn=(!lo&&r&&state.restes&&isBatchable(r))?`<span class="lo-act" title="Manger les restes un autre jour" data-lo-d="${i}" data-lo-k="${key}" data-lo-s="${si}">♻</span>`:"";
+        return `<div class="slot${lo?" leftover":""}">${label}${loBtn}<span class="rm" data-d="${i}" data-k="${key}" data-s="${si}">×</span></div>`;
       }).join("");
       return `<div class="meal"><div class="meal-lbl">${lbl}</div>${slots}<button class="add" data-day="${i}" data-meal="${key}">+</button></div>`;
     }).join("");
@@ -1386,9 +1573,37 @@ function renderWeek(){
   });
   $$("#week .add").forEach(b=>b.onclick=()=>openPicker(+b.dataset.day,null,b.dataset.meal));
   $$("#week .rm").forEach(b=>b.onclick=()=>{const d=+b.dataset.d,k=b.dataset.k,s=+b.dataset.s;ensureMeals(d)[k].splice(s,1);persist();renderWeek();});
+  $$("#week .lo-act").forEach(b=>b.onclick=()=>addLeftover(+b.dataset.loD,b.dataset.loK,+b.dataset.loS));
   renderWeekValidInfo();
 }
+// recettes adaptées à une grosse fournée / aux restes (pas les express ni les condiments)
+function isBatchable(r){ return r && !r.quick && !r.tracker && (r.time||0)>=25; }
+// place « Restes de X » sur le 1er créneau libre d'un jour suivant
+function addLeftover(d,k,s){
+  const id=ensureMeals(d)[k][s]; if(!id||isLeftover(id))return;
+  const r=recipeOf(id); if(!r)return;
+  const loId=LEFT_PREFIX+baseId(id);
+  for(let dd=d+1;dd<7;dd++){
+    const m=ensureMeals(dd);
+    for(const key of ["midi","soir"]){
+      if(m[key].length===0){ m[key].push(loId); persist(); renderWeek(); renderShop(); toast(`Restes de « ${r.name} » placés sur ${DAYS[dd]}`); return; }
+    }
+  }
+  toast("Aucun créneau libre un jour suivant pour les restes");
+}
+function syncCtrlBar(){
+  const c=$("#peopleCount"); if(c)c.textContent=state.people;
+  const t=$("#restesToggle"); if(t)t.classList.toggle("on",!!state.restes);
+}
+function changePeople(delta){
+  state.people=Math.max(1,Math.min(20,state.people+delta)); persist();
+  syncCtrlBar(); renderWeek(); renderShop();
+  toast(`Quantités ajustées pour ${state.people} personne${state.people>1?"s":""}`);
+}
 $("#weekValidate").onclick=validateWeek;
+$("#peopleMinus").onclick=()=>changePeople(-1);
+$("#peoplePlus").onclick=()=>changePeople(1);
+$("#restesToggle").onclick=()=>{ state.restes=!state.restes; persist(); syncCtrlBar(); renderWeek(); toast(state.restes?"Mode restes activé ♻️":"Mode restes désactivé"); };
 $("#weekClear").onclick=()=>{if(confirm("Vider toute la semaine ?")){state.plan={};state.validated=null;persist();renderWeek();}};
 $("#weekRandom").onclick=()=>{
   const pool=state.recipes.filter(r=>!recipeDislikes(r).length && (!state.vegOnly||isVegMe(r)) && (!state.vegan||isVeganView(r)));
@@ -1437,13 +1652,59 @@ function weekOptimized(){
   }
   return days; // 7 paires [midi, soir]
 }
+// --- Variante MODE RESTES : cuisine moins de plats, chacun en plus grande fournée,
+//     et place « Restes de X » sur un créneau d'un jour suivant (plafond 2× = 1 reste/plat) ---
+function weekOptimizedRestes(){
+  const filtered=state.recipes.filter(r=>!recipeDislikes(r).length && (!state.vegOnly||isVegMe(r)) && (!state.vegan||isVeganView(r)));
+  if(filtered.length<2)return null;
+  const pool=shuffle(filtered);
+  const sets=new Map(pool.map(r=>[r.id,recipeIngSet(r)]));
+  const quickPool=pool.filter(r=>r.quick);
+  const pantry=new Set(), used=new Set();
+  function pick(cands,allowRepeat){
+    let best=null,bs=-1e9;
+    for(const r of cands){
+      if(!allowRepeat && used.has(r.id))continue;
+      const s=sets.get(r.id); let sh=0,nw=0; s.forEach(x=>pantry.has(x)?sh++:nw++);
+      const sc=sh*2 - nw + (inSeason(r)?0.5:0);
+      if(sc>bs){bs=sc;best=r;}
+    }
+    return best;
+  }
+  const take=r=>{ if(r){ used.add(r.id); sets.get(r.id).forEach(x=>pantry.add(x)); } return r; };
+  const plan={}; for(let i=0;i<7;i++)plan[i]={midi:[],soir:[]};
+  const slots=[]; for(let i=0;i<7;i++){slots.push([i,"midi"]);slots.push([i,"soir"]);}
+  const pending=[]; // restes en attente : {id, day}
+  const seedBase=(quickPool.length?quickPool:pool).slice().sort((a,b)=>(inSeason(b)-inSeason(a))||(sets.get(b.id).size-sets.get(a.id).size)).slice(0,6);
+  const firstQuick=seedBase[Math.floor(Math.random()*seedBase.length)];
+  slots.forEach(([day,meal],idx)=>{
+    // 1) si un reste cuit un jour précédent attend, on le mange (jour suivant)
+    const li=pending.findIndex(p=>p.day<day);
+    if(li>=0){ const p=pending.splice(li,1)[0]; plan[day][meal].push(LEFT_PREFIX+p.id); return; }
+    // 2) sinon, on cuisine un nouveau plat (max réemploi d'ingrédients)
+    let r = (idx===0 && firstQuick) ? firstQuick
+          : (idx%4===0 && quickPool.length ? (pick(quickPool,false)||pick(pool,false)||pick(pool,true)) : (pick(pool,false)||pick(pool,true)));
+    take(r); plan[day][meal].push(r.id);
+    // plat « batchable » → on prévoit un reste pour un jour suivant (1 seul → plafond 2×)
+    if(isBatchable(r)) pending.push({id:r.id,day});
+  });
+  return plan;
+}
 $("#weekOptim").onclick=()=>{
+  if(allPlannedIds().filter(Boolean).length && !confirm("Remplacer toute la semaine par un menu optimisé anti-gâchis ?"))return;
+  if(state.restes){
+    const plan=weekOptimizedRestes();
+    if(!plan){toast("Ajoute d'abord quelques recettes");return;}
+    state.plan=plan; persist(); renderWeek(); renderShop();
+    let cooked=0,left=0; for(let i=0;i<7;i++){const m=ensureMeals(i);[...m.midi,...m.soir].forEach(id=>{if(!id)return;isLeftover(id)?left++:cooked++;});}
+    toast(`Menu optimisé ♻️ — ${cooked} plats cuisinés · ${left} repas de restes`);
+    return;
+  }
   const days=weekOptimized();
   if(!days){toast("Ajoute d'abord quelques recettes");return;}
-  if(allPlannedIds().filter(Boolean).length && !confirm("Remplacer toute la semaine par un menu optimisé anti-gâchis ?"))return;
   state.plan={};
   for(let i=0;i<7;i++)state.plan[i]={midi:[days[i][0].id],soir:[days[i][1].id]};
-  persist(); renderWeek();
+  persist(); renderWeek(); renderShop();
   const all=days.flat().filter(Boolean);
   const counts={}; all.forEach(r=>recipeIngSet(r).forEach(x=>counts[x]=(counts[x]||0)+1));
   const shared=Object.values(counts).filter(c=>c>=2).length, distinct=Object.keys(counts).length;
@@ -1483,15 +1744,28 @@ $("#pickBg").onclick=e=>{if(e.target===$("#pickBg"))closePick();};
 const SHOP_ORDER=["légumes","légumineuses","féculents","viande","poisson","frais","épicerie","épices","herbes","autres"];
 // agrège les ingrédients de la semaine, moins ce qui est déjà dans le frigo
 function shopAgg(){
-  const agg={}; // key -> {name,cat,parts:[]}
+  const agg={}; // key -> {name,cat,units:{unit:sum}, extras:[]}
+  // chaque slot (repas normal OU restes) compte pour `state.people` portions :
+  // 2 slots d'une même recette = double fournée → les quantités s'additionnent naturellement.
   allPlannedIds().forEach(id=>{
-    const r=state.recipes.find(x=>x.id===id); if(!r)return;
+    const r=recipeOf(id); if(!r)return;
+    const f=scaleFactor(r);
     r.ing.forEach(i=>{
-      const name=i[2], cat=i[3]||"autres"; const key=norm(name);
-      if(state.fridge.some(f=>{const n=norm(name),h=norm(f);return n.includes(h)||h.includes(n);}))return;
-      if(!agg[key])agg[key]={name,cat,parts:[]};
-      const q=[i[0],i[1]].filter(Boolean).join(" "); if(q)agg[key].parts.push(q);
+      const name=i[2], unit=(i[1]||"").trim(), cat=i[3]||"autres"; const key=norm(name);
+      if(inFridge(name))return;
+      if(!agg[key])agg[key]={name,cat,units:{},extras:[]};
+      const base=parseQty(i[0]);
+      if(base!=null){ agg[key].units[unit]=(agg[key].units[unit]||0)+base*f; }
+      else { const raw=[i[0],unit].filter(Boolean).join(" "); if(raw)agg[key].extras.push(raw); }
     });
+  });
+  // construit la chaîne de quantité finale par ingrédient
+  Object.values(agg).forEach(v=>{
+    const bits=[];
+    Object.entries(v.units).forEach(([u,sum])=>{ const q=fmtQty(sum); if(q)bits.push(u?`${q} ${u}`:q); });
+    [...new Set(v.extras)].forEach(e=>bits.push(e));
+    v.qty=bits.join(" + ");
+    v.parts=bits; // compat
   });
   return agg;
 }
@@ -1502,7 +1776,7 @@ function buildShopText(){
   SHOP_ORDER.filter(c=>cats[c]).forEach(c=>{
     lines.push("— "+c.toUpperCase());
     cats[c].sort((a,b)=>a.name.localeCompare(b.name)).forEach(it=>{
-      const q=[...new Set(it.parts)].join(" + "); lines.push("• "+it.name+(q?" ("+q+")":""));
+      const q=it.qty||""; lines.push("• "+it.name+(q?" ("+q+")":""));
     });
   });
   return lines.join("\n");
@@ -1519,13 +1793,16 @@ function renderShop(){
   const order=SHOP_ORDER;
   const box=$("#shopList"); box.innerHTML="";
   if(!Object.keys(agg).length){ box.innerHTML=`<div class="empty"><div class="ic">🛒</div>Ta liste est vide. Planifie des repas dans « Ma semaine ».</div>`; return; }
+  const summary=document.createElement("div"); summary.className="shop-summary muted small";
+  summary.innerHTML=`Quantités calculées pour <b>${state.people} personne${state.people>1?"s":""}</b>${state.restes?" · mode restes ♻️ actif":""}.`;
+  box.appendChild(summary);
   order.filter(c=>cats[c]).forEach(c=>{
     const div=document.createElement("div"); div.className="shop-cat";
     div.innerHTML=`<h4>${c}</h4>`;
     cats[c].sort((a,b)=>a.name.localeCompare(b.name)).forEach(it=>{
       const checked=state.shopChecked[it.k]?"checked":"";
       const row=document.createElement("div"); row.className="shop-item"+(checked?" done":"");
-      row.innerHTML=`<input type="checkbox" ${checked}><span>${it.name}</span><span class="q">${[...new Set(it.parts)].join(" + ")||""}</span>`;
+      row.innerHTML=`<input type="checkbox" ${checked}><span>${it.name}</span><span class="q">${it.qty||""}</span>`;
       row.querySelector("input").onchange=e=>{state.shopChecked[it.k]=e.target.checked;persist();row.classList.toggle("done",e.target.checked);};
       div.appendChild(row);
     });
@@ -1535,56 +1812,78 @@ function renderShop(){
 $("#shopReset").onclick=()=>{state.shopChecked={};persist();renderShop();};
 $("#shopCopy").onclick=copyShop;
 
-/* ============================ ACCUEIL ============================ */
+/* ============================ ACCUEIL (dashboard 3 colonnes) ============================ */
 function renderHome(){
   const box=$("#homeContent"); if(!box)return;
   const ti=todayIndex();
   const validated = state.validated===currentWeekKey();
-  let html="";
-  if(!validated){
-    html+=`<div class="hero stack">
-      <h2 style="margin:0">Bienvenue 👋</h2>
-      <div class="muted">Tu n'as pas encore de menu validé pour cette semaine.</div>
-      <div class="row"><button class="btn primary" onclick="gotoTab('semaine');renderWeek()">🗓️ Planifier ma semaine</button>
-      <button class="btn" onclick="gotoTab('frigo')">🧊 Partir de mon frigo</button></div>
-    </div>`;
-  } else {
-    html+=`<div class="spread" style="margin-bottom:14px;flex-wrap:wrap"><h2 style="margin:0">🍽️ Mon menu de la semaine</h2>
-      <div class="row"><button class="btn sm" onclick="copyShop()">📋 Copier la liste de courses</button>
-      <button class="btn sm" onclick="gotoTab('courses');renderShop()">🛒 Voir la liste</button>
-      <button class="btn sm" onclick="gotoTab('semaine');renderWeek()">✏️ Modifier</button></div></div>`;
-    html+=`<div class="grid g3" id="homeWeek"></div>`;
-  }
-  // aliments à consommer bientôt
-  const soon=openedSoon();
-  if(soon.length){
-    html+=`<div class="sub-h"><h3>⏳ À consommer bientôt</h3><span class="ln"></span><button class="btn sm" onclick="gotoTab('pickles');renderOpened();renderJars()">Gérer →</button></div>
-      <div class="grid g2" id="homeSoon"></div>`;
-  }
-  box.innerHTML=html;
+  const soon=fridgeSoon();
+  const jars=state.jars||[];
 
+  let head;
   if(validated){
-    const wk=$("#homeWeek");
+    head=`<div class="spread" style="margin-bottom:14px;flex-wrap:wrap"><h2 style="margin:0">🍽️ Mon tableau de bord</h2>
+      <div class="row"><button class="btn sm" onclick="copyShop()">📋 Copier les courses</button>
+      <button class="btn sm" onclick="gotoTab('courses');renderShop()">🛒 Liste</button>
+      <button class="btn sm" onclick="gotoTab('semaine');renderWeek()">✏️ Modifier la semaine</button></div></div>`;
+  } else {
+    head=`<div class="hero stack" style="margin-bottom:14px">
+      <h2 style="margin:0">Bienvenue 👋</h2>
+      <div class="muted">Pas encore de menu validé pour cette semaine.</div>
+      <div class="row"><button class="btn primary" onclick="gotoTab('semaine');renderWeek()">🗓️ Planifier ma semaine</button>
+      <button class="btn" onclick="gotoTab('frigo');renderFridge();renderFridgeResults();renderJars()">🧊 Partir de mon frigo</button></div>
+    </div>`;
+  }
+  box.innerHTML = head + `<div class="dash">
+    <div class="dash-col" id="dashWeek"></div>
+    <div class="dash-col" id="dashJars"></div>
+    <div class="dash-col" id="dashSoon"></div>
+  </div>`;
+
+  // Colonne 1 — menu de la semaine
+  let wkHtml=`<div class="dash-head"><h3>🗓️ Menu de la semaine</h3><button class="lnk" onclick="gotoTab('semaine');renderWeek()">${validated?"Modifier →":"Planifier →"}</button></div>`;
+  if(validated){
     DAYS.forEach((d,i)=>{
       const m=ensureMeals(i);
-      const meal=([["midi","☀️ Midi"],["soir","🌙 Soir"]]).map(([k,lbl])=>{
-        const dishes=m[k].map(id=>{const r=state.recipes.find(x=>x.id===id);return r?`<a class="dish" data-rid="${r.id}">${r.name}</a>`:`<span class="dish muted">—</span>`;}).join(", ")||`<span class="dish muted">—</span>`;
-        return `<div class="home-meal"><span class="lbl">${lbl}</span><span class="dish">${dishes}</span></div>`;
+      const lines=([["midi","☀️"],["soir","🌙"]]).map(([k,ic])=>{
+        const dishes=m[k].map(id=>{const r=recipeOf(id);if(!r)return"";const lo=isLeftover(id);return `<a data-rid="${r.id}">${lo?"♻️ ":""}${r.name}</a>`;}).filter(Boolean).join(", ")||`<span class="muted">—</span>`;
+        return `<div class="mline"><span class="lbl">${ic}</span><span>${dishes}</span></div>`;
       }).join("");
-      const el=document.createElement("div"); el.className="home-day"+(i===ti?" today":"");
-      el.innerHTML=`<h4>${d}${i===ti?`<span class="tag-today">AUJOURD'HUI</span>`:""}</h4>${meal}`;
-      wk.appendChild(el);
+      wkHtml+=`<div class="mday${i===ti?" today":""}"><div class="mday-h">${d}${i===ti?`<span class="tag-today">AUJ.</span>`:""}</div>${lines}</div>`;
     });
-    $$("#homeWeek a.dish[data-rid]").forEach(a=>a.onclick=()=>openRecipe(a.dataset.rid));
+  } else {
+    wkHtml+=`<div class="dash-empty"><span class="ic">🍽️</span>Aucun menu validé.<br>Planifie ta semaine pour la retrouver ici d'un coup d'œil.</div>`;
   }
+  $("#dashWeek").innerHTML=wkHtml;
+  $$("#dashWeek a[data-rid]").forEach(a=>a.onclick=()=>openRecipe(a.dataset.rid));
+
+  // Colonne 2 — bocaux en cours
+  let jHtml=`<div class="dash-head"><h3>🫙 Bocaux en cours</h3><button class="lnk" onclick="gotoTab('frigo');renderFridge();renderFridgeResults();renderJars()">Gérer →</button></div>`;
+  if(jars.length){
+    [...jars].sort((a,b)=>b.start-a.start).forEach(j=>{
+      const s=jarStatus(j);
+      jHtml+=`<div class="mini ${s.cls}"><div class="mini-top"><b>${j.name}</b></div><div class="bar"><i style="width:${s.pct}%"></i></div><div class="st">${s.status}</div></div>`;
+    });
+  } else {
+    jHtml+=`<div class="dash-empty"><span class="ic">🫙</span>Aucun bocal en cours.<br>Lance des pickles ou des œufs marinés depuis « Mon frigo ».</div>`;
+  }
+  $("#dashJars").innerHTML=jHtml;
+
+  // Colonne 3 — ça périme bientôt
+  let sHtml=`<div class="dash-head"><h3>⏳ Ça périme bientôt</h3><button class="lnk" onclick="gotoTab('frigo');renderFridge();renderFridgeResults();renderJars()">Gérer →</button></div>`;
   if(soon.length){
-    const sb=$("#homeSoon");
-    soon.forEach(o=>sb.appendChild(openedCard(o)));
+    soon.forEach(f=>{
+      const s=openedStatus(f);
+      sHtml+=`<div class="mini ${s.cls}"><div class="mini-top"><b>${f.name}</b></div><div class="bar"><i style="width:${s.pct}%"></i></div><div class="st">${leftLabel(s.left)}</div></div>`;
+    });
+  } else {
+    sHtml+=`<div class="dash-empty"><span class="ic">✅</span>Rien ne presse.<br>Ajoute une date de péremption dans « Mon frigo » pour être alerté ici.</div>`;
   }
+  $("#dashSoon").innerHTML=sHtml;
 }
 
-/* ============================ TRACKER ALIMENTS OUVERTS ============================ */
-// durées de conservation indicatives après ouverture (jours)
+/* ============================ PÉREMPTIONS (helpers, partagés frigo/accueil) ============================ */
+// durées de conservation indicatives après ouverture (jours) — pour l'ajout rapide
 const OPENED_PRESETS=[
   {n:"Lait ouvert",d:4},{n:"Lait végétal ouvert",d:4},{n:"Crème fraîche",d:5},
   {n:"Jus de fruits",d:4},{n:"Lait de coco (boîte ouverte)",d:4},{n:"Tofu (égoutté)",d:3},
@@ -1600,52 +1899,16 @@ function openedStatus(o){
   let cls="ok"; if(left<0)cls="late"; else if(left<=2)cls="soon";
   return {left,pct,cls};
 }
-function openedSoon(){ // périmés ou ≤2j restants, trié par urgence
-  return state.opened.map(o=>({o,s:openedStatus(o)})).filter(x=>x.s.left<=2).sort((a,b)=>a.s.left-b.s.left).map(x=>x.o);
-}
 function leftLabel(left){
   if(left<0)return `Périmé depuis ${Math.ceil(-left)} j`;
   if(left<1)return "À manger aujourd'hui";
   return `Encore ${Math.floor(left)} j`;
 }
-function openedCard(o){
-  const s=openedStatus(o);
-  const exp=new Date(o.openedTs+o.keepDays*86400000).toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
-  const opened=new Date(o.openedTs).toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
-  const el=document.createElement("div"); el.className="card trk "+s.cls;
-  el.innerHTML=`
-    <div class="spread"><b>${o.name}</b><button class="btn sm danger" data-rm="${o.id}">✓ Fini</button></div>
-    <div class="bar"><i style="width:${s.pct}%"></i></div>
-    <div class="left">${leftLabel(s.left)}</div>
-    <div class="tiny muted">Ouvert le ${opened} · à consommer avant le ${exp}</div>`;
-  el.querySelector("[data-rm]").onclick=()=>{ state.opened=state.opened.filter(x=>x.id!==o.id); persist(); renderOpened(); renderHome(); };
-  return el;
-}
 function renderOpenedPresets(){
   const box=$("#openedPresets"); if(!box)return;
   box.innerHTML=OPENED_PRESETS.map(p=>`<button data-n="${p.n}" data-d="${p.d}">${p.n} <span class="muted">· ${p.d}j</span></button>`).join("");
-  $$("#openedPresets button").forEach(b=>b.onclick=()=>{ addOpened(b.dataset.n,+b.dataset.d); });
-  // ajuste la durée par défaut du champ manuel quand on tape un nom connu
+  $$("#openedPresets button").forEach(b=>b.onclick=()=>{ addFridge(b.dataset.n,+b.dataset.d); toast(b.dataset.n+" ajouté au frigo 🧊"); });
 }
-function addOpened(name,days){
-  name=(name||"").trim(); if(!name){toast("Donne un nom à l'aliment");return;}
-  state.opened.push({id:uid(),name,openedTs:Date.now(),keepDays:Math.max(1,days||4)});
-  persist(); renderOpened(); renderHome(); toast(name+" ajouté au tracker 🧊");
-}
-function renderOpened(){
-  const box=$("#openedList"); if(!box)return;
-  box.innerHTML="";
-  if(!state.opened.length){ box.innerHTML=`<div class="empty"><div class="ic">🧊</div>Aucun aliment ouvert suivi.<br>Clique un aliment ci-dessus dès que tu l'ouvres.</div>`; return; }
-  [...state.opened].map(o=>({o,s:openedStatus(o)})).sort((a,b)=>a.s.left-b.s.left).forEach(x=>box.appendChild(openedCard(x.o)));
-}
-$("#openedAdd").onclick=()=>{ addOpened($("#openedName").value,+$("#openedDays").value); $("#openedName").value=""; };
-$("#openedName").addEventListener("keydown",e=>{ if(e.key==="Enter")$("#openedAdd").click(); });
-// pré-remplit la durée du champ manuel si le nom tapé correspond à un preset connu
-$("#openedName").addEventListener("input",()=>{
-  const q=norm($("#openedName").value); if(!q)return;
-  const hit=OPENED_PRESETS.find(p=>norm(p.n).includes(q)||q.includes(norm(p.n)));
-  if(hit)$("#openedDays").value=hit.d;
-});
 
 /* ============================ TRACKER PICKLES ============================ */
 function fmtDur(h){ // heures -> "Xj Yh" / "Xh" / "<1h"
@@ -1656,28 +1919,31 @@ function fmtDur(h){ // heures -> "Xj Yh" / "Xh" / "<1h"
 }
 function fmtDate(ts){ return new Date(ts).toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}); }
 function trackableRecipes(){ return state.recipes.filter(r=>r.tracker && r.readyHours); }
-
+// statut d'un bocal — partagé entre l'accueil et l'onglet frigo
+function jarStatus(j){
+  const elapsedH=(Date.now()-j.start)/3600000;
+  const ready=elapsedH>=j.readyHours;
+  const best=j.bestHours||j.readyHours;
+  const expired=j.keepDays && elapsedH>=j.keepDays*24;
+  const pct=Math.max(4,Math.min(100,Math.round(elapsedH/j.readyHours*100)));
+  let cls="waiting",status="",sub="";
+  if(expired){ cls="expired"; status="⚠ À jeter / vérifier"; sub=`Dépasse la durée de conservation (${j.keepDays} j).`; }
+  else if(ready){ cls="ready"; status="✓ Prêt à manger";
+    if(elapsedH<best)sub=`Encore meilleur dans ${fmtDur(best-elapsedH)}.`;
+    else sub=`À consommer avant le ${fmtDate(j.start+j.keepDays*86400000)}.`;
+  } else { cls="waiting"; status=`Prêt dans ${fmtDur(j.readyHours-elapsedH)}`; sub=`Lancé le ${fmtDate(j.start)}.`; }
+  return {cls,status,sub,pct:ready?100:pct,ready,expired};
+}
 function renderJars(){
-  const box=$("#jarList"); box.innerHTML="";
+  const box=$("#jarList"); if(!box)return; box.innerHTML="";
   if(!state.jars.length){ box.innerHTML=`<div class="empty"><div class="ic">🫙</div>Aucun bocal en cours.<br>Clique « Démarrer un bocal » quand tu lances des pickles ou des œufs marinés.</div>`; return; }
-  const now=Date.now();
   // les plus récents / non prêts en premier
   [...state.jars].sort((a,b)=>b.start-a.start).forEach(j=>{
-    const elapsedH=(now-j.start)/3600000;
-    const ready=elapsedH>=j.readyHours;
-    const best=j.bestHours||j.readyHours;
-    const expired=j.keepDays && elapsedH>=j.keepDays*24;
-    const pct=Math.max(4,Math.min(100,Math.round(elapsedH/j.readyHours*100)));
-    let cls="waiting",status="",sub="";
-    if(expired){ cls="expired"; status="⚠ À jeter / vérifier"; sub=`Dépasse la durée de conservation (${j.keepDays} j).`; }
-    else if(ready){ cls="ready"; status="✓ Prêt à manger";
-      if(elapsedH<best)sub=`Encore meilleur dans ${fmtDur(best-elapsedH)}.`;
-      else sub=`À consommer avant le ${fmtDate(j.start+j.keepDays*86400000)}.`;
-    } else { cls="waiting"; status=`Prêt dans ${fmtDur(j.readyHours-elapsedH)}`; sub=`Lancé le ${fmtDate(j.start)}.`; }
+    const s=jarStatus(j); const cls=s.cls, status=s.status, sub=s.sub, pct=s.pct, best=j.bestHours||j.readyHours;
     const el=document.createElement("div"); el.className="card jar "+cls;
     el.innerHTML=`
       <div class="spread"><b>${j.name}</b><button class="btn sm danger" data-rm="${j.id}">Supprimer</button></div>
-      <div class="bar"><i style="width:${ready?100:pct}%"></i></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
       <div class="status">${status}</div>
       <div class="muted small">${sub}</div>
       <div class="tiny muted">Prêt après ${fmtDur(j.readyHours)} · idéal à ${fmtDur(best)} · se garde ${j.keepDays} j</div>`;
@@ -1870,6 +2136,7 @@ $("#importFile").onchange=e=>{
   const f=e.target.files[0]; if(!f)return;
   const rd=new FileReader(); rd.onload=()=>{ try{ const j=JSON.parse(rd.result);
     if(j.recipes)state.recipes=j.recipes; if(j.dislikes)state.dislikes=j.dislikes; if(j.plan)state.plan=j.plan; if(j.fridge)state.fridge=j.fridge; if(j.jars)state.jars=j.jars;
+    normalizeFridge();
     persist(); renderAll(); toast("Sauvegarde importée ✓"); }catch(err){toast("Fichier invalide");} };
   rd.readAsText(f);
 };
@@ -1884,7 +2151,7 @@ function renderSeason(){
   const m=currentMonth(); const list=SEASON[m].slice(0,6).join(", ");
   $("#seasonPill").innerHTML=`📍 Lyon · <b>${MONTHS_FULL[m-1]}</b> · de saison : ${list}…`;
 }
-function renderAll(){ renderSeason(); renderHome(); renderFridge(); renderFridgeResults(); renderDislikes(); renderOpened(); renderJars(); $("#veganGlobal").classList.toggle("on",state.vegan); $("#vegOnlyToggle").classList.toggle("on",state.vegOnly); }
+function renderAll(){ renderSeason(); renderHome(); renderFridge(); renderFridgeResults(); renderDislikes(); renderJars(); syncCtrlBar(); $("#veganGlobal").classList.toggle("on",state.vegan); $("#vegOnlyToggle").classList.toggle("on",state.vegOnly); }
 function init(){
   runMigrations();
   checkWeekReset();
