@@ -1,0 +1,17 @@
+{
+  "name": "mijote-static",
+  "install": "echo 'Static HTML — no dependencies to install'",
+  "ports": [
+    {
+      "name": "web",
+      "port": 8080
+    }
+  ],
+  "terminals": [
+    {
+      "name": "Static server",
+      "command": "python3 -m http.server 8080 --bind 0.0.0.0",
+      "description": "Serve index.html at http://localhost:8080/"
+    }
+  ]
+}
