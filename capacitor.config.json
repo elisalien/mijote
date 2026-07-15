@@ -1,0 +1,18 @@
+{
+  "appId": "fr.mijote.app",
+  "appName": "Mijote",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#0f1115"
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0f1115"
+    }
+  }
+}

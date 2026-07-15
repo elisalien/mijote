@@ -17,15 +17,45 @@
 
 L'outil tient compte de préférences personnelles : pas d'olives (mais huile d'olive ok), pas de tomates ni d'oignons crus (cuits ok), pas de camembert / brie / chèvre, pas de yaourts ni de flocons d'avoine.
 
-## Utilisation
+## Utilisation (web)
 
 Aucune installation. Ouvrez simplement le lien ci-dessus, ou téléchargez `index.html` et ouvrez-le dans n'importe quel navigateur. Vos données restent dans votre navigateur (stockage local), rien n'est envoyé sur un serveur.
 
+Sur mobile / écran étroit, la navigation passe en barre du bas (Accueil, Frigo, Recettes, Semaine, Courses + menu Plus pour Convertisseur et Réglages).
+
+## Android (APK)
+
+L'app est aussi empaquetée avec **Capacitor** pour Android. Toutes les fonctionnalités web sont disponibles hors-ligne dans l'APK (sauf l'import de recettes par URL, qui nécessite Internet). Le bookmarklet « Siphonner » reste réservé au navigateur desktop.
+
+### Prérequis
+
+- Node.js 18+
+- Android Studio (ou Android SDK + JDK 17/21)
+- Variables `ANDROID_HOME` / `JAVA_HOME` configurées
+
+### Build
+
+```bash
+npm install
+npm run cap:sync          # copie index.html → www/ puis sync Android
+npx cap open android      # ouvre le projet dans Android Studio
+```
+
+Depuis le dossier `android/` :
+
+```bash
+./gradlew assembleDebug     # APK debug : android/app/build/outputs/apk/debug/
+./gradlew assembleRelease   # APK release (signer avant publication)
+```
+
+Package id : `fr.mijote.app`
+
 ## Technique
 
-- 100 % HTML / CSS / JavaScript vanilla, **aucune dépendance externe**.
-- Fonctionne hors-ligne une fois la page chargée.
-- Hébergé gratuitement via **GitHub Pages**.
+- 100 % HTML / CSS / JavaScript vanilla pour l'UI.
+- Capacitor 7 pour le shell Android (Clipboard, Share, Filesystem, App back button, StatusBar).
+- Fonctionne hors-ligne une fois la page chargée / l'APK installé.
+- Hébergé gratuitement via **GitHub Pages** (web).
 
 ## Licence
 

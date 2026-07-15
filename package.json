@@ -1,0 +1,24 @@
+{
+  "name": "mijote",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mijote — planificateur de repas végétariens de saison (web + Android APK)",
+  "scripts": {
+    "sync:www": "mkdir -p www && cp index.html www/index.html",
+    "cap:sync": "npm run sync:www && npx cap sync android",
+    "cap:open": "npx cap open android",
+    "android:sync": "npm run cap:sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.2",
+    "@capacitor/app": "^7.0.2",
+    "@capacitor/clipboard": "^7.0.1",
+    "@capacitor/core": "^7.4.2",
+    "@capacitor/filesystem": "^7.1.2",
+    "@capacitor/share": "^7.0.1",
+    "@capacitor/status-bar": "^7.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.2"
+  }
+}
