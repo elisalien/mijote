@@ -41,6 +41,25 @@
   --font-display:"Fraunces",Georgia,"Times New Roman",serif;
   --font-ui:"Source Sans 3","Segoe UI","Helvetica Neue",sans-serif;
 }
+.sync-pill{
+  display:none;align-items:center;gap:6px;margin:8px 0 0;
+  font-size:.78rem;color:var(--txt2);padding:6px 10px;border-radius:999px;
+  background:rgba(126,224,168,.08);border:1px solid rgba(126,224,168,.22);width:fit-content;max-width:100%;
+}
+.sync-pill.on{display:inline-flex}
+.sync-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent2);flex:none}
+.sync-pill.pending .dot{background:var(--warn);animation:syncPulse 1.1s ease-in-out infinite}
+.sync-pill.err .dot{background:var(--danger)}
+@keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.member-row{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);
+  border-radius:12px;background:var(--bg2);cursor:pointer;
+}
+.member-row.active-edit{border-color:var(--accent2);box-shadow:0 0 0 1px rgba(76,195,138,.35)}
+.member-row .m-name{flex:1;font-weight:600}
+.member-row .m-meta{font-size:.75rem;color:var(--txt3)}
+#sharedPanel[hidden]{display:none!important}
+
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -572,6 +591,7 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--space-4) 0}
       <div>
         <h2 style="margin:0">Ma semaine</h2>
         <p class="screen-lead">Compose midi et soir, puis valide pour générer les courses.</p>
+        <div class="sync-pill" id="syncPillWeek" aria-live="polite"><span class="dot"></span><span class="lbl"></span></div>
       </div>
     </div>
     <div class="toolbar scroll-x">
@@ -604,6 +624,7 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--space-4) 0}
       <div>
         <h2 style="margin:0">Liste de courses</h2>
         <p class="screen-lead">Depuis ta semaine, moins ce qui est déjà dans le frigo.</p>
+        <div class="sync-pill" id="syncPillShop" aria-live="polite"><span class="dot"></span><span class="lbl"></span></div>
       </div>
     </div>
     <div class="toolbar">
@@ -691,21 +712,21 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--space-4) 0}
   <!-- REGLAGES -->
   <section class="view" id="v-reglages">
     <h2>Réglages</h2>
-    <p class="screen-lead">Régime, aliments à éviter, sauvegarde de tes données.</p>
+    <p class="screen-lead">Régime, goûts par profil, foyer partagé et sauvegarde.</p>
     <div class="grid g2" style="align-items:start">
       <div class="card stack">
         <h3>🥗 Mon régime</h3>
         <label class="row small" style="gap:10px;cursor:pointer;justify-content:space-between"><span class="muted">Masquer viande & poisson (pour moi)</span><span class="toggle" id="vegOnlyToggle"><i></i></span></label>
-        <div class="muted tiny">Désactive ce réglage pour montrer toutes les recettes (ex : quand tu partages l'app avec des amis).</div>
+        <div class="muted tiny">Filtre local à cet appareil. Désactive pour montrer toutes les recettes.</div>
         <hr>
-        <h3>🚫 Aliments que je n'aime pas</h3>
-        <div class="muted small">Les recettes qui en contiennent sont masquées ou signalées. Ex : « olives » exclut les olives mais pas l'huile d'olive.</div>
+        <h3>🚫 Goûts</h3>
+        <div class="muted small" id="dislikesLead">Les recettes qui en contiennent sont masquées ou signalées. En mode partagé, ce sont les goûts du profil sélectionné ; le filtre utilise l’union des profils actifs.</div>
         <div class="row"><input id="dislikeInput" placeholder="Ajouter un aliment…" style="flex:1"><button class="btn" id="dislikeAdd">+</button></div>
         <div class="row" id="dislikeChips"></div>
       </div>
       <div class="card stack">
         <h3>💾 Données</h3>
-        <div class="muted small">Tes recettes, préférences et personnalisations sont sauvegardées dans ce navigateur. Exporte-les pour les sauvegarder ou les transférer.</div>
+        <div class="muted small">Cache local sur cet appareil. Export JSON en secours ; le mode partagé synchronise le foyer sans échanger de fichier.</div>
         <div class="row">
           <button class="btn" id="exportBtn">⬇️ Exporter (JSON)</button>
           <label class="btn" style="margin:0">⬆️ Importer<input type="file" id="importFile" accept="application/json" style="display:none"></label>
@@ -713,6 +734,33 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--space-4) 0}
         <hr>
         <div class="muted small">Réinitialiser remet la base de recettes d'origine (tes ajouts perso seront perdus).</div>
         <button class="btn danger" id="resetBtn">Réinitialiser la base</button>
+      </div>
+      <div class="card stack" id="sharedCard" style="grid-column:1/-1">
+        <h3>👥 Mode partagé</h3>
+        <div class="muted small" id="sharedStatus">Données sur cet appareil uniquement.</div>
+        <div id="sharedSolo" class="stack" style="gap:10px;margin-top:8px">
+          <div class="row" style="flex-wrap:wrap">
+            <button class="btn primary" id="sharedCreateBtn">Créer un foyer</button>
+            <button class="btn" id="sharedJoinBtn">Rejoindre</button>
+          </div>
+          <div class="muted tiny" id="sharedConfigHint">Configure <code>sync.config.js</code> (voir supabase/README.md) pour activer la synchro.</div>
+        </div>
+        <div id="sharedPanel" class="stack" style="gap:12px;margin-top:10px" hidden>
+          <div class="row" style="flex-wrap:wrap;gap:8px">
+            <button class="btn sm" id="sharedShareCodeBtn">Partager le code</button>
+            <button class="btn sm" id="sharedCopyCodeBtn">Copier le code</button>
+            <button class="btn sm danger" id="sharedLeaveBtn">Quitter le foyer</button>
+          </div>
+          <div>
+            <h3 style="margin:0 0 8px;font-size:1rem">Profils du foyer</h3>
+            <div class="muted tiny" style="margin-bottom:8px">Coche = inclus dans le filtre goûts. Tape un profil pour éditer ses aliments à éviter.</div>
+            <div class="stack" id="memberList" style="gap:8px"></div>
+            <div class="row" style="margin-top:10px;flex-wrap:wrap">
+              <input id="memberNameInput" placeholder="Nouveau profil…" style="flex:1;min-width:140px">
+              <button class="btn sm" id="memberAddBtn">Ajouter</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -738,6 +786,7 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--space-4) 0}
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="sync.config.js"></script>
 <script>
 "use strict";
 /* ============================ DONNÉES ============================ */
@@ -1792,7 +1841,14 @@ const SEED=[
 ];
 
 /* ============================ ÉTAT ============================ */
-const LS={recipes:"mijote_recipes",fridge:"mijote_fridge",plan:"mijote_plan",dislikes:"mijote_dislikes",vegan:"mijote_vegan",shopState:"mijote_shop",jars:"mijote_jars",mig:"mijote_mig",vegOnly:"mijote_vegonly",opened:"mijote_opened",validated:"mijote_validated",people:"mijote_people",restes:"mijote_restes"};
+const LS={
+  recipes:"mijote_recipes",fridge:"mijote_fridge",plan:"mijote_plan",dislikes:"mijote_dislikes",
+  vegan:"mijote_vegan",shopState:"mijote_shop",jars:"mijote_jars",mig:"mijote_mig",
+  vegOnly:"mijote_vegonly",opened:"mijote_opened",validated:"mijote_validated",
+  people:"mijote_people",restes:"mijote_restes",
+  members:"mijote_members",householdId:"mijote_household_id",householdCode:"mijote_household_code",
+  syncRev:"mijote_sync_rev",memberId:"mijote_member_id"
+};
 const DEFAULT_DISLIKES=["olives","tomates crues","oignons crus","concombre","camembert","brie","chèvre","yaourt","oats","flocons d'avoine"];
 let state={
   recipes: load(LS.recipes, null) || SEED.map(r=>({...r})),
@@ -1802,11 +1858,16 @@ let state={
   vegan: load(LS.vegan, false),
   shopChecked: load(LS.shopState, {}),
   jars: load(LS.jars, []),            // bocaux suivis : {id,recipeId,name,start,readyHours,bestHours,keepDays}
-  vegOnly: load(LS.vegOnly, true),    // masquer viande & poisson pour Ellie (ON par défaut ; OFF pour partager)
+  vegOnly: load(LS.vegOnly, true),    // masquer viande & poisson (filtre local appareil)
   opened: load(LS.opened, []),        // aliments ouverts : {id,name,openedTs,keepDays}
   validated: load(LS.validated, null),// menu validé : clé ISO du lundi de la semaine, ou null
   people: Math.max(1, load(LS.people, 1)), // nb de personnes à nourrir cette semaine
-  restes: load(LS.restes, true)       // mode restes : grosses fournées réutilisées un jour suivant
+  restes: load(LS.restes, true),      // mode restes : grosses fournées réutilisées un jour suivant
+  members: load(LS.members, null),    // null = solo ; sinon [{id,name,dislikes,active}]
+  householdId: load(LS.householdId, null),
+  householdCode: load(LS.householdCode, null),
+  syncRev: load(LS.syncRev, 0)|0,
+  memberId: load(LS.memberId, null)
 };
 // migrations légères pour bases déjà enregistrées (appelée dans init, après définition des helpers)
 function runMigrations(){
@@ -1840,7 +1901,19 @@ function inFridge(name){ const n=norm(name); return state.fridge.some(f=>{const 
 function fridgeTracked(){ return state.fridge.filter(f=>f.openedTs&&f.keepDays); }
 function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-function persist(){save(LS.recipes,state.recipes);save(LS.fridge,state.fridge);save(LS.plan,state.plan);save(LS.dislikes,state.dislikes);save(LS.vegan,state.vegan);save(LS.shopState,state.shopChecked);save(LS.jars,state.jars);save(LS.vegOnly,state.vegOnly);save(LS.opened,state.opened);save(LS.validated,state.validated);save(LS.people,state.people);save(LS.restes,state.restes);}
+function persist(opts){
+  opts=opts||{};
+  syncMemberDislikesFromState();
+  save(LS.recipes,state.recipes);save(LS.fridge,state.fridge);save(LS.plan,state.plan);
+  save(LS.dislikes,state.dislikes);save(LS.vegan,state.vegan);save(LS.shopState,state.shopChecked);
+  save(LS.jars,state.jars);save(LS.vegOnly,state.vegOnly);save(LS.opened,state.opened);
+  save(LS.validated,state.validated);save(LS.people,state.people);save(LS.restes,state.restes);
+  save(LS.members,state.members);save(LS.householdId,state.householdId);
+  save(LS.householdCode,state.householdCode);save(LS.syncRev,state.syncRev);
+  save(LS.memberId,state.memberId);
+  if(!opts.skipSync) schedulePush();
+  updateSyncPills();
+}
 
 /* ============================ UTILS ============================ */
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
@@ -1986,10 +2059,47 @@ function fmtQty(n){
 function scaleFactor(r){ const base=(r&&r.servings)?r.servings:1; return state.people/base; }
 function totalSlots(){ let n=0; for(let i=0;i<7;i++){const m=ensureMeals(i); n+=m.midi.filter(Boolean).length+m.soir.filter(Boolean).length;} return n; }
 
-// un ingrédient est-il « non aimé » ?
+/* ---- Profils foyer / goûts effectifs ---- */
+function inHousehold(){ return !!(state.householdId && state.householdCode); }
+function currentMember(){
+  if(!state.members||!state.members.length)return null;
+  return state.members.find(m=>m.id===state.memberId) || state.members[0] || null;
+}
+function effectiveDislikes(){
+  if(inHousehold()&&state.members&&state.members.length){
+    const set=[];
+    const seen=new Set();
+    state.members.filter(m=>m&&m.active!==false).forEach(m=>{
+      (m.dislikes||[]).forEach(d=>{
+        const k=norm(d); if(!k||seen.has(k))return;
+        seen.add(k); set.push(d);
+      });
+    });
+    return set;
+  }
+  return state.dislikes||[];
+}
+function syncMemberDislikesFromState(){
+  if(!inHousehold()||!state.members||!state.members.length)return;
+  const m=currentMember();
+  if(!m)return;
+  m.dislikes=(state.dislikes||[]).slice();
+}
+function applyMemberDislikesToState(){
+  const m=currentMember();
+  if(m) state.dislikes=(m.dislikes||[]).slice();
+}
+function ensureMembersFromSolo(name){
+  const n=(name||"Moi").trim()||"Moi";
+  const id=uid();
+  state.members=[{id,name:n,dislikes:(state.dislikes||[]).slice(),active:true}];
+  state.memberId=id;
+}
+
+// un ingrédient est-il « non aimé » ? (union des profils actifs en mode partagé)
 function dislikeHit(text){
   const n=norm(text);
-  for(const d of state.dislikes){
+  for(const d of effectiveDislikes()){
     const dn=norm(d);
     if(!dn)continue;
     // "olives" ne doit pas matcher "huile d'olive"
@@ -2047,7 +2157,7 @@ function activateView(v){
   if(v==="recettes")renderRecipes();
   if(v==="semaine")renderWeek();
   if(v==="courses")renderShop();
-  if(v==="reglages")renderDislikes();
+  if(v==="reglages"){ renderDislikes(); updateSharedUi(); }
 }
 
 function gotoTab(v){
@@ -2874,27 +2984,461 @@ function initBookmarklet(){
   $("#bmCopy").onclick=async()=>{ const ok=await copyText(bm); toast(ok?"Code copié ✓":"Copie impossible"); };
 }
 
+/* ============================ SHARED SYNC ============================ */
+const SYNC_CODE_ALPH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+let syncClient=null;
+let syncChannel=null;
+let syncPushTimer=null;
+let syncPushing=false;
+let syncPending=false;
+let syncStatus="off"; // off | on | pending | err
+let syncApplyingRemote=false;
+let syncPollTimer=null;
+
+function getSyncConfig(){
+  const c=window.MIJOTE_SYNC;
+  if(!c||!c.url||!c.anonKey)return null;
+  if(String(c.url).includes("YOUR_PROJECT"))return null;
+  if(String(c.anonKey).includes("YOUR_SUPABASE"))return null;
+  return {url:String(c.url).replace(/\/$/,""), anonKey:String(c.anonKey)};
+}
+function syncConfigured(){ return !!getSyncConfig(); }
+
+function buildSharedPayload(){
+  syncMemberDislikesFromState();
+  return {
+    version:3,
+    recipes:state.recipes,
+    plan:state.plan,
+    fridge:state.fridge,
+    jars:state.jars,
+    shopChecked:state.shopChecked,
+    people:state.people,
+    validated:state.validated,
+    restes:state.restes,
+    members:(state.members&&state.members.length)?state.members:[{
+      id:state.memberId||uid(), name:"Moi", dislikes:(state.dislikes||[]).slice(), active:true
+    }],
+    dislikes:state.dislikes
+  };
+}
+function applySharedPayload(payload){
+  if(!payload||typeof payload!=="object")return;
+  syncApplyingRemote=true;
+  try{
+    if(payload.recipes)state.recipes=payload.recipes;
+    if(payload.plan)state.plan=payload.plan;
+    if(payload.fridge)state.fridge=payload.fridge;
+    if(payload.jars)state.jars=payload.jars;
+    if(payload.shopChecked)state.shopChecked=payload.shopChecked;
+    if(payload.people!=null)state.people=Math.max(1,payload.people);
+    if("validated" in payload)state.validated=payload.validated;
+    if(payload.restes!=null)state.restes=!!payload.restes;
+    if(Array.isArray(payload.members)&&payload.members.length){
+      state.members=payload.members.map(m=>({
+        id:m.id||uid(),
+        name:m.name||"Moi",
+        dislikes:Array.isArray(m.dislikes)?m.dislikes.slice():[],
+        active:m.active!==false
+      }));
+      if(!state.members.some(m=>m.id===state.memberId)) state.memberId=state.members[0].id;
+      applyMemberDislikesToState();
+    }else if(payload.dislikes){
+      state.dislikes=payload.dislikes;
+    }
+    normalizeFridge();
+    persist({skipSync:true});
+  }finally{ syncApplyingRemote=false; }
+}
+function genHouseholdCode(){
+  let s=""; for(let i=0;i<6;i++) s+=SYNC_CODE_ALPH[Math.floor(Math.random()*SYNC_CODE_ALPH.length)];
+  return "MIJOTE-"+s;
+}
+function setSyncStatus(s){ syncStatus=s; updateSyncPills(); updateSharedUi(); }
+
+function updateSyncPills(){
+  const pills=[ $("#syncPillWeek"), $("#syncPillShop") ].filter(Boolean);
+  const on=inHousehold();
+  const member=currentMember();
+  const label=on
+    ? ("Partagé · "+(state.householdCode||"")+(member?" · "+member.name:""))
+    : "";
+  pills.forEach(p=>{
+    p.classList.toggle("on", on);
+    p.classList.toggle("pending", syncStatus==="pending");
+    p.classList.toggle("err", syncStatus==="err");
+    const lbl=p.querySelector(".lbl"); if(lbl) lbl.textContent=label+(syncStatus==="pending"?" · synchro…":syncStatus==="err"?" · hors ligne":"");
+  });
+}
+
+async function getSupabase(){
+  const cfg=getSyncConfig();
+  if(!cfg)return null;
+  if(syncClient)return syncClient;
+  try{
+    const mod=await import("https://esm.sh/@supabase/supabase-js@2.49.1");
+    syncClient=mod.createClient(cfg.url, cfg.anonKey, {
+      auth:{persistSession:false, autoRefreshToken:false},
+      realtime:{params:{eventsPerSecond:5}}
+    });
+    return syncClient;
+  }catch(e){
+    console.warn("Supabase client unavailable", e);
+    return null;
+  }
+}
+
+function schedulePush(){
+  if(!inHousehold()||syncApplyingRemote)return;
+  syncPending=true;
+  setSyncStatus("pending");
+  clearTimeout(syncPushTimer);
+  syncPushTimer=setTimeout(()=>{ flushPush(); }, 450);
+}
+
+async function flushPush(){
+  if(!inHousehold()||syncPushing||syncApplyingRemote)return;
+  if(!syncConfigured()){ setSyncStatus("err"); return; }
+  syncPushing=true;
+  syncPending=false;
+  try{
+    const sb=await getSupabase();
+    if(!sb){ setSyncStatus("err"); return; }
+    const baseRev=state.syncRev|0;
+    const payload=buildSharedPayload();
+    const {data, error}=await sb.rpc("push_household", {
+      p_code: state.householdCode,
+      p_payload: payload,
+      p_base_rev: baseRev
+    });
+    if(error) throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    if(!row) throw new Error("empty push");
+    if((row.rev|0)===baseRev+1){
+      state.syncRev=row.rev|0;
+      save(LS.syncRev, state.syncRev);
+      setSyncStatus("on");
+    }else{
+      // conflict / LWW : apply remote if newer
+      if((row.rev|0)>(state.syncRev|0)){
+        state.syncRev=row.rev|0;
+        applySharedPayload(row.payload);
+        renderAll();
+        toast("Synchro…");
+      }
+      setSyncStatus("on");
+    }
+  }catch(e){
+    console.warn("push failed", e);
+    setSyncStatus("err");
+    syncPending=true;
+  }finally{
+    syncPushing=false;
+    if(syncPending) schedulePush();
+  }
+}
+
+async function subscribeHousehold(){
+  stopHouseholdSub();
+  if(!inHousehold()||!syncConfigured())return;
+  const sb=await getSupabase();
+  if(!sb){ startSyncPoll(); return; }
+  try{
+    syncChannel=sb.channel("household:"+state.householdId)
+      .on("postgres_changes", {
+        event:"UPDATE", schema:"public", table:"households",
+        filter:"id=eq."+state.householdId
+      }, (payload)=>{
+        const row=payload.new;
+        if(!row)return;
+        if((row.rev|0)<=(state.syncRev|0))return;
+        state.syncRev=row.rev|0;
+        applySharedPayload(row.payload);
+        renderAll();
+        setSyncStatus("on");
+      })
+      .subscribe((status)=>{
+        if(status==="SUBSCRIBED"){ setSyncStatus("on"); stopSyncPoll(); }
+        else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){ startSyncPoll(); }
+      });
+  }catch(e){
+    console.warn("realtime fail", e);
+    startSyncPoll();
+  }
+}
+function stopHouseholdSub(){
+  if(syncChannel&&syncClient){
+    try{ syncClient.removeChannel(syncChannel); }catch(e){}
+  }
+  syncChannel=null;
+  stopSyncPoll();
+}
+function startSyncPoll(){
+  stopSyncPoll();
+  if(!inHousehold())return;
+  syncPollTimer=setInterval(async()=>{
+    if(document.hidden||syncPushing)return;
+    try{
+      const sb=await getSupabase();
+      if(!sb)return;
+      const {data, error}=await sb.rpc("join_household", {p_code: state.householdCode});
+      if(error)return;
+      const row=Array.isArray(data)?data[0]:data;
+      if(row&&(row.rev|0)>(state.syncRev|0)){
+        state.syncRev=row.rev|0;
+        applySharedPayload(row.payload);
+        renderAll();
+        setSyncStatus("on");
+      }
+    }catch(e){}
+  }, 4000);
+}
+function stopSyncPoll(){ if(syncPollTimer){ clearInterval(syncPollTimer); syncPollTimer=null; } }
+
+async function createHouseholdFlow(){
+  if(!syncConfigured()){ toast("Configure sync.config.js d’abord"); return; }
+  const name=await showPrompt("Ton prénom / profil dans le foyer :", {title:"Créer un foyer", defaultValue:"Ellie", okLabel:"Créer"});
+  if(name==null)return;
+  const profileName=name.trim()||"Moi";
+  ensureMembersFromSolo(profileName);
+  const code=genHouseholdCode();
+  const sb=await getSupabase();
+  if(!sb){ toast("Client sync indisponible"); return; }
+  setSyncStatus("pending");
+  try{
+    const payload=buildSharedPayload();
+    const {data, error}=await sb.rpc("create_household", {p_code:code, p_payload:payload});
+    if(error) throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    state.householdId=row.id;
+    state.householdCode=row.code;
+    state.syncRev=row.rev|0;
+    persist({skipSync:true});
+    await subscribeHousehold();
+    setSyncStatus("on");
+    updateSharedUi();
+    toast("Foyer créé · "+row.code);
+    if(isNative&&CapPlugins.Share){
+      try{ await CapPlugins.Share.share({title:"Mijote", text:"Rejoins mon foyer Mijote : "+row.code, dialogTitle:"Partager le code"}); }catch(e){}
+    }
+  }catch(e){
+    console.warn(e);
+    state.householdId=null; state.householdCode=null; state.syncRev=0;
+    setSyncStatus("err");
+    toast("Création impossible");
+  }
+}
+
+async function joinHouseholdFlow(){
+  if(!syncConfigured()){ toast("Configure sync.config.js d’abord"); return; }
+  const codeRaw=await showPrompt("Code du foyer (ex. MIJOTE-AB12CD) :", {title:"Rejoindre un foyer", okLabel:"Rejoindre"});
+  if(codeRaw==null)return;
+  const code=codeRaw.trim().toUpperCase().replace(/\s+/g,"");
+  if(!code)return;
+  const sb=await getSupabase();
+  if(!sb){ toast("Client sync indisponible"); return; }
+  setSyncStatus("pending");
+  try{
+    const {data, error}=await sb.rpc("join_household", {p_code:code});
+    if(error) throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    if(!row) throw new Error("not found");
+    state.householdId=row.id;
+    state.householdCode=row.code;
+    state.syncRev=row.rev|0;
+    applySharedPayload(row.payload);
+    const name=await showPrompt("Ton prénom / profil :", {title:"Qui es-tu ?", defaultValue:"", okLabel:"OK"});
+    if(name!=null && name.trim()){
+      const existing=state.members&&state.members.find(m=>norm(m.name)===norm(name.trim()));
+      if(existing){
+        state.memberId=existing.id;
+        applyMemberDislikesToState();
+      }else{
+        const id=uid();
+        if(!state.members)state.members=[];
+        state.members.push({id, name:name.trim(), dislikes:(state.dislikes||[]).slice(), active:true});
+        state.memberId=id;
+      }
+    }else if(state.members&&state.members.length){
+      state.memberId=state.members[0].id;
+      applyMemberDislikesToState();
+    }else{
+      ensureMembersFromSolo("Moi");
+    }
+    persist({skipSync:true});
+    schedulePush();
+    await subscribeHousehold();
+    setSyncStatus("on");
+    renderAll();
+    toast("Foyer rejoint · "+row.code);
+  }catch(e){
+    console.warn(e);
+    setSyncStatus("err");
+    toast("Code introuvable ou sync indisponible");
+  }
+}
+
+async function leaveHouseholdFlow(){
+  if(!await showConfirm("Quitter le foyer ? Les données restent sur cet appareil, la synchro s’arrête.", {title:"Quitter le foyer", okLabel:"Quitter", danger:true}))return;
+  stopHouseholdSub();
+  syncMemberDislikesFromState();
+  applyMemberDislikesToState();
+  state.householdId=null;
+  state.householdCode=null;
+  state.syncRev=0;
+  // keep members locally as taste backup; solo filter uses current dislikes
+  persist({skipSync:true});
+  setSyncStatus("off");
+  updateSharedUi();
+  updateSyncPills();
+  toast("Foyer quitté");
+}
+
+function renderMembers(){
+  const list=$("#memberList"); if(!list)return;
+  list.innerHTML="";
+  if(!state.members||!state.members.length)return;
+  state.members.forEach(m=>{
+    const row=document.createElement("div");
+    row.className="member-row"+(m.id===state.memberId?" active-edit":"");
+    row.innerHTML=`<span class="toggle ${m.active!==false?"on":""}" data-act="toggle" title="Inclure dans le filtre"><i></i></span>
+      <div style="flex:1;min-width:0">
+        <div class="m-name">${escapeHtml(m.name)}${m.id===state.memberId?' <span class="muted tiny">(toi)</span>':""}</div>
+        <div class="m-meta">${(m.dislikes||[]).length} aliment${(m.dislikes||[]).length===1?"":"s"} évité${(m.dislikes||[]).length===1?"":"s"}</div>
+      </div>
+      <button type="button" class="btn sm" data-act="pick">Éditer</button>`;
+    row.querySelector('[data-act="toggle"]').onclick=e=>{
+      e.stopPropagation();
+      m.active=m.active===false;
+      persist(); renderMembers(); renderFridgeResults(); renderRecipes();
+    };
+    row.querySelector('[data-act="pick"]').onclick=e=>{
+      e.stopPropagation();
+      syncMemberDislikesFromState();
+      state.memberId=m.id;
+      applyMemberDislikesToState();
+      persist({skipSync:true}); save(LS.memberId, state.memberId);
+      renderDislikes(); renderMembers(); updateSyncPills();
+      toast("Profil · "+m.name);
+    };
+    row.onclick=()=>{ row.querySelector('[data-act="pick"]').click(); };
+    list.appendChild(row);
+  });
+}
+function escapeHtml(s){
+  return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+
+function updateSharedUi(){
+  const hint=$("#sharedConfigHint");
+  const status=$("#sharedStatus");
+  const solo=$("#sharedSolo");
+  const panel=$("#sharedPanel");
+  const cfg=syncConfigured();
+  if(hint) hint.style.display=cfg?"none":"";
+  if(inHousehold()){
+    if(status) status.textContent="Foyer « "+state.householdCode+" » · rev "+(state.syncRev||0)+(syncStatus==="pending"?" · synchro…":syncStatus==="err"?" · hors ligne":" · connecté");
+    if(solo) solo.hidden=true;
+    if(panel){ panel.hidden=false; }
+    renderMembers();
+  }else{
+    if(status) status.textContent=cfg?"Données sur cet appareil uniquement. Crée ou rejoins un foyer pour synchroniser.":"Données sur cet appareil uniquement.";
+    if(solo) solo.hidden=false;
+    if(panel) panel.hidden=true;
+  }
+  updateSyncPills();
+}
+
+async function shareHouseholdCode(){
+  if(!state.householdCode)return;
+  const text="Rejoins mon foyer Mijote : "+state.householdCode;
+  if(isNative&&CapPlugins.Share){
+    try{ await CapPlugins.Share.share({title:"Mijote", text, dialogTitle:"Partager le code"}); return; }catch(e){}
+  }
+  const ok=await copyText(text);
+  toast(ok?"Code copié ✓":"Partage impossible");
+}
+
 /* ============================ RÉGLAGES ============================ */
 function renderDislikes(){
-  const wrap=$("#dislikeChips"); wrap.innerHTML="";
-  state.dislikes.forEach((d,i)=>{
-    const c=document.createElement("span"); c.className="chip x"; c.innerHTML=`${d} <span>×</span>`;
-    c.onclick=()=>{state.dislikes.splice(i,1);persist();renderDislikes();renderFridgeResults();};
+  const wrap=$("#dislikeChips"); if(!wrap)return; wrap.innerHTML="";
+  const lead=$("#dislikesLead");
+  const m=inHousehold()?currentMember():null;
+  if(lead){
+    lead.textContent=m
+      ? ("Goûts de « "+m.name+" ». Le filtre recettes/semaine combine tous les profils actifs.")
+      : "Les recettes qui en contiennent sont masquées ou signalées. Ex : « olives » exclut les olives mais pas l'huile d'olive.";
+  }
+  (state.dislikes||[]).forEach((d,i)=>{
+    const c=document.createElement("span"); c.className="chip x"; c.innerHTML=`${escapeHtml(d)} <span>×</span>`;
+    c.onclick=()=>{state.dislikes.splice(i,1);persist();renderDislikes();renderFridgeResults();renderRecipes();renderMembers();};
     wrap.appendChild(c);
   });
 }
-$("#dislikeAdd").onclick=()=>{const v=$("#dislikeInput").value.trim();if(v){state.dislikes.push(v);$("#dislikeInput").value="";persist();renderDislikes();renderFridgeResults();}};
+$("#dislikeAdd").onclick=()=>{const v=$("#dislikeInput").value.trim();if(v){state.dislikes.push(v);$("#dislikeInput").value="";persist();renderDislikes();renderFridgeResults();renderRecipes();renderMembers();}};
 $("#dislikeInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("#dislikeAdd").click();});
 
+$("#sharedCreateBtn").onclick=()=>createHouseholdFlow();
+$("#sharedJoinBtn").onclick=()=>joinHouseholdFlow();
+$("#sharedLeaveBtn").onclick=()=>leaveHouseholdFlow();
+$("#sharedShareCodeBtn").onclick=()=>shareHouseholdCode();
+$("#sharedCopyCodeBtn").onclick=async()=>{
+  if(!state.householdCode)return;
+  const ok=await copyText(state.householdCode);
+  toast(ok?"Code copié ✓":"Copie impossible");
+};
+$("#memberAddBtn").onclick=()=>{
+  if(!inHousehold())return;
+  const v=$("#memberNameInput").value.trim(); if(!v)return;
+  syncMemberDislikesFromState();
+  const id=uid();
+  if(!state.members)state.members=[];
+  state.members.push({id,name:v,dislikes:[],active:true});
+  state.memberId=id;
+  state.dislikes=[];
+  $("#memberNameInput").value="";
+  persist(); renderDislikes(); renderMembers(); updateSyncPills();
+  toast("Profil « "+v+" » ajouté");
+};
+$("#memberNameInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("#memberAddBtn").click();});
+
 $("#exportBtn").onclick=async()=>{
-  const data=JSON.stringify({recipes:state.recipes,dislikes:state.dislikes,plan:state.plan,fridge:state.fridge,jars:state.jars,version:2},null,2);
+  syncMemberDislikesFromState();
+  const data=JSON.stringify({
+    version:3,
+    recipes:state.recipes,
+    dislikes:state.dislikes,
+    plan:state.plan,
+    fridge:state.fridge,
+    jars:state.jars,
+    shopChecked:state.shopChecked,
+    people:state.people,
+    validated:state.validated,
+    restes:state.restes,
+    members:state.members,
+    householdCode:state.householdCode||undefined
+  },null,2);
   const ok=await exportJsonFile(data,"mijote-sauvegarde.json");
   toast(ok?(isNative?"Export partagé ✓":"Export téléchargé ✓"):"Export impossible");
 };
 $("#importFile").onchange=e=>{
   const f=e.target.files[0]; if(!f)return;
   const rd=new FileReader(); rd.onload=()=>{ try{ const j=JSON.parse(rd.result);
-    if(j.recipes)state.recipes=j.recipes; if(j.dislikes)state.dislikes=j.dislikes; if(j.plan)state.plan=j.plan; if(j.fridge)state.fridge=j.fridge; if(j.jars)state.jars=j.jars;
+    if(j.recipes)state.recipes=j.recipes;
+    if(j.plan)state.plan=j.plan;
+    if(j.fridge)state.fridge=j.fridge;
+    if(j.jars)state.jars=j.jars;
+    if(j.shopChecked)state.shopChecked=j.shopChecked;
+    if(j.people!=null)state.people=Math.max(1,j.people);
+    if("validated" in j)state.validated=j.validated;
+    if(j.restes!=null)state.restes=!!j.restes;
+    if(Array.isArray(j.members)&&j.members.length){
+      state.members=j.members;
+      if(!state.members.some(m=>m.id===state.memberId)) state.memberId=state.members[0].id;
+      applyMemberDislikesToState();
+    }else if(j.dislikes){
+      state.dislikes=j.dislikes;
+    }
     normalizeFridge();
     persist(); renderAll(); toast("Sauvegarde importée ✓"); }catch(err){toast("Fichier invalide");} };
   rd.readAsText(f);
@@ -2916,7 +3460,13 @@ function renderSeason(){
   $("#seasonPill").innerHTML=`Lyon · <b>${MONTHS_FULL[m-1]}</b> · ${short}…`;
   $("#seasonPill").title=`De saison : ${SEASON[m].join(", ")}`;
 }
-function renderAll(){ renderSeason(); renderHome(); renderFridge(); renderFridgeResults(); renderDislikes(); renderJars(); syncCtrlBar(); $("#veganGlobal").classList.toggle("on",state.vegan); $("#vegOnlyToggle").classList.toggle("on",state.vegOnly); }
+function renderAll(){
+  renderSeason(); renderHome(); renderFridge(); renderFridgeResults();
+  renderDislikes(); renderJars(); syncCtrlBar();
+  updateSharedUi(); updateSyncPills();
+  $("#veganGlobal").classList.toggle("on",state.vegan);
+  $("#vegOnlyToggle").classList.toggle("on",state.vegOnly);
+}
 async function initNative(){
   if(!isNative)return;
   try{
@@ -2936,12 +3486,39 @@ async function initNative(){
     }
   }catch(e){}
 }
+async function initShared(){
+  if(inHousehold()&&syncConfigured()){
+    setSyncStatus("pending");
+    await subscribeHousehold();
+    // pull once on start
+    try{
+      const sb=await getSupabase();
+      if(sb){
+        const {data}=await sb.rpc("join_household", {p_code: state.householdCode});
+        const row=Array.isArray(data)?data[0]:data;
+        if(row&&(row.rev|0)>=(state.syncRev|0)){
+          if((row.rev|0)>(state.syncRev|0)){
+            state.syncRev=row.rev|0;
+            applySharedPayload(row.payload);
+            renderAll();
+          }
+          setSyncStatus("on");
+        }
+      }
+    }catch(e){ setSyncStatus("err"); }
+  }else{
+    setSyncStatus(inHousehold()?"err":"off");
+  }
+  window.addEventListener("online", ()=>{ if(inHousehold()){ schedulePush(); subscribeHousehold(); }});
+}
 function init(){
   runMigrations();
   checkWeekReset();
   renderOpenedPresets();
+  if(state.members&&state.members.length) applyMemberDislikesToState();
   renderAll(); initConvert(); initBookmarklet();
   initNative();
+  initShared();
 }
 init();
 </script>
