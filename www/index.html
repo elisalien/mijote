@@ -59,6 +59,8 @@
 .member-row .m-name{flex:1;font-weight:600}
 .member-row .m-meta{font-size:.75rem;color:var(--txt3)}
 #sharedPanel[hidden]{display:none!important}
+html.is-native #sharedCard{border-color:rgba(126,224,168,.45);box-shadow:0 0 0 1px rgba(126,224,168,.12)}
+.app-version{font-size:.75rem;color:var(--txt3);margin-top:var(--space-4);text-align:center}
 
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -714,6 +716,33 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--space-4) 0}
     <h2>Réglages</h2>
     <p class="screen-lead">Régime, goûts par profil, foyer partagé et sauvegarde.</p>
     <div class="grid g2" style="align-items:start">
+      <div class="card stack" id="sharedCard" style="grid-column:1/-1">
+        <h3>👥 Mode partagé</h3>
+        <div class="muted small" id="sharedStatus">Données sur cet appareil uniquement.</div>
+        <div id="sharedSolo" class="stack" style="gap:10px;margin-top:8px">
+          <div class="row" style="flex-wrap:wrap">
+            <button class="btn primary" id="sharedCreateBtn">Créer un foyer</button>
+            <button class="btn" id="sharedJoinBtn">Rejoindre</button>
+          </div>
+          <div class="muted tiny" id="sharedConfigHint">Synchronisation indisponible sur cette version.</div>
+        </div>
+        <div id="sharedPanel" class="stack" style="gap:12px;margin-top:10px" hidden>
+          <div class="row" style="flex-wrap:wrap;gap:8px">
+            <button class="btn sm" id="sharedShareCodeBtn">Partager le code</button>
+            <button class="btn sm" id="sharedCopyCodeBtn">Copier le code</button>
+            <button class="btn sm danger" id="sharedLeaveBtn">Quitter le foyer</button>
+          </div>
+          <div>
+            <h3 style="margin:0 0 8px;font-size:1rem">Profils du foyer</h3>
+            <div class="muted tiny" style="margin-bottom:8px">Coche = inclus dans le filtre goûts. Tape un profil pour éditer ses aliments à éviter.</div>
+            <div class="stack" id="memberList" style="gap:8px"></div>
+            <div class="row" style="margin-top:10px;flex-wrap:wrap">
+              <input id="memberNameInput" placeholder="Nouveau profil…" style="flex:1;min-width:140px">
+              <button class="btn sm" id="memberAddBtn">Ajouter</button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="card stack">
         <h3>🥗 Mon régime</h3>
         <label class="row small" style="gap:10px;cursor:pointer;justify-content:space-between"><span class="muted">Masquer viande & poisson (pour moi)</span><span class="toggle" id="vegOnlyToggle"><i></i></span></label>
@@ -735,34 +764,8 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--space-4) 0}
         <div class="muted small">Réinitialiser remet la base de recettes d'origine (tes ajouts perso seront perdus).</div>
         <button class="btn danger" id="resetBtn">Réinitialiser la base</button>
       </div>
-      <div class="card stack" id="sharedCard" style="grid-column:1/-1">
-        <h3>👥 Mode partagé</h3>
-        <div class="muted small" id="sharedStatus">Données sur cet appareil uniquement.</div>
-        <div id="sharedSolo" class="stack" style="gap:10px;margin-top:8px">
-          <div class="row" style="flex-wrap:wrap">
-            <button class="btn primary" id="sharedCreateBtn">Créer un foyer</button>
-            <button class="btn" id="sharedJoinBtn">Rejoindre</button>
-          </div>
-          <div class="muted tiny" id="sharedConfigHint">Configure <code>sync.config.js</code> (voir supabase/README.md) pour activer la synchro.</div>
-        </div>
-        <div id="sharedPanel" class="stack" style="gap:12px;margin-top:10px" hidden>
-          <div class="row" style="flex-wrap:wrap;gap:8px">
-            <button class="btn sm" id="sharedShareCodeBtn">Partager le code</button>
-            <button class="btn sm" id="sharedCopyCodeBtn">Copier le code</button>
-            <button class="btn sm danger" id="sharedLeaveBtn">Quitter le foyer</button>
-          </div>
-          <div>
-            <h3 style="margin:0 0 8px;font-size:1rem">Profils du foyer</h3>
-            <div class="muted tiny" style="margin-bottom:8px">Coche = inclus dans le filtre goûts. Tape un profil pour éditer ses aliments à éviter.</div>
-            <div class="stack" id="memberList" style="gap:8px"></div>
-            <div class="row" style="margin-top:10px;flex-wrap:wrap">
-              <input id="memberNameInput" placeholder="Nouveau profil…" style="flex:1;min-width:140px">
-              <button class="btn sm" id="memberAddBtn">Ajouter</button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
+    <div class="app-version" id="appVersion"></div>
   </section>
 </main>
 
@@ -2985,6 +2988,7 @@ function initBookmarklet(){
 }
 
 /* ============================ SHARED SYNC ============================ */
+const APP_VERSION="1.0.2-supabase";
 const SYNC_CODE_ALPH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let syncClient=null;
 let syncChannel=null;
@@ -3335,7 +3339,13 @@ function updateSharedUi(){
   const solo=$("#sharedSolo");
   const panel=$("#sharedPanel");
   const cfg=syncConfigured();
-  if(hint) hint.style.display=cfg?"none":"";
+  if(hint){
+    if(cfg) hint.style.display="none";
+    else hint.style.display="";
+    hint.textContent=isNative
+      ? "Cette APK n’inclut pas la config Supabase. Installe la release android-debug-v1.0.2 ou plus récente."
+      : "Synchronisation réservée à l’APK Android.";
+  }
   if(inHousehold()){
     if(status) status.textContent="Foyer « "+state.householdCode+" » · rev "+(state.syncRev||0)+(syncStatus==="pending"?" · synchro…":syncStatus==="err"?" · hors ligne":" · connecté");
     if(solo) solo.hidden=true;
@@ -3464,6 +3474,7 @@ function renderAll(){
   renderSeason(); renderHome(); renderFridge(); renderFridgeResults();
   renderDislikes(); renderJars(); syncCtrlBar();
   updateSharedUi(); updateSyncPills();
+  const ver=$("#appVersion"); if(ver) ver.textContent="Mijote APK "+APP_VERSION+(syncConfigured()?" · sync OK":" · sync off");
   $("#veganGlobal").classList.toggle("on",state.vegan);
   $("#vegOnlyToggle").classList.toggle("on",state.vegOnly);
 }
