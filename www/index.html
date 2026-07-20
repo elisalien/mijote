@@ -775,17 +775,18 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--s4) 0}
     <div class="sub-h"><h3><svg class="i"><use href="#i-fridge"/></svg> Mon inventaire</h3><span class="ln"></span><span class="muted small" id="fridgeInvCount"></span></div>
     <div class="row" id="fridgeChips"></div>
 
+    <div class="sub-h"><h3><svg class="i"><use href="#i-jar"/></svg> Pickles &amp; marinades</h3><span class="ln"></span><button class="btn sm primary" id="jarNew">+ Bocal</button></div>
+    <div class="muted small" style="margin:4px 0 14px">Lance un bocal, on calcule quand il est prêt à manger (et jusqu'à quand le garder).</div>
+    <div class="grid g2" id="jarList"></div>
+
     <div class="sub-h"><h3><svg class="i"><use href="#i-pot"/></svg> Ce que je peux cuisiner</h3><span class="ln"></span></div>
+    <div class="muted small" style="margin:4px 0 10px">Suggestions basées sur ton inventaire — seuls les plats qui matchent au moins un aliment apparaissent.</div>
     <div class="toolbar scroll-x" style="margin:0 0 12px;align-items:center">
       <label class="row small" style="gap:8px;cursor:pointer;flex:none"><span class="toggle" id="veganGlobal"><i></i></span><span class="muted">Vegan</span></label>
       <label class="row small" style="gap:8px;cursor:pointer;flex:none"><input type="checkbox" id="seasonOnly" style="width:auto"><span class="muted">De saison</span></label>
       <span class="muted small" style="margin-left:auto;flex:none" id="fridgeCount"></span>
     </div>
     <div class="grid g2" id="fridgeResults"></div>
-
-    <div class="sub-h"><h3><svg class="i"><use href="#i-jar"/></svg> Pickles &amp; marinades</h3><span class="ln"></span><button class="btn sm primary" id="jarNew">+ Bocal</button></div>
-    <div class="muted small" style="margin:4px 0 14px">Lance un bocal, on calcule quand il est prêt à manger (et jusqu'à quand le garder).</div>
-    <div class="grid g2" id="jarList"></div>
   </section>
 
   <!-- RECETTES -->
@@ -2463,7 +2464,14 @@ function matchScore(r){
   return {hit,total:r.ing.length,pct:r.ing.length?hit/r.ing.length:0};
 }
 function renderFridgeResults(){
+  const box=$("#fridgeResults");
   const seasonOnly=$("#seasonOnly").checked;
+  // Sans inventaire : on n'affiche pas toute la base (trop bruyant) — invite à ajouter des aliments.
+  if(!state.fridge.length){
+    $("#fridgeCount").textContent="";
+    box.innerHTML=`<div class="empty"><div class="ic">🧊</div>Ajoute des aliments à ton inventaire pour voir les recettes que tu peux cuisiner.</div>`;
+    return;
+  }
   let list=state.recipes.filter(r=>{
     if(state.vegOnly && !isVegMe(r))return false;
     if(state.vegan && !isVeganView(r))return false;
@@ -2471,13 +2479,13 @@ function renderFridgeResults(){
     if(seasonOnly && !inSeason(r))return false;
     return true;
   });
-  list=list.map(r=>({r,s:matchScore(r)}));
-  if(state.fridge.length){ list.sort((a,b)=> b.s.pct-a.s.pct || b.s.hit-a.s.hit ); }
-  else { list.sort((a,b)=> (inSeason(b.r)?1:0)-(inSeason(a.r)?1:0) ); }
+  // Uniquement les recettes qui matchent au moins un aliment du frigo
+  list=list.map(r=>({r,s:matchScore(r)})).filter(x=>x.s.hit>0);
+  list.sort((a,b)=> b.s.pct-a.s.pct || b.s.hit-a.s.hit);
   $("#fridgeCount").textContent=`${list.length} recette${list.length>1?"s":""}`;
-  const box=$("#fridgeResults"); box.innerHTML="";
+  box.innerHTML="";
   list.forEach(({r,s})=>box.appendChild(recipeCard(r,s)));
-  if(!list.length)box.innerHTML=`<div class="empty"><div class="ic">🍃</div>Aucune recette ne correspond. Élargis tes filtres.</div>`;
+  if(!list.length)box.innerHTML=`<div class="empty"><div class="ic">🍃</div>Aucune recette ne correspond à ton inventaire. Ajoute d'autres aliments ou élargis tes filtres.</div>`;
 }
 $("#seasonOnly").onchange=renderFridgeResults;
 
