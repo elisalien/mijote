@@ -227,6 +227,7 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--s5) var(--s4) var(--s7)}
 }
 .toolbar.scroll-x::-webkit-scrollbar{display:none}
 .toolbar.scroll-x > *{flex:none}
+#manualCard{scroll-margin-top:76px}
 .form-stack{display:flex; flex-direction:column; gap:var(--s3)}
 @media(min-width:640px){
   .form-stack.form-row{flex-direction:row; align-items:stretch}
@@ -244,6 +245,10 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--s5) var(--s4) var(--s7)}
   color:var(--txt);
 }
 .btn:hover{border-color:var(--line-2);background:var(--glass-2)}
+a.btn{text-decoration:none}
+.btn.pick-row{width:100%;justify-content:space-between;text-align:left;margin-bottom:6px;gap:10px}
+.btn.pick-row .nm{flex:1;min-width:0}
+.btn.pick-row .sub{flex:none;white-space:nowrap}
 .btn.primary{
   background:var(--iri); color:var(--ink); border-color:transparent;
   box-shadow:0 4px 18px rgba(124,214,244,.22);
@@ -402,6 +407,13 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--s5) var(--s4) var(--s7)}
 .fr-chip .dleft{font-size:.75rem;font-weight:700}
 .fr-chip.ok .dleft{color:var(--mint)} .fr-chip.soon .dleft{color:var(--warn)} .fr-chip.late .dleft{color:var(--danger)}
 #fridgeChips{gap:8px}
+#fridgeSugg{gap:6px 8px}
+#fridgeSugg a.ssg{
+  display:inline-flex;align-items:center;min-height:36px;
+  padding:6px 12px;border-radius:999px;border:1px solid rgba(140,232,195,.28);
+  color:var(--mint);text-decoration:none;font-size:.8125rem;background:rgba(140,232,195,.06);
+}
+#fridgeSugg a.ssg:active{background:rgba(140,232,195,.14)}
 /* bloc repliable (presets, options) */
 details.disclose{border:1px solid var(--line);border-radius:var(--rad-s);background:var(--glass)}
 details.disclose>summary{
@@ -786,7 +798,7 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--s4) 0}
     </div>
     <div class="form-stack form-row" style="margin-bottom:var(--s3)">
       <input id="recipeSearch" class="grow" placeholder="Rechercher une recette ou un ingrédient…" style="flex:1;min-width:0">
-      <button class="btn primary" onclick="gotoTab('ajouter')"><svg class="i"><use href="#i-plus"/></svg> Ajouter</button>
+      <button class="btn primary" onclick="startAddRecipe()"><svg class="i"><use href="#i-plus"/></svg> Ajouter</button>
     </div>
     <div class="toolbar scroll-x">
       <select id="cuisineFilter" style="width:auto;min-width:8rem"></select>
@@ -907,7 +919,7 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--s4) 0}
         <code class="bm" id="bmCode"></code>
         </div>
       </div>
-      <div class="card stack">
+      <div class="card stack" id="manualCard">
         <h3>Saisie manuelle</h3>
         <div><label class="fld">Nom *</label><input id="mName" placeholder="Ex : Dal de lentilles corail"></div>
         <div class="row">
@@ -2422,7 +2434,7 @@ function renderFridge(){
   // suggestions de saison
   const m=currentMonth();
   const sugg=SEASON[m].filter(s=>!state.fridge.some(f=>norm(f.name)===norm(s))).slice(0,8);
-  const sg=$("#fridgeSugg"); if(sg){ sg.innerHTML = sugg.length? "De saison : "+sugg.map(s=>`<a href="#" data-s="${s}" class="ssg">+ ${s}</a>`).join("&nbsp;&nbsp;"):""; $$(".ssg").forEach(a=>a.onclick=ev=>{ev.preventDefault();addFridge(a.dataset.s);}); }
+  const sg=$("#fridgeSugg"); if(sg){ sg.innerHTML = sugg.length? `<span class="tiny muted" style="width:100%">De saison en ce moment :</span>`+sugg.map(s=>`<a href="#" data-s="${s}" class="ssg">+ ${s}</a>`).join(""):""; $$(".ssg").forEach(a=>a.onclick=ev=>{ev.preventDefault();addFridge(a.dataset.s);}); }
 }
 function addFridge(v,days){
   v=(v||"").trim(); if(!v)return;
@@ -2783,7 +2795,7 @@ function openPicker(dayIndex,recipeId,meal){
   const m=$("#pickModal");
   if(dayIndex!==null && dayIndex!==undefined){
     const mealLbl=(MEALS.find(x=>x[0]===meal)||["","Repas"])[1];
-    const opts=state.recipes.filter(r=>!recipeDislikes(r).length && (!state.vegOnly||isVegMe(r))).map(r=>`<button class="btn" style="justify-content:flex-start;width:100%;margin-bottom:6px" data-id="${r.id}">${r.name} <span class="muted small">· ${r.cuisine}</span></button>`).join("");
+    const opts=state.recipes.filter(r=>!recipeDislikes(r).length && (!state.vegOnly||isVegMe(r))).map(r=>`<button class="btn pick-row" data-id="${r.id}"><span class="nm">${r.name}</span><span class="sub muted small">${r.cuisine}</span></button>`).join("");
     m.innerHTML=`<div class="mhead"><span class="close-x" onclick="closePick()">×</span><h3 style="margin:0">${DAYS[dayIndex]} · ${mealLbl}</h3></div>
       <div class="mbody" style="max-height:60vh;overflow:auto"><input id="pickSearch" placeholder="Filtrer…" style="margin-bottom:10px"><div id="pickList">${opts}</div></div>`;
     $("#pickBg").classList.add("open");
@@ -3029,7 +3041,7 @@ $("#jarNew").onclick=()=>{
   const recs=trackableRecipes();
   const m=$("#pickModal");
   if(!recs.length){ toast("Aucune recette « à laisser reposer » dans ta base"); return; }
-  const opts=recs.map(r=>`<button class="btn" style="justify-content:flex-start;width:100%;margin-bottom:6px" data-id="${r.id}">${r.name} <span class="muted small">· prêt après ${fmtDur(r.readyHours)}</span></button>`).join("");
+  const opts=recs.map(r=>`<button class="btn pick-row" data-id="${r.id}"><span class="nm">${r.name}</span><span class="sub muted small">prêt après ${fmtDur(r.readyHours)}</span></button>`).join("");
   m.innerHTML=`<div class="mhead"><span class="close-x" onclick="closePick()">×</span><h3 style="margin:0">Quel bocal lances-tu ?</h3></div>
     <div class="mbody" style="max-height:60vh;overflow:auto">${opts}</div>`;
   $("#pickBg").classList.add("open");
@@ -3100,14 +3112,51 @@ function guessCat(name){
 }
 function saveRecipe(r){ state.recipes.unshift(r); persist(); }
 
+/* édition d'une recette existante via le formulaire de saisie manuelle */
+let editingId=null;
+function resetRecipeForm(){
+  editingId=null;
+  ["#mName","#mCuisine","#mIng","#mSteps"].forEach(s=>$(s).value="");
+  $("#mServings").value=4; $("#mTime").value=30;
+  $("#mVegan").classList.remove("on");
+  $("#mSave").textContent="Enregistrer la recette";
+}
+function startAddRecipe(){ resetRecipeForm(); gotoTab("ajouter"); }
+window.startAddRecipe=startAddRecipe;
+function editRecipe(id){
+  const r=state.recipes.find(x=>x.id===id); if(!r)return;
+  closeModal();
+  editingId=id;
+  $("#mName").value=r.name||"";
+  $("#mCuisine").value=r.cuisine||"";
+  $("#mServings").value=r.servings||4;
+  $("#mTime").value=r.time||30;
+  $("#mIng").value=(r.ing||[]).map(i=>[i[0],i[1],i[2]].filter(Boolean).join(" ")).join("\n");
+  $("#mSteps").value=(r.steps||[]).join("\n");
+  $("#mVegan").classList.toggle("on",!!r.vegan);
+  $("#mSave").textContent="Mettre à jour la recette";
+  gotoTab("ajouter");
+  const card=$("#manualCard"); if(card)card.scrollIntoView({block:"start"});
+}
+window.editRecipe=editRecipe;
+
 $("#mSave").onclick=()=>{
   const name=$("#mName").value.trim(); if(!name){toast("Donne un nom à la recette");return;}
   const ing=$("#mIng").value.split("\n").map(parseIngLine).filter(Boolean);
   const steps=$("#mSteps").value.split("\n").map(s=>s.trim()).filter(Boolean);
-  const r={id:uid(),name,cuisine:$("#mCuisine").value.trim()||"perso",vegan:$("#mVegan").classList.contains("on"),veganSwap:!$("#mVegan").classList.contains("on"),time:+$("#mTime").value||30,servings:+$("#mServings").value||4,season:[],ing,steps,custom:true};
-  saveRecipe(r);
-  ["#mName","#mCuisine","#mIng","#mSteps"].forEach(s=>$(s).value="");$("#mVegan").classList.remove("on");
-  toast("Recette enregistrée ✓"); renderFridgeResults();
+  const vegan=$("#mVegan").classList.contains("on");
+  const base={name,cuisine:$("#mCuisine").value.trim()||"perso",vegan,time:+$("#mTime").value||30,servings:+$("#mServings").value||4,ing,steps};
+  const prev=editingId?state.recipes.find(x=>x.id===editingId):null;
+  if(prev){
+    Object.assign(prev,base,{veganSwap:vegan?prev.veganSwap:(prev.veganSwap||!vegan),custom:true});
+    persist(); toast("Recette mise à jour ✓");
+  }else{
+    saveRecipe({id:uid(),...base,veganSwap:!vegan,season:[],custom:true});
+    toast("Recette enregistrée ✓");
+  }
+  resetRecipeForm();
+  renderFridgeResults(); renderRecipes();
+  gotoTab("recettes");
 };
 $("#mVegan").onclick=()=>$("#mVegan").classList.toggle("on");
 
