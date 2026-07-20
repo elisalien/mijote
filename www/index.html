@@ -2003,18 +2003,22 @@ function showPrompt(message,opts){
     const okLabel=opts.okLabel||"OK";
     const cancelLabel=opts.cancelLabel||"Annuler";
     $("#dlg").innerHTML=`${title?`<h3>${title}</h3>`:""}<p>${message}</p>
-      <input id="dlgInput" type="text" value="${def.replace(/"/g,"&quot;")}">
-      <div class="dlg-actions">
-        <button type="button" class="btn" id="dlgCancel">${cancelLabel}</button>
-        <button type="button" class="btn primary" id="dlgOk">${okLabel}</button>
-      </div>`;
+      <form id="dlgForm">
+        <input id="dlgInput" type="text" value="${def.replace(/"/g,"&quot;")}" autocomplete="name" enterkeyhint="done">
+        <div class="dlg-actions">
+          <button type="button" class="btn" id="dlgCancel">${cancelLabel}</button>
+          <button type="submit" class="btn primary" id="dlgOk">${okLabel}</button>
+        </div>
+      </form>`;
     $("#dlgBg").classList.add("open");
     const inp=$("#dlgInput");
+    const form=$("#dlgForm");
     setTimeout(()=>{inp.focus();inp.select();},50);
-    const done=v=>{closeDlg();resolve(v);};
+    let settled=false;
+    const done=v=>{if(settled)return; settled=true; closeDlg(); resolve(v);};
     $("#dlgCancel").onclick=()=>done(null);
-    $("#dlgOk").onclick=()=>done(inp.value);
-    inp.addEventListener("keydown",e=>{if(e.key==="Enter")done(inp.value); if(e.key==="Escape")done(null);});
+    form.onsubmit=e=>{e.preventDefault(); done(inp.value);};
+    inp.addEventListener("keydown",e=>{if(e.key==="Escape")done(null);});
     $("#dlgBg").onclick=e=>{if(e.target===$("#dlgBg"))done(null);};
   });
 }
@@ -2988,10 +2992,8 @@ function initBookmarklet(){
 }
 
 /* ============================ SHARED SYNC ============================ */
-const APP_VERSION="1.0.2-supabase";
+const APP_VERSION="1.0.3-supabase";
 const SYNC_CODE_ALPH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-let syncClient=null;
-let syncChannel=null;
 let syncPushTimer=null;
 let syncPushing=false;
 let syncPending=false;
@@ -3007,6 +3009,37 @@ function getSyncConfig(){
   return {url:String(c.url).replace(/\/$/,""), anonKey:String(c.anonKey)};
 }
 function syncConfigured(){ return !!getSyncConfig(); }
+
+function syncHeaders(){
+  const cfg=getSyncConfig();
+  return {
+    apikey:cfg.anonKey,
+    Authorization:"Bearer "+cfg.anonKey,
+    "Content-Type":"application/json",
+    Accept:"application/json"
+  };
+}
+async function syncRpc(fn,params){
+  const cfg=getSyncConfig();
+  if(!cfg) throw new Error("Sync non configurée");
+  const res=await fetch(cfg.url+"/rest/v1/rpc/"+fn,{
+    method:"POST",
+    headers:syncHeaders(),
+    body:JSON.stringify(params||{})
+  });
+  const text=await res.text();
+  let data=null;
+  try{ data=text?JSON.parse(text):null; }catch(e){}
+  if(!res.ok){
+    const msg=(data&&data.message)||text||("HTTP "+res.status);
+    const err=new Error(msg);
+    err.status=res.status;
+    err.data=data;
+    throw err;
+  }
+  return data;
+}
+function syncRow(data){ return Array.isArray(data)?data[0]:data; }
 
 function buildSharedPayload(){
   syncMemberDislikesFromState();
@@ -3075,23 +3108,6 @@ function updateSyncPills(){
   });
 }
 
-async function getSupabase(){
-  const cfg=getSyncConfig();
-  if(!cfg)return null;
-  if(syncClient)return syncClient;
-  try{
-    const mod=await import("https://esm.sh/@supabase/supabase-js@2.49.1");
-    syncClient=mod.createClient(cfg.url, cfg.anonKey, {
-      auth:{persistSession:false, autoRefreshToken:false},
-      realtime:{params:{eventsPerSecond:5}}
-    });
-    return syncClient;
-  }catch(e){
-    console.warn("Supabase client unavailable", e);
-    return null;
-  }
-}
-
 function schedulePush(){
   if(!inHousehold()||syncApplyingRemote)return;
   syncPending=true;
@@ -3106,30 +3122,25 @@ async function flushPush(){
   syncPushing=true;
   syncPending=false;
   try{
-    const sb=await getSupabase();
-    if(!sb){ setSyncStatus("err"); return; }
     const baseRev=state.syncRev|0;
     const payload=buildSharedPayload();
-    const {data, error}=await sb.rpc("push_household", {
-      p_code: state.householdCode,
-      p_payload: payload,
-      p_base_rev: baseRev
-    });
-    if(error) throw error;
-    const row=Array.isArray(data)?data[0]:data;
+    const row=syncRow(await syncRpc("push_household",{
+      p_code:state.householdCode,
+      p_payload:payload,
+      p_base_rev:baseRev
+    }));
     if(!row) throw new Error("empty push");
     if((row.rev|0)===baseRev+1){
       state.syncRev=row.rev|0;
       save(LS.syncRev, state.syncRev);
       setSyncStatus("on");
+    }else if((row.rev|0)>(state.syncRev|0)){
+      state.syncRev=row.rev|0;
+      applySharedPayload(row.payload);
+      renderAll();
+      toast("Synchro…");
+      setSyncStatus("on");
     }else{
-      // conflict / LWW : apply remote if newer
-      if((row.rev|0)>(state.syncRev|0)){
-        state.syncRev=row.rev|0;
-        applySharedPayload(row.payload);
-        renderAll();
-        toast("Synchro…");
-      }
       setSyncStatus("on");
     }
   }catch(e){
@@ -3145,36 +3156,9 @@ async function flushPush(){
 async function subscribeHousehold(){
   stopHouseholdSub();
   if(!inHousehold()||!syncConfigured())return;
-  const sb=await getSupabase();
-  if(!sb){ startSyncPoll(); return; }
-  try{
-    syncChannel=sb.channel("household:"+state.householdId)
-      .on("postgres_changes", {
-        event:"UPDATE", schema:"public", table:"households",
-        filter:"id=eq."+state.householdId
-      }, (payload)=>{
-        const row=payload.new;
-        if(!row)return;
-        if((row.rev|0)<=(state.syncRev|0))return;
-        state.syncRev=row.rev|0;
-        applySharedPayload(row.payload);
-        renderAll();
-        setSyncStatus("on");
-      })
-      .subscribe((status)=>{
-        if(status==="SUBSCRIBED"){ setSyncStatus("on"); stopSyncPoll(); }
-        else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){ startSyncPoll(); }
-      });
-  }catch(e){
-    console.warn("realtime fail", e);
-    startSyncPoll();
-  }
+  startSyncPoll();
 }
 function stopHouseholdSub(){
-  if(syncChannel&&syncClient){
-    try{ syncClient.removeChannel(syncChannel); }catch(e){}
-  }
-  syncChannel=null;
   stopSyncPoll();
 }
 function startSyncPoll(){
@@ -3183,11 +3167,7 @@ function startSyncPoll(){
   syncPollTimer=setInterval(async()=>{
     if(document.hidden||syncPushing)return;
     try{
-      const sb=await getSupabase();
-      if(!sb)return;
-      const {data, error}=await sb.rpc("join_household", {p_code: state.householdCode});
-      if(error)return;
-      const row=Array.isArray(data)?data[0]:data;
+      const row=syncRow(await syncRpc("join_household",{p_code:state.householdCode}));
       if(row&&(row.rev|0)>(state.syncRev|0)){
         state.syncRev=row.rev|0;
         applySharedPayload(row.payload);
@@ -3200,20 +3180,21 @@ function startSyncPoll(){
 function stopSyncPoll(){ if(syncPollTimer){ clearInterval(syncPollTimer); syncPollTimer=null; } }
 
 async function createHouseholdFlow(){
-  if(!syncConfigured()){ toast("Configure sync.config.js d’abord"); return; }
-  const name=await showPrompt("Ton prénom / profil dans le foyer :", {title:"Créer un foyer", defaultValue:"Ellie", okLabel:"Créer"});
+  if(!syncConfigured()){ toast("Sync non configurée sur cette APK"); return; }
+  const name=await showPrompt("Nom du profil dans le foyer (ex. Ellie, maison…) :", {title:"Créer un foyer", defaultValue:"", okLabel:"Créer"});
   if(name==null)return;
-  const profileName=name.trim()||"Moi";
+  const profileName=name.trim();
+  if(!profileName){ toast("Entre un nom de profil"); return; }
   ensureMembersFromSolo(profileName);
   const code=genHouseholdCode();
-  const sb=await getSupabase();
-  if(!sb){ toast("Client sync indisponible"); return; }
+  toast("Création du foyer…");
   setSyncStatus("pending");
   try{
-    const payload=buildSharedPayload();
-    const {data, error}=await sb.rpc("create_household", {p_code:code, p_payload:payload});
-    if(error) throw error;
-    const row=Array.isArray(data)?data[0]:data;
+    const row=syncRow(await syncRpc("create_household",{
+      p_code:code,
+      p_payload:buildSharedPayload()
+    }));
+    if(!row||!row.id) throw new Error("réponse serveur invalide");
     state.householdId=row.id;
     state.householdCode=row.code;
     state.syncRev=row.rev|0;
@@ -3221,6 +3202,7 @@ async function createHouseholdFlow(){
     await subscribeHousehold();
     setSyncStatus("on");
     updateSharedUi();
+    renderAll();
     toast("Foyer créé · "+row.code);
     if(isNative&&CapPlugins.Share){
       try{ await CapPlugins.Share.share({title:"Mijote", text:"Rejoins mon foyer Mijote : "+row.code, dialogTitle:"Partager le code"}); }catch(e){}
@@ -3229,38 +3211,36 @@ async function createHouseholdFlow(){
     console.warn(e);
     state.householdId=null; state.householdCode=null; state.syncRev=0;
     setSyncStatus("err");
-    toast("Création impossible");
+    toast("Création impossible · "+(e.message||"vérifie ta connexion"));
   }
 }
 
 async function joinHouseholdFlow(){
-  if(!syncConfigured()){ toast("Configure sync.config.js d’abord"); return; }
+  if(!syncConfigured()){ toast("Sync non configurée sur cette APK"); return; }
   const codeRaw=await showPrompt("Code du foyer (ex. MIJOTE-AB12CD) :", {title:"Rejoindre un foyer", okLabel:"Rejoindre"});
   if(codeRaw==null)return;
   const code=codeRaw.trim().toUpperCase().replace(/\s+/g,"");
-  if(!code)return;
-  const sb=await getSupabase();
-  if(!sb){ toast("Client sync indisponible"); return; }
+  if(!code){ toast("Entre un code foyer"); return; }
+  toast("Connexion au foyer…");
   setSyncStatus("pending");
   try{
-    const {data, error}=await sb.rpc("join_household", {p_code:code});
-    if(error) throw error;
-    const row=Array.isArray(data)?data[0]:data;
-    if(!row) throw new Error("not found");
+    const row=syncRow(await syncRpc("join_household",{p_code:code}));
+    if(!row||!row.id) throw new Error("Code introuvable");
     state.householdId=row.id;
     state.householdCode=row.code;
     state.syncRev=row.rev|0;
     applySharedPayload(row.payload);
-    const name=await showPrompt("Ton prénom / profil :", {title:"Qui es-tu ?", defaultValue:"", okLabel:"OK"});
-    if(name!=null && name.trim()){
-      const existing=state.members&&state.members.find(m=>norm(m.name)===norm(name.trim()));
+    const profil=await showPrompt("Ton profil dans ce foyer (ex. Ellie, maison…) :", {title:"Qui es-tu ?", defaultValue:"", okLabel:"Valider"});
+    if(profil==null){ /* annuler profil = garder données distantes */ }
+    else if(profil.trim()){
+      const existing=state.members&&state.members.find(m=>norm(m.name)===norm(profil.trim()));
       if(existing){
         state.memberId=existing.id;
         applyMemberDislikesToState();
       }else{
         const id=uid();
         if(!state.members)state.members=[];
-        state.members.push({id, name:name.trim(), dislikes:(state.dislikes||[]).slice(), active:true});
+        state.members.push({id, name:profil.trim(), dislikes:(state.dislikes||[]).slice(), active:true});
         state.memberId=id;
       }
     }else if(state.members&&state.members.length){
@@ -3278,7 +3258,7 @@ async function joinHouseholdFlow(){
   }catch(e){
     console.warn(e);
     setSyncStatus("err");
-    toast("Code introuvable ou sync indisponible");
+    toast((e.message&&e.message.includes("HOUSEHOLD"))?"Code introuvable":("Connexion impossible · "+(e.message||"réseau")));
   }
 }
 
@@ -3398,8 +3378,9 @@ $("#sharedCopyCodeBtn").onclick=async()=>{
   toast(ok?"Code copié ✓":"Copie impossible");
 };
 $("#memberAddBtn").onclick=()=>{
-  if(!inHousehold())return;
-  const v=$("#memberNameInput").value.trim(); if(!v)return;
+  if(!inHousehold()){ toast("Rejoins ou crée un foyer d’abord"); return; }
+  const v=$("#memberNameInput").value.trim();
+  if(!v){ toast("Entre un nom de profil"); return; }
   syncMemberDislikesFromState();
   const id=uid();
   if(!state.members)state.members=[];
@@ -3501,21 +3482,14 @@ async function initShared(){
   if(inHousehold()&&syncConfigured()){
     setSyncStatus("pending");
     await subscribeHousehold();
-    // pull once on start
     try{
-      const sb=await getSupabase();
-      if(sb){
-        const {data}=await sb.rpc("join_household", {p_code: state.householdCode});
-        const row=Array.isArray(data)?data[0]:data;
-        if(row&&(row.rev|0)>=(state.syncRev|0)){
-          if((row.rev|0)>(state.syncRev|0)){
-            state.syncRev=row.rev|0;
-            applySharedPayload(row.payload);
-            renderAll();
-          }
-          setSyncStatus("on");
-        }
+      const row=syncRow(await syncRpc("join_household",{p_code:state.householdCode}));
+      if(row&&(row.rev|0)>(state.syncRev|0)){
+        state.syncRev=row.rev|0;
+        applySharedPayload(row.payload);
+        renderAll();
       }
+      setSyncStatus("on");
     }catch(e){ setSyncStatus("err"); }
   }else{
     setSyncStatus(inHousehold()?"err":"off");
