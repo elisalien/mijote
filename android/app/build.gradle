@@ -1,5 +1,27 @@
 apply plugin: 'com.android.application'
 
+// --- Release signing -------------------------------------------------------
+// Never commit real keystore/passwords. Two ways to provide them:
+//  1) android/keystore.properties (gitignored) — see keystore.properties.example
+//  2) env vars MIJOTE_KEYSTORE_PATH / MIJOTE_KEYSTORE_PASSWORD / MIJOTE_KEY_ALIAS / MIJOTE_KEY_PASSWORD
+// If neither is present, the release build falls back to unsigned (won't install /
+// can't be uploaded to Play Console until signed).
+def keystorePropsFile = rootProject.file("keystore.properties")
+def keystoreProps = new Properties()
+def hasKeystoreProps = keystorePropsFile.exists()
+if (hasKeystoreProps) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+def envOrProp = { propKey, envKey ->
+    if (hasKeystoreProps && keystoreProps.getProperty(propKey)) return keystoreProps.getProperty(propKey)
+    return System.getenv(envKey)
+}
+def relStoreFile = envOrProp('storeFile', 'MIJOTE_KEYSTORE_PATH')
+def relStorePassword = envOrProp('storePassword', 'MIJOTE_KEYSTORE_PASSWORD')
+def relKeyAlias = envOrProp('keyAlias', 'MIJOTE_KEY_ALIAS')
+def relKeyPassword = envOrProp('keyPassword', 'MIJOTE_KEY_PASSWORD')
+def hasReleaseSigning = relStoreFile && relStorePassword && relKeyAlias && relKeyPassword
+
 android {
     namespace "fr.mijote.app"
     compileSdk rootProject.ext.compileSdkVersion
@@ -7,8 +29,9 @@ android {
         applicationId "fr.mijote.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        // Bump versionCode on every Play Console upload (must strictly increase).
         versionCode 1
-        versionName "1.0"
+        versionName "1.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +39,23 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile rootProject.file(relStoreFile)
+                storePassword relStorePassword
+                keyAlias relKeyAlias
+                keyPassword relKeyPassword
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

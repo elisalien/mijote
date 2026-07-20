@@ -53,10 +53,38 @@ Depuis le dossier `android/` :
 
 ```bash
 ./gradlew assembleDebug     # APK debug : android/app/build/outputs/apk/debug/
-./gradlew assembleRelease   # APK release (signer avant publication)
+./gradlew bundleRelease     # AAB release signé : android/app/build/outputs/bundle/release/
 ```
 
 Package id : `fr.mijote.app`
+
+### Publier sur le Google Play Store
+
+Google Play exige un **Android App Bundle (.aab)** signé (plus l'APK) pour toute nouvelle app.
+
+1. **Compte développeur** : créer un compte sur [Google Play Console](https://play.google.com/console) (25 $, paiement unique).
+2. **Clé de signature** (une seule fois, à conserver précieusement — sans elle, impossible de publier une mise à jour) :
+   ```bash
+   keytool -genkeypair -v -keystore mijote-release.keystore -alias mijote \
+     -keyalg RSA -keysize 2048 -validity 10000
+   ```
+   Place le fichier à la racine du repo (il est gitignoré), puis :
+   ```bash
+   cp android/keystore.properties.example android/keystore.properties
+   # éditer android/keystore.properties avec les mots de passe choisis
+   ```
+   `android/keystore.properties` et `*.keystore` sont gitignorés — **ne jamais les committer**. Sauvegarde le fichier `.keystore` + les mots de passe dans un gestionnaire de mots de passe ou un coffre hors-ligne.
+   Alternative sans fichier local : variables d'env `MIJOTE_KEYSTORE_PATH`, `MIJOTE_KEYSTORE_PASSWORD`, `MIJOTE_KEY_ALIAS`, `MIJOTE_KEY_PASSWORD`.
+3. **Bump la version** avant chaque nouvel envoi : `versionCode` (entier, doit strictement augmenter) et `versionName` dans `android/app/build.gradle`.
+4. **Build** :
+   ```bash
+   npm run cap:sync
+   cd android && ./gradlew bundleRelease
+   ```
+   Sortie : `android/app/build/outputs/bundle/release/app-release.aab`.
+5. **Play Console** → créer l'app → première version envoyée dans une piste de test interne (recommandé avant la production) → activer **Play App Signing** (Google gère alors la clé de signature finale ; tu ne gères que la « clé d'upload », récupérable via Google si perdue — fortement recommandé pour une nouvelle app).
+6. Remplir la fiche store : description, captures d'écran, icône, **politique de confidentialité** (obligatoire, même pour une app locale-first), classification de contenu, formulaire de sécurité des données.
+7. Soumettre à la revue (généralement quelques heures à 1-2 jours).
 
 ## Technique
 

@@ -9,6 +9,8 @@ dist/
 *.aab
 *.keystore
 local.properties
+keystore.properties
+*.jks
 .gradle/
 **/build/
 **/captures/
