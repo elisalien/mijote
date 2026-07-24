@@ -517,7 +517,11 @@ ol.steps li:last-child{border:none}
   background:var(--glass);border:1px solid var(--line);border-radius:var(--rad-s);
   padding:10px 30px 10px 12px; font-size:.875rem; margin-bottom:8px; position:relative;
   min-height:var(--tap); line-height:1.35; display:flex;align-items:center;
+  -webkit-touch-callout:none; user-select:none; -webkit-user-select:none;
+  touch-action:pan-y;
 }
+.day .slot[data-rid]{cursor:pointer}
+.day .slot[data-rid]:active{background:rgba(140,232,195,.08);border-color:rgba(140,232,195,.35)}
 .day .slot .rm{position:absolute;top:50%;right:4px;transform:translateY(-50%);color:var(--txt3);font-size:16px; width:32px;height:32px;display:grid;place-items:center;border-radius:8px}
 .day .slot .rm:hover,.day .slot .rm:active{color:var(--danger)}
 .day .add{
@@ -775,17 +779,18 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--s4) 0}
     <div class="sub-h"><h3><svg class="i"><use href="#i-fridge"/></svg> Mon inventaire</h3><span class="ln"></span><span class="muted small" id="fridgeInvCount"></span></div>
     <div class="row" id="fridgeChips"></div>
 
+    <div class="sub-h"><h3><svg class="i"><use href="#i-jar"/></svg> Pickles &amp; marinades</h3><span class="ln"></span><button class="btn sm primary" id="jarNew">+ Bocal</button></div>
+    <div class="muted small" style="margin:4px 0 14px">Lance un bocal, on calcule quand il est prêt à manger (et jusqu'à quand le garder).</div>
+    <div class="grid g2" id="jarList"></div>
+
     <div class="sub-h"><h3><svg class="i"><use href="#i-pot"/></svg> Ce que je peux cuisiner</h3><span class="ln"></span></div>
+    <div class="muted small" style="margin:4px 0 10px">Suggestions basées sur ton inventaire — seuls les plats qui matchent au moins un aliment apparaissent.</div>
     <div class="toolbar scroll-x" style="margin:0 0 12px;align-items:center">
       <label class="row small" style="gap:8px;cursor:pointer;flex:none"><span class="toggle" id="veganGlobal"><i></i></span><span class="muted">Vegan</span></label>
       <label class="row small" style="gap:8px;cursor:pointer;flex:none"><input type="checkbox" id="seasonOnly" style="width:auto"><span class="muted">De saison</span></label>
       <span class="muted small" style="margin-left:auto;flex:none" id="fridgeCount"></span>
     </div>
     <div class="grid g2" id="fridgeResults"></div>
-
-    <div class="sub-h"><h3><svg class="i"><use href="#i-jar"/></svg> Pickles &amp; marinades</h3><span class="ln"></span><button class="btn sm primary" id="jarNew">+ Bocal</button></div>
-    <div class="muted small" style="margin:4px 0 14px">Lance un bocal, on calcule quand il est prêt à manger (et jusqu'à quand le garder).</div>
-    <div class="grid g2" id="jarList"></div>
   </section>
 
   <!-- RECETTES -->
@@ -824,7 +829,7 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--s4) 0}
     </div>
     <div class="toolbar scroll-x">
       <button class="btn sm primary" id="weekValidate">✓ Valider</button>
-      <button class="btn sm" id="weekOptim">Optimisé</button>
+      <button class="btn sm" id="weekOptim" title="Compose la semaine en priorisant le frigo et le partage d'ingrédients">Optimisé</button>
       <button class="btn sm" id="weekRandom">Au hasard</button>
       <button class="btn sm" id="weekToShop"><svg class="i"><use href="#i-cart"/></svg> Courses</button>
       <button class="btn sm danger" id="weekClear">Vider</button>
@@ -2463,7 +2468,14 @@ function matchScore(r){
   return {hit,total:r.ing.length,pct:r.ing.length?hit/r.ing.length:0};
 }
 function renderFridgeResults(){
+  const box=$("#fridgeResults");
   const seasonOnly=$("#seasonOnly").checked;
+  // Sans inventaire : on n'affiche pas toute la base (trop bruyant) — invite à ajouter des aliments.
+  if(!state.fridge.length){
+    $("#fridgeCount").textContent="";
+    box.innerHTML=`<div class="empty"><div class="ic">🧊</div>Ajoute des aliments à ton inventaire pour voir les recettes que tu peux cuisiner.</div>`;
+    return;
+  }
   let list=state.recipes.filter(r=>{
     if(state.vegOnly && !isVegMe(r))return false;
     if(state.vegan && !isVeganView(r))return false;
@@ -2471,13 +2483,13 @@ function renderFridgeResults(){
     if(seasonOnly && !inSeason(r))return false;
     return true;
   });
-  list=list.map(r=>({r,s:matchScore(r)}));
-  if(state.fridge.length){ list.sort((a,b)=> b.s.pct-a.s.pct || b.s.hit-a.s.hit ); }
-  else { list.sort((a,b)=> (inSeason(b.r)?1:0)-(inSeason(a.r)?1:0) ); }
+  // Uniquement les recettes qui matchent au moins un aliment du frigo
+  list=list.map(r=>({r,s:matchScore(r)})).filter(x=>x.s.hit>0);
+  list.sort((a,b)=> b.s.pct-a.s.pct || b.s.hit-a.s.hit);
   $("#fridgeCount").textContent=`${list.length} recette${list.length>1?"s":""}`;
-  const box=$("#fridgeResults"); box.innerHTML="";
+  box.innerHTML="";
   list.forEach(({r,s})=>box.appendChild(recipeCard(r,s)));
-  if(!list.length)box.innerHTML=`<div class="empty"><div class="ic">🍃</div>Aucune recette ne correspond. Élargis tes filtres.</div>`;
+  if(!list.length)box.innerHTML=`<div class="empty"><div class="ic">🍃</div>Aucune recette ne correspond à ton inventaire. Ajoute d'autres aliments ou élargis tes filtres.</div>`;
 }
 $("#seasonOnly").onchange=renderFridgeResults;
 
@@ -2541,6 +2553,46 @@ function openRecipe(id){
 function closeModal(){$("#modalBg").classList.remove("open");}
 $("#modalBg").onclick=e=>{if(e.target===$("#modalBg"))closeModal();};
 window.closeModal=closeModal;
+
+// Appui long (touch / souris) — ignore le scroll et les cibles excluses
+function bindLongPress(el, onLong, opts={}){
+  const ms=opts.ms||480, moveMax=opts.moveMax||12;
+  const ignore=opts.ignore||(()=>false);
+  let timer=null, sx=0, sy=0, fired=false;
+  const clear=()=>{ if(timer){clearTimeout(timer);timer=null;} };
+  const point=e=>{
+    if(e.touches&&e.touches[0])return {x:e.touches[0].clientX,y:e.touches[0].clientY};
+    return {x:e.clientX,y:e.clientY};
+  };
+  const start=e=>{
+    if(ignore(e.target))return;
+    if(e.type==="mousedown" && e.button!==0)return;
+    const p=point(e); sx=p.x; sy=p.y; fired=false; clear();
+    timer=setTimeout(()=>{
+      timer=null; fired=true;
+      try{ if(navigator.vibrate) navigator.vibrate(12); }catch(_){}
+      onLong();
+    }, ms);
+  };
+  const move=e=>{
+    if(!timer)return;
+    const p=point(e);
+    if(Math.abs(p.x-sx)>moveMax || Math.abs(p.y-sy)>moveMax) clear();
+  };
+  const end=e=>{
+    if(fired){ e.preventDefault(); e.stopPropagation(); }
+    clear();
+  };
+  el.addEventListener("touchstart", start, {passive:true});
+  el.addEventListener("touchmove", move, {passive:true});
+  el.addEventListener("touchend", end);
+  el.addEventListener("touchcancel", clear);
+  el.addEventListener("mousedown", start);
+  el.addEventListener("mousemove", move);
+  el.addEventListener("mouseup", end);
+  el.addEventListener("mouseleave", clear);
+  el.addEventListener("contextmenu", e=>{ if(fired||timer){ e.preventDefault(); clear(); } });
+}
 
 async function deleteRecipe(id){
   if(!(await showConfirm("Supprimer cette recette de ta base ?",{title:"Supprimer",okLabel:"Supprimer",danger:true})))return;
@@ -2635,7 +2687,8 @@ function renderWeek(){
         const name=r?r.name:"—";
         const label=lo?`<span class="ico">♻️</span>Restes — ${name}`:name;
         const loBtn=(!lo&&r&&state.restes&&isBatchable(r))?`<span class="lo-act" title="Manger les restes un autre jour" data-lo-d="${i}" data-lo-k="${key}" data-lo-s="${si}">♻</span>`:"";
-        return `<div class="slot${lo?" leftover":""}">${label}${loBtn}<span class="rm" data-d="${i}" data-k="${key}" data-s="${si}">×</span></div>`;
+        const rid=r?` data-rid="${r.id}" title="Appui long pour voir la recette"`:"";
+        return `<div class="slot${lo?" leftover":""}"${rid}>${label}${loBtn}<span class="rm" data-d="${i}" data-k="${key}" data-s="${si}">×</span></div>`;
       }).join("");
       return `<div class="meal"><div class="meal-lbl">${mealIcon(key)}${lbl}</div>${slots}<button class="add" data-day="${i}" data-meal="${key}" aria-label="Ajouter un plat ${lbl.toLowerCase()} ${d}">+</button></div>`;
     }).join("");
@@ -2645,6 +2698,12 @@ function renderWeek(){
   $$("#week .add").forEach(b=>b.onclick=()=>openPicker(+b.dataset.day,null,b.dataset.meal));
   $$("#week .rm").forEach(b=>b.onclick=()=>{const d=+b.dataset.d,k=b.dataset.k,s=+b.dataset.s;ensureMeals(d)[k].splice(s,1);persist();renderWeek();});
   $$("#week .lo-act").forEach(b=>b.onclick=()=>addLeftover(+b.dataset.loD,b.dataset.loK,+b.dataset.loS));
+  // Appui long sur le nom → ouvre la fiche (relecture du menu sans quitter la semaine)
+  $$("#week .slot[data-rid]").forEach(el=>{
+    bindLongPress(el, ()=>openRecipe(el.dataset.rid), {
+      ignore: t=>t.closest(".rm,.lo-act")
+    });
+  });
   renderWeekValidInfo();
 }
 // recettes adaptées à une grosse fournée / aux restes (pas les express ni les condiments)
@@ -2689,30 +2748,63 @@ $("#weekRandom").onclick=async()=>{
   for(let i=0;i<7;i++)state.plan[i]={midi:[draw()],soir:[draw()]};
   persist(); renderWeek(); toast("Semaine remplie au hasard 🎲 — à toi de trier !");
 };
-// --- Menu optimisé (anti-gâchis : maximise le partage d'ingrédients) ---
+// --- Menu optimisé (anti-gâchis : frigo d'abord, puis partage d'ingrédients) ---
 const STAPLES=["sel","poivre","huile","eau","sucre"]; // ignorés (on les a toujours)
 function recipeIngSet(r){ const S=new Set(); r.ing.forEach(i=>{const n=norm(i[2]); if(n&&!STAPLES.some(s=>n.includes(s)))S.add(n);}); return S; }
+function ingMatchesAny(n, names){ return names.some(h=>h&&(n.includes(h)||h.includes(n))); }
+// Noms normalisés du frigo + sous-ensemble « périme bientôt » (≤2 j)
+function fridgeOptNames(){
+  const all=fridgeNorm().filter(Boolean);
+  const soon=fridgeSoon().map(f=>norm(f.name)).filter(Boolean);
+  return {all,soon};
+}
+// Score : périme bientôt > déjà au frigo > déjà prévu cette semaine > nouvel achat
+function optimPickScore(r, ingSet, pantry, fridgeNames, soonNames){
+  let soon=0, fr=0, sh=0, nw=0;
+  ingSet.forEach(x=>{
+    if(ingMatchesAny(x,soonNames)) soon++;
+    else if(ingMatchesAny(x,fridgeNames)) fr++;
+    else if(pantry.has(x)) sh++;
+    else nw++;
+  });
+  return soon*4 + fr*3 + sh*2 - nw + (inSeason(r)?0.5:0);
+}
+function countFridgeHits(recipes, fridgeNames){
+  if(!fridgeNames.length)return 0;
+  const hit=new Set();
+  recipes.forEach(r=>{
+    if(!r||!r.ing)return;
+    recipeIngSet(r).forEach(x=>{ if(ingMatchesAny(x,fridgeNames)) hit.add(x); });
+  });
+  return hit.size;
+}
 function weekOptimized(){
   const filtered=state.recipes.filter(r=>!recipeDislikes(r).length && (!state.vegOnly||isVegMe(r)) && (!state.vegan||isVeganView(r)));
   if(filtered.length<2)return null;
   const pool=shuffle(filtered);
   const sets=new Map(pool.map(r=>[r.id,recipeIngSet(r)]));
   const quickPool=pool.filter(r=>r.quick);
+  const {all:fridgeNames,soon:soonNames}=fridgeOptNames();
   const pantry=new Set(), used=new Set();
-  // choisit la recette qui réutilise le plus le garde-manger (pénalise les nouveaux achats)
+  // Pré-remplit le garde-manger avec le frigo → les premiers plats partent déjà de ce qu'on a
+  fridgeNames.forEach(n=>pantry.add(n));
   function pick(cands,allowRepeat){
     let best=null,bs=-1e9;
     for(const r of cands){
       if(!allowRepeat && used.has(r.id))continue;
-      const s=sets.get(r.id); let sh=0,nw=0; s.forEach(x=>pantry.has(x)?sh++:nw++);
-      const sc=sh*2 - nw + (inSeason(r)?0.5:0);
+      const sc=optimPickScore(r, sets.get(r.id), pantry, fridgeNames, soonNames);
       if(sc>bs){bs=sc;best=r;}
     }
     return best;
   }
   const take=r=>{ if(r){ used.add(r.id); sets.get(r.id).forEach(x=>pantry.add(x)); } return r; };
-  // graine : une recette rapide, de saison et « riche », avec un peu d'aléa pour varier
-  const seedBase=(quickPool.length?quickPool:pool).slice().sort((a,b)=>(inSeason(b)-inSeason(a))||(sets.get(b.id).size-sets.get(a.id).size)).slice(0,6);
+  // Graine : priorise frigo / saison / richesse, avec un peu d'aléa
+  const seedPool=quickPool.length?quickPool:pool;
+  const seedBase=seedPool.slice().sort((a,b)=>{
+    const sa=optimPickScore(a,sets.get(a.id),pantry,fridgeNames,soonNames);
+    const sb=optimPickScore(b,sets.get(b.id),pantry,fridgeNames,soonNames);
+    return sb-sa || sets.get(b.id).size-sets.get(a.id).size;
+  }).slice(0,6);
   const firstQuick=seedBase[Math.floor(Math.random()*seedBase.length)];
   const days=[];
   for(let i=0;i<7;i++){
@@ -2720,7 +2812,7 @@ function weekOptimized(){
     let q = (i===0 && firstQuick) ? firstQuick
           : (quickPool.length ? (pick(quickPool,false)||pick(quickPool,true)) : (pick(pool,false)||pick(pool,true)));
     take(q);
-    // créneau 2 = n'importe quelle recette qui maximise le réemploi
+    // créneau 2 = n'importe quelle recette qui maximise frigo + réemploi
     let o = take(pick(pool,false)||pick(pool,true));
     // alterne la position midi/soir pour varier
     days.push(Math.random()<0.5?[q,o]:[o,q]);
@@ -2735,13 +2827,14 @@ function weekOptimizedRestes(){
   const pool=shuffle(filtered);
   const sets=new Map(pool.map(r=>[r.id,recipeIngSet(r)]));
   const quickPool=pool.filter(r=>r.quick);
+  const {all:fridgeNames,soon:soonNames}=fridgeOptNames();
   const pantry=new Set(), used=new Set();
+  fridgeNames.forEach(n=>pantry.add(n));
   function pick(cands,allowRepeat){
     let best=null,bs=-1e9;
     for(const r of cands){
       if(!allowRepeat && used.has(r.id))continue;
-      const s=sets.get(r.id); let sh=0,nw=0; s.forEach(x=>pantry.has(x)?sh++:nw++);
-      const sc=sh*2 - nw + (inSeason(r)?0.5:0);
+      const sc=optimPickScore(r, sets.get(r.id), pantry, fridgeNames, soonNames);
       if(sc>bs){bs=sc;best=r;}
     }
     return best;
@@ -2750,13 +2843,18 @@ function weekOptimizedRestes(){
   const plan={}; for(let i=0;i<7;i++)plan[i]={midi:[],soir:[]};
   const slots=[]; for(let i=0;i<7;i++){slots.push([i,"midi"]);slots.push([i,"soir"]);}
   const pending=[]; // restes en attente : {id, day}
-  const seedBase=(quickPool.length?quickPool:pool).slice().sort((a,b)=>(inSeason(b)-inSeason(a))||(sets.get(b.id).size-sets.get(a.id).size)).slice(0,6);
+  const seedPool=quickPool.length?quickPool:pool;
+  const seedBase=seedPool.slice().sort((a,b)=>{
+    const sa=optimPickScore(a,sets.get(a.id),pantry,fridgeNames,soonNames);
+    const sb=optimPickScore(b,sets.get(b.id),pantry,fridgeNames,soonNames);
+    return sb-sa || sets.get(b.id).size-sets.get(a.id).size;
+  }).slice(0,6);
   const firstQuick=seedBase[Math.floor(Math.random()*seedBase.length)];
   slots.forEach(([day,meal],idx)=>{
     // 1) si un reste cuit un jour précédent attend, on le mange (jour suivant)
     const li=pending.findIndex(p=>p.day<day);
     if(li>=0){ const p=pending.splice(li,1)[0]; plan[day][meal].push(LEFT_PREFIX+p.id); return; }
-    // 2) sinon, on cuisine un nouveau plat (max réemploi d'ingrédients)
+    // 2) sinon, on cuisine un nouveau plat (frigo d'abord, puis réemploi)
     let r = (idx===0 && firstQuick) ? firstQuick
           : (idx%4===0 && quickPool.length ? (pick(quickPool,false)||pick(pool,false)||pick(pool,true)) : (pick(pool,false)||pick(pool,true)));
     take(r); plan[day][meal].push(r.id);
@@ -2766,13 +2864,19 @@ function weekOptimizedRestes(){
   return plan;
 }
 $("#weekOptim").onclick=async()=>{
-  if(allPlannedIds().filter(Boolean).length && !(await showConfirm("Remplacer toute la semaine par un menu optimisé anti-gâchis ?",{title:"Menu optimisé",okLabel:"Remplacer"})))return;
+  const fridgeHint=state.fridge.length?" (priorité aux aliments du frigo)":"";
+  if(allPlannedIds().filter(Boolean).length && !(await showConfirm("Remplacer toute la semaine par un menu optimisé anti-gâchis"+fridgeHint+" ?",{title:"Menu optimisé",okLabel:"Remplacer"})))return;
+  const fridgeNames=fridgeOptNames().all;
   if(state.restes){
     const plan=weekOptimizedRestes();
     if(!plan){toast("Ajoute d'abord quelques recettes");return;}
     state.plan=plan; persist(); renderWeek(); renderShop();
-    let cooked=0,left=0; for(let i=0;i<7;i++){const m=ensureMeals(i);[...m.midi,...m.soir].forEach(id=>{if(!id)return;isLeftover(id)?left++:cooked++;});}
-    toast(`Menu optimisé ♻️ — ${cooked} plats cuisinés · ${left} repas de restes`);
+    let cooked=0,left=0; const cookedRecs=[];
+    for(let i=0;i<7;i++){const m=ensureMeals(i);[...m.midi,...m.soir].forEach(id=>{
+      if(!id)return; if(isLeftover(id))left++; else { cooked++; const r=state.recipes.find(x=>x.id===id); if(r)cookedRecs.push(r); }
+    });}
+    const frHits=countFridgeHits(cookedRecs,fridgeNames);
+    toast(`Menu optimisé ♻️ — ${cooked} plats · ${left} restes${frHits?` · ${frHits} du frigo`:""}`);
     return;
   }
   const days=weekOptimized();
@@ -2783,7 +2887,8 @@ $("#weekOptim").onclick=async()=>{
   const all=days.flat().filter(Boolean);
   const counts={}; all.forEach(r=>recipeIngSet(r).forEach(x=>counts[x]=(counts[x]||0)+1));
   const shared=Object.values(counts).filter(c=>c>=2).length, distinct=Object.keys(counts).length;
-  toast(`Menu optimisé 🧩 — ${distinct} ingrédients, ${shared} partagés · 1 plat ⚡/jour`);
+  const frHits=countFridgeHits(all,fridgeNames);
+  toast(`Menu optimisé 🧩 — ${distinct} ingrédients, ${shared} partagés${frHits?` · ${frHits} du frigo`:""} · 1 plat ⚡/jour`);
 };
 $("#weekToShop").onclick=()=>{gotoTab("courses");renderShop();};
 
