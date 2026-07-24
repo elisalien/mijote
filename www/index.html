@@ -517,7 +517,11 @@ ol.steps li:last-child{border:none}
   background:var(--glass);border:1px solid var(--line);border-radius:var(--rad-s);
   padding:10px 30px 10px 12px; font-size:.875rem; margin-bottom:8px; position:relative;
   min-height:var(--tap); line-height:1.35; display:flex;align-items:center;
+  -webkit-touch-callout:none; user-select:none; -webkit-user-select:none;
+  touch-action:pan-y;
 }
+.day .slot[data-rid]{cursor:pointer}
+.day .slot[data-rid]:active{background:rgba(140,232,195,.08);border-color:rgba(140,232,195,.35)}
 .day .slot .rm{position:absolute;top:50%;right:4px;transform:translateY(-50%);color:var(--txt3);font-size:16px; width:32px;height:32px;display:grid;place-items:center;border-radius:8px}
 .day .slot .rm:hover,.day .slot .rm:active{color:var(--danger)}
 .day .add{
@@ -2550,6 +2554,46 @@ function closeModal(){$("#modalBg").classList.remove("open");}
 $("#modalBg").onclick=e=>{if(e.target===$("#modalBg"))closeModal();};
 window.closeModal=closeModal;
 
+// Appui long (touch / souris) — ignore le scroll et les cibles excluses
+function bindLongPress(el, onLong, opts={}){
+  const ms=opts.ms||480, moveMax=opts.moveMax||12;
+  const ignore=opts.ignore||(()=>false);
+  let timer=null, sx=0, sy=0, fired=false;
+  const clear=()=>{ if(timer){clearTimeout(timer);timer=null;} };
+  const point=e=>{
+    if(e.touches&&e.touches[0])return {x:e.touches[0].clientX,y:e.touches[0].clientY};
+    return {x:e.clientX,y:e.clientY};
+  };
+  const start=e=>{
+    if(ignore(e.target))return;
+    if(e.type==="mousedown" && e.button!==0)return;
+    const p=point(e); sx=p.x; sy=p.y; fired=false; clear();
+    timer=setTimeout(()=>{
+      timer=null; fired=true;
+      try{ if(navigator.vibrate) navigator.vibrate(12); }catch(_){}
+      onLong();
+    }, ms);
+  };
+  const move=e=>{
+    if(!timer)return;
+    const p=point(e);
+    if(Math.abs(p.x-sx)>moveMax || Math.abs(p.y-sy)>moveMax) clear();
+  };
+  const end=e=>{
+    if(fired){ e.preventDefault(); e.stopPropagation(); }
+    clear();
+  };
+  el.addEventListener("touchstart", start, {passive:true});
+  el.addEventListener("touchmove", move, {passive:true});
+  el.addEventListener("touchend", end);
+  el.addEventListener("touchcancel", clear);
+  el.addEventListener("mousedown", start);
+  el.addEventListener("mousemove", move);
+  el.addEventListener("mouseup", end);
+  el.addEventListener("mouseleave", clear);
+  el.addEventListener("contextmenu", e=>{ if(fired||timer){ e.preventDefault(); clear(); } });
+}
+
 async function deleteRecipe(id){
   if(!(await showConfirm("Supprimer cette recette de ta base ?",{title:"Supprimer",okLabel:"Supprimer",danger:true})))return;
   state.recipes=state.recipes.filter(r=>r.id!==id);
@@ -2643,7 +2687,8 @@ function renderWeek(){
         const name=r?r.name:"—";
         const label=lo?`<span class="ico">♻️</span>Restes — ${name}`:name;
         const loBtn=(!lo&&r&&state.restes&&isBatchable(r))?`<span class="lo-act" title="Manger les restes un autre jour" data-lo-d="${i}" data-lo-k="${key}" data-lo-s="${si}">♻</span>`:"";
-        return `<div class="slot${lo?" leftover":""}">${label}${loBtn}<span class="rm" data-d="${i}" data-k="${key}" data-s="${si}">×</span></div>`;
+        const rid=r?` data-rid="${r.id}" title="Appui long pour voir la recette"`:"";
+        return `<div class="slot${lo?" leftover":""}"${rid}>${label}${loBtn}<span class="rm" data-d="${i}" data-k="${key}" data-s="${si}">×</span></div>`;
       }).join("");
       return `<div class="meal"><div class="meal-lbl">${mealIcon(key)}${lbl}</div>${slots}<button class="add" data-day="${i}" data-meal="${key}" aria-label="Ajouter un plat ${lbl.toLowerCase()} ${d}">+</button></div>`;
     }).join("");
@@ -2653,6 +2698,12 @@ function renderWeek(){
   $$("#week .add").forEach(b=>b.onclick=()=>openPicker(+b.dataset.day,null,b.dataset.meal));
   $$("#week .rm").forEach(b=>b.onclick=()=>{const d=+b.dataset.d,k=b.dataset.k,s=+b.dataset.s;ensureMeals(d)[k].splice(s,1);persist();renderWeek();});
   $$("#week .lo-act").forEach(b=>b.onclick=()=>addLeftover(+b.dataset.loD,b.dataset.loK,+b.dataset.loS));
+  // Appui long sur le nom → ouvre la fiche (relecture du menu sans quitter la semaine)
+  $$("#week .slot[data-rid]").forEach(el=>{
+    bindLongPress(el, ()=>openRecipe(el.dataset.rid), {
+      ignore: t=>t.closest(".rm,.lo-act")
+    });
+  });
   renderWeekValidInfo();
 }
 // recettes adaptées à une grosse fournée / aux restes (pas les express ni les condiments)
