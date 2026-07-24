@@ -2,12 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Mijote — planificateur de repas végétariens de saison (Lyon)</title>
 <meta name="description" content="Mijote : webapp pour planifier vos repas végétariens et vegan de la semaine selon les produits de saison à Lyon, générer une liste de courses, cuisiner avec ce qu'il reste dans le frigo, et convertir vos ingrédients.">
 <meta name="author" content="Ellie">
-<meta name="theme-color" content="#0f1115">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#2a4030">
+<meta name="color-scheme" content="light">
 <link rel="canonical" href="https://elisalien.github.io/mijote/">
 
 <!-- Open Graph -->
@@ -23,275 +23,1095 @@
 <meta name="twitter:description" content="Planifiez vos repas végétariens/vegan de saison, générez votre liste de courses et cuisinez avec ce que vous avez déjà.">
 
 <!-- Favicon inline (marmite verte) -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23171a21'/%3E%3Ctext x='50' y='72' font-size='60' text-anchor='middle'%3E%F0%9F%8D%B2%3C/text%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23171a21'/%3E%3Ctext x='50' y='72' font-size='60' text-anchor='middle'%3E%F0%9F%8D%B2%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232a4030'/%3E%3Crect x='28' y='42' width='44' height='32' fill='%236a4a30'/%3E%3Crect x='22' y='34' width='56' height='14' fill='%234d6b48'/%3E%3Crect x='42' y='52' width='14' height='22' fill='%23e8c56a'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232a4030'/%3E%3Crect x='28' y='42' width='44' height='32' fill='%236a4a30'/%3E%3Crect x='22' y='34' width='56' height='14' fill='%234d6b48'/%3E%3Crect x='42' y='52' width='14' height='22' fill='%23e8c56a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=Pixelify+Sans:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ================================================================
+   MIJOTE — Cottage Kitchen · pixel art cottagecore
+   Clair, lisible, aéré · mobile-first · safe-areas
+   ================================================================ */
 :root{
-  --bg:#0f1115; --bg2:#171a21; --bg3:#1f242e; --card:#1a1e26;
-  --line:#2a303c; --txt:#e6e9ef; --txt2:#a6adbb; --txt3:#6b7280;
-  --accent:#7ee0a8; --accent2:#4cc38a; --warn:#f2b25c; --danger:#e06c75;
-  --veg:#7ee0a8; --rad:14px; --shadow:0 6px 24px rgba(0,0,0,.35);
-  --maxw:1080px;
+  --moss-deep:#2a4030;
+  --moss:#4d6b48;
+  --sage:#6f8f64;
+  --leaf:#8fad7a;
+  --wood:#6a4a30;
+  --wood-mid:#8b6544;
+  --wood-deep:#3a2618;
+  --cream:#f4ede0;
+  --paper:#fff9f0;
+  --paper-2:#f7f0e4;
+  --ink:#2a2218;
+  --ink-2:#5a5044;
+  --ink-3:#8a7e70;
+  --honey:#c9942e;
+  --honey-soft:#e8c56a;
+  --berry:#b54d45;
+  --sky:#6f9aab;
+  --blush:#d9a08c;
+  --line:rgba(58,38,24,.14);
+  --line-2:rgba(58,38,24,.24);
+  --accent:var(--moss);
+  --accent2:var(--sage);
+  --warn:var(--honey);
+  --danger:var(--berry);
+  --veg:var(--moss);
+  --bg:var(--cream);
+  --bg2:var(--paper);
+  --bg3:var(--paper-2);
+  --card:var(--paper);
+  --txt:var(--ink);
+  --txt2:var(--ink-2);
+  --txt3:var(--ink-3);
+  --rad:18px;
+  --rad-s:12px;
+  --rad-pill:999px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
+  --maxw:1040px;
+  --nav-h:72px;
+  --tap:44px;
+  --font-display:"Pixelify Sans", "Segoe UI", sans-serif;
+  --font-ui:"Nunito", "Segoe UI", system-ui, sans-serif;
+  --shadow:0 10px 28px rgba(58,38,24,.12);
+  --shadow-sm:0 3px 10px rgba(58,38,24,.08);
+  --stitch:rgba(106,74,48,.28);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
+html{scroll-behavior:smooth; color-scheme:light}
 body{
-  background:var(--bg); color:var(--txt);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  background:var(--moss-deep);
+  color:var(--txt);
+  font-family:var(--font-ui);
+  font-size:16px;
+  line-height:1.55;
+  font-weight:500;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  min-height:100vh;
+  min-height:100dvh;
 }
-h1,h2,h3{font-weight:650;letter-spacing:-.01em;margin:0 0 .4em}
-h2{font-size:1.25rem} h3{font-size:1.02rem}
-a{color:var(--accent)}
+/* meadow / canopy atmosphere */
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:-2; pointer-events:none;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -5%, rgba(143,173,122,.45), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 0% 80%, rgba(106,74,48,.35), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 70%, rgba(74,107,72,.4), transparent 55%),
+    linear-gradient(180deg, #3d5a42 0%, #2a4030 42%, #243628 100%);
+}
+/* soft leaf dapples */
+body::after{
+  content:"";
+  position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.35;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(232,197,106,.18) 0 2px, transparent 3px),
+    radial-gradient(circle at 78% 22%, rgba(232,197,106,.14) 0 1.5px, transparent 3px),
+    radial-gradient(circle at 30% 70%, rgba(232,197,106,.12) 0 2px, transparent 3px),
+    radial-gradient(circle at 88% 78%, rgba(232,197,106,.16) 0 1.5px, transparent 3px),
+    radial-gradient(circle at 55% 40%, rgba(255,249,240,.06) 0 40px, transparent 80px);
+  animation:fireflies 8s ease-in-out infinite alternate;
+}
+@keyframes fireflies{
+  from{opacity:.28; transform:translateY(0)}
+  to{opacity:.42; transform:translateY(-6px)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important}
+  body::after{animation:none}
+}
+
+h1,h2,h3{
+  font-family:var(--font-display);
+  font-weight:600;
+  letter-spacing:.01em;
+  margin:0 0 .4em;
+  line-height:1.25;
+  color:var(--wood-deep);
+  image-rendering:auto;
+}
+h2{font-size:clamp(1.25rem, 2.5vw, 1.55rem)}
+h3{font-size:1.05rem}
+.screen-lead{color:var(--txt2); font-size:.95rem; max-width:36em; margin:0 0 var(--s4); line-height:1.5}
+a{color:var(--moss)}
+a:hover{color:var(--wood)}
+.muted{color:var(--txt2)} .small{font-size:.875rem} .tiny{font-size:.8125rem}
+
+/* pixel SVG icons */
+svg.i{
+  width:1.15em; height:1.15em; flex:none; vertical-align:-.2em;
+  fill:currentColor; stroke:none;
+  image-rendering:pixelated;
+}
+svg.i.stroke{
+  fill:none; stroke:currentColor; stroke-width:1.75;
+  stroke-linecap:round; stroke-linejoin:round;
+  image-rendering:auto;
+}
+
 button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
-button{cursor:pointer;border:none;background:none}
+button{cursor:pointer;border:none;background:none;touch-action:manipulation}
+button:active,.btn:active{transform:scale(.97)}
 input,select,textarea{
-  background:var(--bg3); border:1px solid var(--line); color:var(--txt);
-  border-radius:9px; padding:9px 11px; outline:none; width:100%;
+  background:var(--paper);
+  border:2px solid var(--line-2);
+  color:var(--txt);
+  border-radius:var(--rad-s);
+  padding:11px 13px;
+  outline:none; width:100%;
+  min-height:var(--tap);
+  font-size:16px;
+  transition:border-color .15s, box-shadow .15s;
+  image-rendering:auto;
 }
-input:focus,select:focus,textarea:focus{border-color:var(--accent2)}
-textarea{resize:vertical;min-height:70px;font-size:14px}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--sage);
+  box-shadow:0 0 0 3px rgba(111,143,100,.22);
+}
+textarea{resize:vertical;min-height:90px;line-height:1.5}
 ::placeholder{color:var(--txt3)}
-.muted{color:var(--txt2)} .small{font-size:13px} .tiny{font-size:12px}
+select{
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235a5044' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 12px center;
+  padding-right:38px;
+}
+input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;
+  width:22px;height:22px;min-height:0;padding:0;flex:none;
+  border:2px solid var(--line-2);border-radius:6px;background:var(--paper);
+  display:inline-grid;place-items:center;cursor:pointer;
+}
+input[type=checkbox]:checked{
+  background:var(--moss); border-color:var(--moss-deep);
+}
+input[type=checkbox]:checked::before{
+  content:""; width:11px; height:11px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff9f0' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4.5 12.5 5 5 10-11'/%3E%3C/svg%3E") center/contain no-repeat;
+}
 
-/* layout */
+/* ========== APP SHELL ========== */
+.app-shell{
+  max-width:var(--maxw);
+  margin:0 auto;
+  min-height:100vh;
+  min-height:100dvh;
+  position:relative;
+}
+.app-panel{
+  margin:10px 10px 0;
+  background:var(--cream);
+  border:3px solid var(--wood-deep);
+  border-radius:22px 22px 0 0;
+  box-shadow:var(--shadow), inset 0 0 0 1px rgba(255,249,240,.35);
+  position:relative;
+  overflow:clip;
+  min-height:calc(100vh - 10px);
+  min-height:calc(100dvh - 10px);
+}
+.app-panel::before{
+  content:"";
+  position:absolute; inset:8px;
+  border:2px dashed var(--stitch);
+  border-radius:16px;
+  pointer-events:none; z-index:0;
+}
+@media(min-width:760px){
+  .app-panel{
+    margin:18px 18px 0;
+    border-radius:28px 28px 0 0;
+    min-height:calc(100vh - 18px);
+    min-height:calc(100dvh - 18px);
+  }
+  .app-panel::before{ inset:12px; border-radius:20px }
+}
+
+/* botanical corner accents */
+.deco-botany{
+  position:absolute; pointer-events:none; z-index:1;
+  width:72px; height:72px; opacity:.9;
+  image-rendering:pixelated;
+}
+.deco-botany.tl{ top:6px; left:6px }
+.deco-botany.tr{ top:6px; right:6px; transform:scaleX(-1) }
+.deco-botany.bl{ bottom:88px; left:4px; opacity:.55 }
+.deco-botany.br{ bottom:88px; right:4px; transform:scaleX(-1); opacity:.55 }
+@media(min-width:760px){
+  .deco-botany{ width:96px; height:96px }
+  .deco-botany.bl,.deco-botany.br{ bottom:24px; opacity:.7 }
+}
+
+/* ========== HEADER ========== */
 header.top{
-  position:sticky;top:0;z-index:50;background:rgba(15,17,21,.85);
-  backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:50;
+  background:rgba(244,237,224,.92);
+  backdrop-filter:blur(10px);
+  border-bottom:2px solid var(--line);
+  padding-top:env(safe-area-inset-top,0px);
 }
-.top-inner{max-width:var(--maxw);margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:10px;font-weight:750;font-size:1.15rem}
-.brand .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:17px}
-.season-pill{margin-left:auto;background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:13px;color:var(--txt2);white-space:nowrap}
-.season-pill b{color:var(--accent)}
-nav.tabs{max-width:var(--maxw);margin:0 auto;padding:6px 10px;display:flex;flex-wrap:wrap;gap:4px}
+.top-inner{
+  max-width:var(--maxw); margin:0 auto;
+  padding:14px 18px 8px;
+  display:flex; align-items:center; gap:12px;
+  position:relative; z-index:2;
+}
+.brand{
+  display:flex; align-items:center; gap:10px;
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:clamp(1.35rem, 4vw, 1.75rem);
+  color:var(--wood-deep);
+  letter-spacing:.02em;
+  line-height:1;
+}
+.brand .logo{
+  width:40px; height:40px;
+  border-radius:12px;
+  background:linear-gradient(160deg, var(--leaf), var(--moss));
+  border:2px solid var(--wood-deep);
+  box-shadow:2px 2px 0 var(--wood-deep);
+  display:grid; place-items:center;
+  color:#fff9f0;
+  flex:none;
+}
+.brand .logo svg.i{ width:22px; height:22px }
+.season-pill{
+  margin-left:auto;
+  background:var(--paper);
+  border:2px solid var(--wood-mid);
+  border-radius:10px;
+  padding:7px 12px;
+  font-size:.78rem;
+  color:var(--txt2);
+  max-width:min(52vw, 360px);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  box-shadow:2px 2px 0 rgba(58,38,24,.12);
+}
+.season-pill b{ color:var(--moss); font-weight:700 }
+.hdr-tools{ display:flex; gap:6px; flex:none }
+.hdr-tools button{
+  width:40px; height:40px;
+  border-radius:12px;
+  border:2px solid var(--line-2);
+  background:var(--paper);
+  color:var(--ink-2);
+  display:grid; place-items:center;
+  transition:background .15s, border-color .15s, color .15s;
+}
+.hdr-tools button:hover,
+.hdr-tools button.active{
+  background:var(--moss);
+  border-color:var(--wood-deep);
+  color:#fff9f0;
+  box-shadow:2px 2px 0 var(--wood-deep);
+}
+.hdr-tools button svg.i{ width:18px; height:18px }
+
+/* desktop top tabs */
+nav.tabs{
+  max-width:var(--maxw); margin:0 auto;
+  padding:4px 14px 12px;
+  display:none;
+  gap:6px;
+  position:relative; z-index:2;
+  justify-content:flex-start;
+  flex-wrap:wrap;
+}
 nav.tabs button{
-  padding:8px 13px;color:var(--txt2);border:1px solid transparent;
-  white-space:nowrap;font-weight:550;border-radius:9px;font-size:14px;
+  padding:9px 14px;
+  color:var(--txt2);
+  border:2px solid transparent;
+  white-space:nowrap;
+  font-weight:700;
+  border-radius:999px;
+  font-size:.875rem;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:40px;
 }
-nav.tabs button:hover{color:var(--txt);background:var(--bg3)}
-nav.tabs button.active{color:var(--accent);background:rgba(126,224,168,.12);border-color:rgba(126,224,168,.3)}
-main{max-width:var(--maxw);margin:0 auto;padding:22px 18px 80px}
-.view{display:none;animation:fade .25s ease} .view.active{display:block}
-@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+nav.tabs button:hover{ color:var(--ink); background:rgba(111,143,100,.12) }
+nav.tabs button.active{
+  color:var(--wood-deep);
+  background:var(--paper);
+  border-color:var(--wood-mid);
+  box-shadow:2px 2px 0 rgba(58,38,24,.15);
+}
+nav.tabs button svg.i{ width:18px; height:18px }
 
-/* cards & grid */
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:16px}
-.grid{display:grid;gap:14px}
-.g2{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
-.g3{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.spread{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.stack>*+*{margin-top:12px}
+main{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:18px 16px calc(110px + env(safe-area-inset-bottom,0px));
+  position:relative; z-index:2;
+}
+.view{display:none; animation:fade .28s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
 
-/* buttons */
-.btn{background:var(--bg3);border:1px solid var(--line);border-radius:9px;padding:9px 14px;font-weight:550;display:inline-flex;align-items:center;gap:7px;transition:.15s}
-.btn:hover{border-color:var(--txt3);background:var(--bg2)}
-.btn.primary{background:var(--accent2);color:#06231a;border-color:var(--accent2)}
-.btn.primary:hover{background:var(--accent);filter:brightness(1.03)}
-.btn.ghost{background:transparent}
-.btn.sm{padding:6px 10px;font-size:13px}
-.btn.danger{color:var(--danger);border-color:transparent}
-.btn.danger:hover{background:rgba(224,108,117,.12)}
-.btn:disabled{opacity:.45;cursor:not-allowed}
+@media(min-width:860px){
+  nav.tabs{ display:flex }
+  .bottom-nav{ display:none !important }
+  main{ padding:22px 22px 48px }
+  .deco-botany.bl, .deco-botany.br{ bottom:18px }
+}
 
-/* chips / tags */
-.chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12.5px;color:var(--txt2)}
-.chip.veg{color:var(--veg);border-color:rgba(126,224,168,.3)}
-.chip.cuisine{color:#b9a7ff;border-color:rgba(185,167,255,.25)}
-.chip.x{cursor:pointer}
-.chip.x:hover{border-color:var(--danger);color:var(--danger)}
-.badge{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.03em}
-.badge.veg{background:rgba(126,224,168,.16);color:var(--accent)}
-.badge.season{background:rgba(242,178,92,.16);color:var(--warn)}
-.badge.quick{background:rgba(124,196,255,.16);color:#7cc4ff}
-.badge.meat{background:rgba(224,108,117,.16);color:#e98b91}
-.badge.fish{background:rgba(96,165,210,.18);color:#6fb6e0}
+/* ========== BOTTOM NAV (mobile) ========== */
+.bottom-nav{
+  position:fixed;
+  left:12px; right:12px;
+  bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  z-index:60;
+  display:flex;
+  gap:4px;
+  padding:8px 6px;
+  background:rgba(244,237,224,.95);
+  border:3px solid var(--wood-deep);
+  border-radius:22px;
+  box-shadow:var(--shadow), 0 0 0 1px rgba(255,249,240,.4) inset;
+  backdrop-filter:blur(12px);
+  justify-content:space-around;
+}
+.bottom-nav button{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+  padding:6px 2px;
+  color:var(--ink-3);
+  font-size:.65rem;
+  font-weight:800;
+  letter-spacing:.02em;
+  border-radius:14px;
+  min-height:54px;
+  transition:color .15s, background .15s, transform .12s;
+}
+.bottom-nav button .nav-ico{
+  width:36px; height:36px;
+  border-radius:50%;
+  border:2px solid var(--line-2);
+  background:var(--paper);
+  display:grid; place-items:center;
+  transition:inherit;
+}
+.bottom-nav button svg.i{ width:18px; height:18px }
+.bottom-nav button span{ max-width:100%; overflow:hidden; text-overflow:ellipsis }
+.bottom-nav button.active{
+  color:var(--wood-deep);
+}
+.bottom-nav button.active .nav-ico{
+  background:linear-gradient(160deg, var(--leaf), var(--moss));
+  border-color:var(--wood-deep);
+  color:#fff9f0;
+  box-shadow:2px 2px 0 var(--wood-deep);
+  transform:translateY(-2px);
+}
+.bottom-nav button:hover .nav-ico{ border-color:var(--sage) }
 
-/* recipe card */
-.recipe{display:flex;flex-direction:column;gap:9px;cursor:pointer}
-.recipe .title{font-weight:650;font-size:1.05rem;line-height:1.25}
-.recipe .meta{display:flex;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--txt2)}
-.recipe .match{height:6px;border-radius:999px;background:var(--bg3);overflow:hidden}
-.recipe .match>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent))}
-.recipe.dim{opacity:.5}
+/* ========== CARDS & GRID ========== */
+.card{
+  position:relative;
+  background:var(--paper);
+  border:2px solid var(--line-2);
+  border-radius:var(--rad);
+  padding:var(--s4);
+  box-shadow:var(--shadow-sm);
+}
+.card.panel-wood{
+  background:linear-gradient(180deg, #f0e6d4, var(--paper));
+  border-color:var(--wood-mid);
+}
+.grid{display:grid;gap:var(--s4)}
+.g2{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))}
+.row{display:flex;gap:var(--s3);flex-wrap:wrap;align-items:center}
+.spread{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s3);flex-wrap:wrap}
+.stack>*+*{margin-top:var(--s3)}
+.toolbar{
+  display:flex; gap:var(--s2); align-items:center; flex-wrap:wrap;
+  margin:0 0 var(--s4);
+}
+.toolbar.scroll-x{
+  flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch;
+  padding-bottom:4px; scrollbar-width:none;
+  margin-left:-4px; margin-right:-4px;
+  padding-left:4px; padding-right:4px;
+}
+.toolbar.scroll-x::-webkit-scrollbar{display:none}
+.toolbar.scroll-x > *{flex:none}
 
-/* jars / pickle tracker */
-.jar{display:flex;flex-direction:column;gap:10px}
-.jar .bar{height:9px;border-radius:999px;background:var(--bg3);overflow:hidden}
-.jar .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--warn),var(--accent2));transition:width .4s}
-.jar.ready .bar>i{background:linear-gradient(90deg,var(--accent2),var(--accent))}
-.jar .status{font-weight:650}
-.jar.ready .status{color:var(--accent)}
-.jar.waiting .status{color:var(--warn)}
-.jar.expired .status{color:var(--danger)}
+/* ========== BUTTONS ========== */
+.btn{
+  background:var(--paper);
+  border:2px solid var(--line-2);
+  border-radius:var(--rad-s);
+  padding:10px 14px;
+  min-height:var(--tap);
+  font-weight:700;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  transition:background .15s, border-color .15s, transform .1s, box-shadow .15s;
+  color:var(--ink);
+  box-shadow:2px 2px 0 rgba(58,38,24,.08);
+}
+.btn:hover{ border-color:var(--wood-mid); background:#fff }
+a.btn{text-decoration:none}
+.btn.pick-row{width:100%;justify-content:space-between;text-align:left;margin-bottom:6px;gap:10px}
+.btn.primary{
+  background:linear-gradient(160deg, var(--leaf), var(--moss));
+  color:#fff9f0;
+  border-color:var(--wood-deep);
+  box-shadow:2px 2px 0 var(--wood-deep);
+}
+.btn.primary:hover{ filter:brightness(1.05) }
+.btn.ghost{ background:transparent; box-shadow:none }
+.btn.sm{ padding:7px 11px; font-size:.875rem; min-height:38px }
+.btn.danger{ color:var(--danger); border-color:transparent; box-shadow:none }
+.btn.danger:hover{ background:rgba(181,77,69,.1); border-color:rgba(181,77,69,.35) }
+.btn:disabled{ opacity:.45; cursor:not-allowed }
+.btn:focus-visible, button:focus-visible, input:focus-visible{
+  outline:2px solid var(--sage); outline-offset:2px;
+}
 
-/* tracker aliments ouverts */
-.trk{display:flex;flex-direction:column;gap:8px;position:relative}
-.trk .bar{height:8px;border-radius:999px;background:var(--bg3);overflow:hidden}
-.trk .bar>i{display:block;height:100%;transition:width .4s}
-.trk.ok .bar>i{background:linear-gradient(90deg,var(--accent2),var(--accent))}
-.trk.soon .bar>i{background:linear-gradient(90deg,var(--warn),#f7d08a)}
-.trk.late .bar>i{background:linear-gradient(90deg,var(--danger),#f0989e)}
-.trk .left{font-weight:650}
-.trk.ok .left{color:var(--accent)} .trk.soon .left{color:var(--warn)} .trk.late .left{color:var(--danger)}
-.preset-pick{display:flex;flex-wrap:wrap;gap:7px}
-.preset-pick button{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--txt2)}
-.preset-pick button:hover{border-color:var(--accent2);color:var(--accent)}
-.sub-h{display:flex;align-items:center;gap:10px;margin:26px 0 4px}
-.sub-h h3{margin:0} .sub-h .ln{flex:1;height:1px;background:var(--line)}
+/* ========== CHIPS & BADGES ========== */
+.chip{
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(111,143,100,.1);
+  border:1.5px solid var(--line);
+  border-radius:999px;
+  padding:5px 11px;
+  font-size:.8125rem;
+  color:var(--txt2);
+  min-height:30px;
+  font-weight:600;
+}
+.chip.veg{ color:var(--moss); border-color:rgba(77,107,72,.35); background:rgba(77,107,72,.1) }
+.chip.cuisine{ color:var(--wood); border-color:rgba(106,74,48,.28); background:rgba(106,74,48,.08) }
+.chip.x{ cursor:pointer }
+.chip.x:hover{ border-color:var(--danger); color:var(--danger) }
+.badge{
+  font-size:.6875rem; font-weight:800; padding:3px 8px;
+  border-radius:8px; text-transform:uppercase; letter-spacing:.04em;
+}
+.badge.veg{ background:rgba(77,107,72,.16); color:var(--moss) }
+.badge.season{ background:rgba(201,148,46,.18); color:#8a6a18 }
+.badge.quick{ background:rgba(111,154,171,.18); color:#3d6a7a }
+.badge.meat{ background:rgba(181,77,69,.14); color:var(--berry) }
+.badge.fish{ background:rgba(111,154,171,.2); color:#3d6a7a }
 
-/* accueil */
-.hero{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--line);border-radius:var(--rad);padding:20px}
-.home-day{background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
-.home-day.today{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2) inset}
-.home-day h4{margin:0 0 8px;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--txt2);display:flex;gap:8px;align-items:center}
-.home-day .tag-today{background:var(--accent2);color:#06231a;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;letter-spacing:.02em}
-.home-meal{display:flex;gap:8px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--line)}
-.home-meal:last-child{border:none}
-.home-meal .lbl{font-size:12px;color:var(--txt3);min-width:54px;flex:none}
-.home-meal .dish{font-size:13.5px}
-.home-meal a.dish{color:var(--txt);cursor:pointer;border-bottom:1px dotted var(--txt3)}
-.home-meal a.dish:hover{color:var(--accent);border-color:var(--accent)}
-.validated-banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(126,224,168,.1);border:1px solid rgba(126,224,168,.3);border-radius:10px;padding:10px 14px;color:var(--accent);font-weight:550}
+/* ========== RECIPE ========== */
+.recipe{
+  display:flex; flex-direction:column; gap:9px; cursor:pointer;
+  transition:border-color .15s, transform .12s, box-shadow .15s;
+}
+.recipe:hover{
+  border-color:var(--sage);
+  box-shadow:3px 3px 0 rgba(77,107,72,.18);
+}
+.recipe:active{ transform:scale(.985) }
+.recipe .title{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:1.05rem;
+  line-height:1.3;
+  color:var(--wood-deep);
+}
+.recipe .meta{ display:flex; gap:8px; flex-wrap:wrap; font-size:.8125rem; color:var(--txt2) }
+.recipe .match{ height:6px; border-radius:999px; background:rgba(58,38,24,.08); overflow:hidden }
+.recipe .match>i{ display:block; height:100%; background:linear-gradient(90deg, var(--moss), var(--honey-soft)) }
+.recipe.dim{ opacity:.55 }
 
-/* dashboard accueil — 3 colonnes équilibrées */
-.dash{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
-@media(max-width:880px){.dash{grid-template-columns:1fr}}
-.dash-col{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:14px;display:flex;flex-direction:column;gap:10px;min-height:120px}
-.dash-col>.dash-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0}
-.dash-col .dash-head h3{margin:0;font-size:.98rem;display:flex;align-items:center;gap:7px}
-.dash-col .dash-head .lnk{font-size:12.5px;color:var(--txt2);background:none;border:none;padding:2px 4px}
-.dash-col .dash-head .lnk:hover{color:var(--accent)}
-.dash-empty{color:var(--txt3);font-size:13px;text-align:center;padding:14px 6px;line-height:1.6}
-.dash-empty .ic{font-size:26px;display:block;margin-bottom:4px;opacity:.6}
-/* mini jour (colonne semaine) */
-.mday{border:1px solid var(--line);border-radius:9px;padding:7px 10px;background:var(--bg2)}
-.mday.today{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2) inset}
-.mday .mday-h{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--txt2);display:flex;gap:6px;align-items:center;margin-bottom:3px}
-.mday .mday-h .tag-today{background:var(--accent2);color:#06231a;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px}
-.mday .mline{font-size:12.5px;display:flex;gap:6px}
-.mday .mline .lbl{color:var(--txt3);flex:none}
-.mday .mline a{color:var(--txt);cursor:pointer;border-bottom:1px dotted var(--txt3)}
-.mday .mline a:hover{color:var(--accent);border-color:var(--accent)}
-.mday .mline .muted{color:var(--txt3)}
-/* mini carte bocal / péremption */
-.mini{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:var(--bg2);display:flex;flex-direction:column;gap:6px}
-.mini .mini-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.mini b{font-size:13.5px;font-weight:600}
-.mini .bar{height:6px;border-radius:999px;background:var(--bg3);overflow:hidden}
-.mini .bar>i{display:block;height:100%}
-.mini .st{font-size:12px;font-weight:600}
-.mini.ok .bar>i,.mini.ready .bar>i{background:linear-gradient(90deg,var(--accent2),var(--accent))}
-.mini.soon .bar>i,.mini.waiting .bar>i{background:linear-gradient(90deg,var(--warn),#f7d08a)}
-.mini.late .bar>i,.mini.expired .bar>i{background:linear-gradient(90deg,var(--danger),#f0989e)}
-.mini.ok .st,.mini.ready .st{color:var(--accent)}
-.mini.soon .st,.mini.waiting .st{color:var(--warn)}
-.mini.late .st,.mini.expired .st{color:var(--danger)}
+/* jars / tracker */
+.jar{ display:flex; flex-direction:column; gap:10px }
+.jar .bar, .trk .bar, .mini .bar{
+  height:8px; border-radius:999px; background:rgba(58,38,24,.08); overflow:hidden;
+}
+.jar .bar>i, .trk .bar>i, .mini .bar>i{
+  display:block; height:100%; transition:width .4s; border-radius:999px;
+}
+.jar .bar>i{ background:linear-gradient(90deg, var(--honey), var(--moss)) }
+.jar.ready .bar>i{ background:linear-gradient(90deg, var(--sage), var(--leaf)) }
+.jar .status{ font-weight:750 }
+.jar.ready .status{ color:var(--moss) }
+.jar.waiting .status{ color:#8a6a18 }
+.jar.expired .status{ color:var(--danger) }
+.trk{ display:flex; flex-direction:column; gap:8px; position:relative }
+.trk.ok .bar>i{ background:linear-gradient(90deg, var(--moss), var(--leaf)) }
+.trk.soon .bar>i{ background:linear-gradient(90deg, var(--honey), var(--honey-soft)) }
+.trk.late .bar>i{ background:linear-gradient(90deg, var(--berry), #d98a82) }
+.trk .left{ font-weight:750 }
+.trk.ok .left{ color:var(--moss) }
+.trk.soon .left{ color:#8a6a18 }
+.trk.late .left{ color:var(--danger) }
+.preset-pick{ display:flex; flex-wrap:wrap; gap:7px }
+.preset-pick button{
+  background:var(--paper);
+  border:1.5px solid var(--line-2);
+  border-radius:999px;
+  padding:7px 12px;
+  font-size:.8125rem;
+  color:var(--txt2);
+  font-weight:650;
+  min-height:36px;
+}
+.preset-pick button:hover{ border-color:var(--sage); color:var(--moss) }
+.sub-h{ display:flex; align-items:center; gap:10px; margin:26px 0 8px }
+.sub-h h3{ margin:0; display:flex; align-items:center; gap:8px }
+.sub-h .ln{ flex:1; height:2px; background:linear-gradient(90deg, var(--line-2), transparent) }
 
-/* frigo unifié : item avec péremption */
-.fr-chip{display:inline-flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;color:var(--txt)}
-.fr-chip .x{cursor:pointer;color:var(--txt3)}
-.fr-chip .x:hover{color:var(--danger)}
-.fr-chip .clock{cursor:pointer;color:var(--txt3);font-size:12px}
-.fr-chip .clock:hover{color:var(--warn)}
-.fr-chip.soon{border-color:rgba(242,178,92,.45)}
-.fr-chip.late{border-color:rgba(224,108,117,.5)}
-.fr-chip .dleft{font-size:11px;font-weight:600}
-.fr-chip.ok .dleft{color:var(--accent2)} .fr-chip.soon .dleft{color:var(--warn)} .fr-chip.late .dleft{color:var(--danger)}
+/* ========== HOME / HERO ========== */
+.hero{
+  position:relative;
+  overflow:hidden;
+  border-radius:var(--rad);
+  padding:clamp(22px, 4vw, 36px) clamp(18px, 3vw, 28px);
+  margin-bottom:var(--s5);
+  background:
+    linear-gradient(135deg, rgba(255,249,240,.92) 0%, rgba(244,237,224,.88) 55%, rgba(232,197,106,.18) 100%),
+    radial-gradient(ellipse at 85% 20%, rgba(143,173,122,.35), transparent 50%);
+  border:2px solid var(--wood-mid);
+  box-shadow:3px 3px 0 rgba(58,38,24,.12);
+  min-height:min(42vh, 280px);
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  gap:10px;
+}
+.hero::after{
+  content:"";
+  position:absolute;
+  right:-8px; bottom:-4px;
+  width:140px; height:110px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 55' shape-rendering='crispEdges'%3E%3Crect x='18' y='22' width='34' height='26' fill='%236a4a30'/%3E%3Crect x='14' y='16' width='42' height='10' fill='%234d6b48'/%3E%3Crect x='28' y='30' width='10' height='18' fill='%23e8c56a'/%3E%3Crect x='40' y='28' width='8' height='8' fill='%236f9aab'/%3E%3Crect x='8' y='40' width='8' height='8' fill='%236f8f64'/%3E%3Crect x='54' y='38' width='8' height='10' fill='%236f8f64'/%3E%3C/svg%3E") no-repeat bottom right / contain;
+  image-rendering:pixelated;
+  opacity:.9;
+  pointer-events:none;
+}
+.hero-brand{
+  font-family:var(--font-display);
+  font-size:clamp(2rem, 8vw, 3.1rem);
+  color:var(--wood-deep);
+  margin:0;
+  letter-spacing:.02em;
+  line-height:1.05;
+  position:relative; z-index:1;
+}
+.hero-lead{
+  margin:0;
+  max-width:28em;
+  color:var(--ink-2);
+  font-size:1.02rem;
+  position:relative; z-index:1;
+}
+.hero .row{ position:relative; z-index:1; margin-top:4px }
+.hero .row .btn{ flex:1 1 auto; min-width:140px }
+@media(min-width:640px){ .hero .row .btn{ flex:none } }
 
-/* modal */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
-.modal-bg.open{display:flex}
-.modal{background:var(--bg2);border:1px solid var(--line);border-radius:18px;max-width:680px;width:100%;box-shadow:var(--shadow);padding:0;animation:pop .2s ease}
-@keyframes pop{from{transform:scale(.97);opacity:0}to{transform:scale(1);opacity:1}}
-.modal .mhead{padding:18px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3;background:var(--bg2);border-radius:18px 18px 0 0}
-.modal .mbody{padding:18px 20px}
-.modal .mfoot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
-.close-x{position:absolute;top:16px;right:18px;font-size:22px;color:var(--txt2);line-height:1}
-.close-x:hover{color:var(--txt)}
+.home-head{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:12px; flex-wrap:wrap; margin-bottom:var(--s4);
+}
+.home-head h2{ margin:0 }
 
-/* ingredient list */
-ul.ing{list-style:none;padding:0;margin:0}
-ul.ing li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
-ul.ing li:last-child{border:none}
-ul.ing .have{color:var(--accent)}
-ul.ing .swap{color:var(--warn);font-size:12.5px}
-ol.steps{padding-left:18px;margin:0}
-ol.steps li{padding:5px 0;border-bottom:1px solid var(--line)}
-ol.steps li:last-child{border:none}
+.validated-banner{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  background:rgba(77,107,72,.1);
+  border:2px solid rgba(77,107,72,.35);
+  border-radius:var(--rad-s);
+  padding:12px 14px;
+  color:var(--moss);
+  font-weight:700;
+}
+
+.dash{ display:grid; grid-template-columns:1fr; gap:var(--s4); align-items:start }
+@media(min-width:900px){ .dash{ grid-template-columns:1.5fr 1fr 1fr } }
+.dash-col{
+  background:var(--paper);
+  border:2px solid var(--line-2);
+  border-radius:var(--rad);
+  padding:var(--s4);
+  display:flex; flex-direction:column; gap:10px;
+  min-height:120px;
+  box-shadow:var(--shadow-sm);
+}
+.dash-col>.dash-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 }
+.dash-col .dash-head h3{ margin:0; font-size:.98rem; display:flex; align-items:center; gap:7px }
+.dash-col .dash-head .lnk{
+  font-size:.8125rem; color:var(--txt2); background:none; border:none;
+  padding:6px 0 6px 8px; min-height:var(--tap); font-weight:750;
+}
+.dash-col .dash-head .lnk:hover{ color:var(--moss) }
+.dash-empty{ color:var(--txt3); font-size:.875rem; text-align:center; padding:16px 6px; line-height:1.55 }
+.dash-empty .ic{ font-size:26px; display:block; margin-bottom:4px; opacity:.55 }
+
+.mday{
+  border:1.5px solid var(--line);
+  border-radius:var(--rad-s);
+  padding:9px 11px;
+  background:rgba(255,249,240,.7);
+}
+.mday.today{
+  border-color:var(--sage);
+  background:rgba(143,173,122,.12);
+  box-shadow:0 0 0 1px rgba(111,143,100,.25) inset;
+}
+.mday .mday-h{
+  font-size:.72rem; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--txt2); display:flex; gap:6px; align-items:center;
+  margin-bottom:4px; font-weight:800;
+}
+.mday .mday-h .tag-today{
+  background:var(--moss); color:#fff9f0;
+  font-size:.625rem; font-weight:800;
+  padding:2px 6px; border-radius:5px;
+}
+.mday .mline{ font-size:.875rem; display:flex; gap:6px }
+.mday .mline .lbl{ color:var(--txt3); flex:none }
+.mday .mline a{ color:var(--txt); cursor:pointer; border-bottom:1px dotted var(--txt3) }
+.mday .mline a:hover{ color:var(--moss); border-color:var(--moss) }
+.mday .mline .muted{ color:var(--txt3) }
+
+.mini{
+  border:1.5px solid var(--line);
+  border-radius:var(--rad-s);
+  padding:10px 11px;
+  background:rgba(255,249,240,.7);
+  display:flex; flex-direction:column; gap:6px;
+}
+.mini .mini-top{ display:flex; justify-content:space-between; align-items:baseline; gap:8px }
+.mini b{ font-size:.9rem; font-weight:700 }
+.mini .st{ font-size:.8125rem; font-weight:700 }
+.mini.ok .bar>i, .mini.ready .bar>i{ background:linear-gradient(90deg, var(--moss), var(--leaf)) }
+.mini.soon .bar>i, .mini.waiting .bar>i{ background:linear-gradient(90deg, var(--honey), var(--honey-soft)) }
+.mini.late .bar>i, .mini.expired .bar>i{ background:linear-gradient(90deg, var(--berry), #d98a82) }
+.mini.ok .st, .mini.ready .st{ color:var(--moss) }
+.mini.soon .st, .mini.waiting .st{ color:#8a6a18 }
+.mini.late .st, .mini.expired .st{ color:var(--danger) }
+
+/* fridge chips */
+.fr-chip{
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--paper);
+  border:1.5px solid var(--line-2);
+  border-radius:999px;
+  padding:6px 12px;
+  font-size:.875rem;
+  color:var(--txt);
+  min-height:36px;
+  font-weight:600;
+}
+.fr-chip .x{ cursor:pointer; color:var(--txt3) }
+.fr-chip .x:hover{ color:var(--danger) }
+.fr-chip .clock{ cursor:pointer; color:var(--txt3); font-size:.75rem }
+.fr-chip .clock:hover{ color:#8a6a18 }
+.fr-chip.soon{ border-color:rgba(201,148,46,.5); background:rgba(201,148,46,.08) }
+.fr-chip.late{ border-color:rgba(181,77,69,.5); background:rgba(181,77,69,.08) }
+.fr-chip .dleft{ font-size:.7rem; font-weight:800 }
+.fr-chip.ok .dleft{ color:var(--moss) }
+.fr-chip.soon .dleft{ color:#8a6a18 }
+.fr-chip.late .dleft{ color:var(--danger) }
+
+/* ========== MODAL ========== */
+.modal-bg{
+  position:fixed; inset:0;
+  background:rgba(42,64,48,.55);
+  backdrop-filter:blur(4px);
+  z-index:100;
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  padding:0;
+  overflow:auto;
+}
+.modal-bg.open{ display:flex }
+.modal{
+  background:var(--cream);
+  border:3px solid var(--wood-deep);
+  border-radius:22px 22px 0 0;
+  max-width:680px; width:100%;
+  box-shadow:var(--shadow);
+  padding:0;
+  animation:sheet .22s ease;
+  max-height:92vh;
+  overflow:auto;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@keyframes sheet{ from{ transform:translateY(16px); opacity:0 } to{ transform:none; opacity:1 } }
+@keyframes pop{ from{ transform:scale(.97); opacity:0 } to{ transform:scale(1); opacity:1 } }
+@media(min-width:720px){
+  .modal-bg{ align-items:flex-start; padding:48px 16px }
+  .modal{ border-radius:20px; animation:pop .2s ease; max-height:none; padding-bottom:0 }
+}
+.modal .mhead{
+  padding:16px 20px;
+  border-bottom:2px solid var(--line);
+  position:sticky; top:0; z-index:3;
+  background:rgba(244,237,224,.96);
+  border-radius:inherit;
+}
+.modal .mbody{ padding:18px 20px }
+.modal .mfoot{
+  padding:14px 20px calc(14px + env(safe-area-inset-bottom,0px));
+  border-top:2px solid var(--line);
+  display:flex; gap:10px; justify-content:stretch; flex-wrap:wrap;
+  position:sticky; bottom:0;
+  background:rgba(244,237,224,.96);
+}
+@media(min-width:720px){
+  .modal .mfoot{ justify-content:flex-end; padding-bottom:14px }
+}
+.close-x{ position:absolute; top:14px; right:16px; font-size:24px; color:var(--txt2); line-height:1 }
+.close-x:hover{ color:var(--txt) }
+
+ul.ing{ list-style:none; padding:0; margin:0 }
+ul.ing li{
+  display:flex; justify-content:space-between; gap:10px;
+  padding:8px 0; border-bottom:1px solid var(--line);
+}
+ul.ing li:last-child{ border:none }
+ul.ing .have{ color:var(--moss); font-weight:700 }
+ul.ing .swap{ color:#8a6a18; font-size:.8125rem }
+ol.steps{ padding-left:18px; margin:0 }
+ol.steps li{ padding:7px 0; border-bottom:1px solid var(--line) }
+ol.steps li:last-child{ border:none }
 
 /* toggle */
-.toggle{position:relative;width:42px;height:24px;border-radius:999px;background:var(--bg3);border:1px solid var(--line);transition:.2s;flex:none}
-.toggle.on{background:var(--accent2);border-color:var(--accent2)}
-.toggle i{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
-.toggle.on i{left:20px}
+.toggle{
+  position:relative; width:42px; height:24px;
+  border-radius:999px;
+  background:rgba(58,38,24,.12);
+  border:2px solid var(--line-2);
+  transition:.2s; flex:none;
+}
+.toggle.on{ background:var(--moss); border-color:var(--moss-deep) }
+.toggle i{
+  position:absolute; top:2px; left:2px;
+  width:16px; height:16px; border-radius:50%;
+  background:#fff; transition:.2s;
+  box-shadow:1px 1px 0 rgba(58,38,24,.2);
+}
+.toggle.on i{ left:20px }
 
-/* week planner */
-.week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
-@media(max-width:760px){.week{grid-template-columns:repeat(2,1fr)}}
-.day{background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:9px;min-height:96px}
-.day h4{margin:0 0 7px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--txt2)}
-.day .meal{margin-bottom:9px}
-.day .meal-lbl{font-size:11px;color:var(--txt3);margin-bottom:4px;font-weight:600}
-.day .slot{background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:7px;font-size:12.5px;margin-bottom:6px;position:relative}
-.day .slot .rm{position:absolute;top:3px;right:5px;color:var(--txt3);font-size:13px}
-.day .slot .rm:hover{color:var(--danger)}
-.day .add{width:100%;border:1px dashed var(--line);border-radius:8px;padding:6px;color:var(--txt3);font-size:18px}
-.day .add:hover{color:var(--accent);border-color:var(--accent2)}
-.day .slot .lo-act{position:absolute;top:3px;right:20px;color:var(--txt3);font-size:12px;cursor:pointer}
-.day .slot .lo-act:hover{color:var(--accent)}
-.day .slot.leftover{background:transparent;border-style:dashed;color:var(--txt2)}
-.day .slot.leftover .ico{margin-right:3px}
-.ctrlbar{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:11px 14px;margin-bottom:14px}
-.stepper{display:flex;align-items:center;gap:8px}
-.stepper .lbl{font-size:13px;color:var(--txt2);font-weight:600}
-.stepper .count{min-width:26px;text-align:center;font-size:17px;font-weight:700}
-.stepper .btn.sm{min-width:32px;font-size:16px;font-weight:700;padding:4px 0}
-.restes-toggle{max-width:520px}
-.shop-summary{margin-bottom:12px;padding:8px 11px;background:var(--bg2);border:1px solid var(--line);border-radius:9px}
+/* ========== WEEK ========== */
+.week{
+  display:flex; gap:10px;
+  overflow-x:auto; scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+  padding:2px 2px 10px; scrollbar-width:none;
+}
+.week::-webkit-scrollbar{ display:none }
+.day{
+  background:var(--paper);
+  border:2px solid var(--line-2);
+  border-radius:var(--rad-s);
+  padding:10px;
+  min-height:110px;
+  min-width:min(72vw, 200px);
+  scroll-snap-align:start;
+  box-shadow:var(--shadow-sm);
+}
+@media(min-width:900px){
+  .week{
+    display:grid; grid-template-columns:repeat(7,1fr);
+    overflow:visible; scroll-snap-type:none; padding:0; gap:8px;
+  }
+  .day{ min-width:0 }
+}
+.day h4{
+  margin:0 0 8px; font-size:.72rem; text-transform:uppercase;
+  letter-spacing:.05em; color:var(--txt2); font-weight:800;
+}
+.day .meal{ margin-bottom:9px }
+.day .meal-lbl{ font-size:.7rem; color:var(--txt3); margin-bottom:4px; font-weight:800 }
+.day .slot{
+  background:rgba(111,143,100,.08);
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:8px 28px 8px 8px;
+  font-size:.8125rem;
+  margin-bottom:6px;
+  position:relative;
+  font-weight:600;
+}
+.day .slot .rm{ position:absolute; top:4px; right:6px; color:var(--txt3); font-size:14px }
+.day .slot .rm:hover{ color:var(--danger) }
+.day .add{
+  width:100%;
+  border:2px dashed var(--line-2);
+  border-radius:8px;
+  padding:6px;
+  color:var(--txt3);
+  font-size:18px;
+  min-height:36px;
+}
+.day .add:hover{ color:var(--moss); border-color:var(--sage) }
+.day .slot .lo-act{ position:absolute; top:4px; right:22px; color:var(--txt3); font-size:12px; cursor:pointer }
+.day .slot .lo-act:hover{ color:var(--moss) }
+.day .slot.leftover{ background:transparent; border-style:dashed; color:var(--txt2) }
+.day .slot.leftover .ico{ margin-right:3px }
+.ctrlbar{
+  display:flex; flex-wrap:wrap; align-items:center; gap:14px 20px;
+  background:var(--paper);
+  border:2px solid var(--line-2);
+  border-radius:var(--rad-s);
+  padding:12px 14px;
+  margin-bottom:14px;
+}
+.stepper{ display:flex; align-items:center; gap:8px }
+.stepper .lbl{ font-size:.8125rem; color:var(--txt2); font-weight:700 }
+.stepper .count{ min-width:26px; text-align:center; font-size:1.15rem; font-weight:800; font-family:var(--font-display) }
+.stepper .btn.sm{ min-width:32px; font-size:16px; font-weight:800; padding:4px 0 }
+.restes-toggle{ max-width:520px }
+.shop-summary{
+  margin-bottom:12px; padding:10px 12px;
+  background:var(--paper);
+  border:2px solid var(--line);
+  border-radius:var(--rad-s);
+}
 
 /* shopping */
-.shop-cat{margin-bottom:14px}
-.shop-cat h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin:0 0 6px}
-.shop-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
-.shop-item:last-child{border:none}
-.shop-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent2);flex:none}
-.shop-item.done span{text-decoration:line-through;color:var(--txt3)}
-.shop-item .q{margin-left:auto;color:var(--txt2);font-size:13px;white-space:nowrap}
+.shop-cat{ margin-bottom:14px }
+.shop-cat h4{
+  font-size:.75rem; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--moss); margin:0 0 6px; font-weight:800;
+}
+.shop-item{
+  display:flex; align-items:center; gap:10px;
+  padding:8px 0; border-bottom:1px solid var(--line);
+  min-height:44px;
+}
+.shop-item:last-child{ border:none }
+.shop-item.done span{ text-decoration:line-through; color:var(--txt3) }
+.shop-item .q{ margin-left:auto; color:var(--txt2); font-size:.8125rem; white-space:nowrap }
 
 /* converter */
-.conv-result{font-size:2rem;font-weight:750;color:var(--accent)}
-.preset-btns{display:flex;gap:6px;flex-wrap:wrap}
-.preset-btns button{background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;color:var(--txt2)}
-.preset-btns button:hover,.preset-btns button.active{color:var(--accent);border-color:var(--accent2)}
+.conv-result{
+  font-size:2rem; font-weight:700; color:var(--moss);
+  font-family:var(--font-display);
+}
+.preset-btns{ display:flex; gap:6px; flex-wrap:wrap }
+.preset-btns button{
+  background:var(--paper);
+  border:1.5px solid var(--line-2);
+  border-radius:8px;
+  padding:7px 10px;
+  font-size:.8125rem;
+  color:var(--txt2);
+  font-weight:650;
+  min-height:36px;
+}
+.preset-btns button:hover,
+.preset-btns button.active{
+  color:var(--moss); border-color:var(--sage); background:rgba(111,143,100,.1);
+}
 
-.empty{text-align:center;padding:40px 20px;color:var(--txt3)}
-.empty .ic{font-size:40px;margin-bottom:8px;opacity:.6}
-label.fld{display:block;font-size:13px;color:var(--txt2);margin-bottom:5px;font-weight:550}
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--line);color:var(--txt);padding:11px 18px;border-radius:11px;box-shadow:var(--shadow);z-index:200;opacity:0;transition:.3s;pointer-events:none}
-.toast.show{opacity:1;bottom:30px}
-code.bm{display:block;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:11px;word-break:break-all;color:var(--txt2);max-height:90px;overflow:auto}
-hr{border:none;border-top:1px solid var(--line);margin:16px 0}
+.empty{ text-align:center; padding:40px 20px; color:var(--txt3) }
+.empty .ic{ font-size:40px; margin-bottom:8px; opacity:.55 }
+label.fld{ display:block; font-size:.8125rem; color:var(--txt2); margin-bottom:5px; font-weight:700 }
+.toast{
+  position:fixed;
+  bottom:calc(96px + env(safe-area-inset-bottom,0px));
+  left:50%; transform:translateX(-50%);
+  background:var(--wood-deep);
+  border:2px solid var(--wood-mid);
+  color:#fff9f0;
+  padding:11px 18px;
+  border-radius:12px;
+  box-shadow:var(--shadow);
+  z-index:200;
+  opacity:0;
+  transition:.3s;
+  pointer-events:none;
+  font-weight:650;
+  max-width:min(90vw, 420px);
+  text-align:center;
+}
+.toast.show{
+  opacity:1;
+  bottom:calc(104px + env(safe-area-inset-bottom,0px));
+}
+@media(min-width:860px){
+  .toast{ bottom:22px }
+  .toast.show{ bottom:30px }
+}
+
+/* header compact mobile */
+@media(max-width:520px){
+  .top-inner{ flex-wrap:wrap; padding:12px 14px 8px; gap:8px }
+  .brand{ font-size:1.35rem }
+  .season-pill{ order:3; flex:1 1 100%; margin-left:0; max-width:none; font-size:.72rem }
+  .hdr-tools{ margin-left:auto }
+  .hero{ min-height:auto; padding:22px 16px 20px }
+  .hero-brand{ font-size:2.35rem }
+  .dash{ gap:12px }
+}
+/* desktop: top tabs, no bottom bar — reinforce */
+@media(min-width:860px){
+  nav.tabs{ display:flex !important }
+  .bottom-nav{ display:none !important }
+  .app-panel{ border-radius:28px; margin:18px; min-height:calc(100vh - 36px); min-height:calc(100dvh - 36px) }
+  .deco-botany.bl, .deco-botany.br{ bottom:14px }
+}
+
+code.bm{
+  display:block;
+  background:rgba(58,38,24,.06);
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:10px;
+  font-size:.7rem;
+  word-break:break-all;
+  color:var(--txt2);
+  max-height:90px;
+  overflow:auto;
+}
+hr{ border:none; border-top:2px solid var(--line); margin:16px 0 }
+
+.page-head{ margin-bottom:var(--s4) }
+.page-head h2{ margin:0 0 4px }
+.wood-tag{
+  display:inline-flex; align-items:center; gap:6px;
+  background:linear-gradient(180deg, #c4a07a, #a07850);
+  color:#fff9f0;
+  border:2px solid var(--wood-deep);
+  border-radius:8px;
+  padding:5px 10px;
+  font-size:.7rem;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  box-shadow:2px 2px 0 rgba(58,38,24,.2);
+}
+
+
+@media(max-width:420px){
+  .season-pill .season-items{ display:none }
+}
 </style>
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <symbol id="i-pot" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="2" y="6" width="12" height="7" fill="currentColor"/>
+    <rect x="4" y="4" width="8" height="2" fill="currentColor"/>
+    <rect x="1" y="7" width="2" height="2" fill="currentColor"/>
+    <rect x="13" y="7" width="2" height="2" fill="currentColor"/>
+    <rect x="5" y="2" width="1" height="2" fill="currentColor"/>
+    <rect x="10" y="2" width="1" height="2" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-home" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="3" y="7" width="10" height="7" fill="currentColor"/>
+    <rect x="2" y="5" width="12" height="3" fill="currentColor"/>
+    <rect x="6" y="10" width="4" height="4" fill="#fff9f0" opacity=".35"/>
+    <rect x="10" y="9" width="2" height="2" fill="#fff9f0" opacity=".45"/>
+  </symbol>
+  <symbol id="i-fridge" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="4" y="2" width="8" height="12" fill="currentColor"/>
+    <rect x="5" y="3" width="6" height="4" fill="#fff9f0" opacity=".3"/>
+    <rect x="5" y="8" width="6" height="5" fill="#fff9f0" opacity=".22"/>
+    <rect x="10" y="4" width="1" height="2" fill="#fff9f0"/>
+    <rect x="10" y="10" width="1" height="2" fill="#fff9f0"/>
+  </symbol>
+  <symbol id="i-book" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="3" y="2" width="10" height="12" fill="currentColor"/>
+    <rect x="4" y="3" width="8" height="10" fill="#fff9f0" opacity=".28"/>
+    <rect x="5" y="5" width="6" height="1" fill="#fff9f0" opacity=".55"/>
+    <rect x="5" y="8" width="5" height="1" fill="#fff9f0" opacity=".45"/>
+    <rect x="7" y="12" width="2" height="3" fill="#e8c56a"/>
+  </symbol>
+  <symbol id="i-cal" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="2" y="4" width="12" height="10" fill="currentColor"/>
+    <rect x="3" y="6" width="10" height="7" fill="#fff9f0" opacity=".3"/>
+    <rect x="4" y="2" width="2" height="3" fill="currentColor"/>
+    <rect x="10" y="2" width="2" height="3" fill="currentColor"/>
+    <rect x="4" y="8" width="2" height="2" fill="#e8c56a"/>
+    <rect x="7" y="8" width="2" height="2" fill="#fff9f0" opacity=".6"/>
+    <rect x="10" y="8" width="2" height="2" fill="#fff9f0" opacity=".45"/>
+  </symbol>
+  <symbol id="i-cart" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="2" y="4" width="3" height="2" fill="currentColor"/>
+    <rect x="4" y="5" width="9" height="6" fill="currentColor"/>
+    <rect x="5" y="6" width="7" height="4" fill="#fff9f0" opacity=".28"/>
+    <rect x="5" y="13" width="2" height="2" fill="currentColor"/>
+    <rect x="10" y="13" width="2" height="2" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-scale" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="7" y="1" width="2" height="11" fill="currentColor"/>
+    <rect x="2" y="3" width="12" height="2" fill="currentColor"/>
+    <rect x="1" y="5" width="5" height="1" fill="currentColor"/>
+    <rect x="10" y="5" width="5" height="1" fill="currentColor"/>
+    <rect x="2" y="6" width="3" height="4" fill="currentColor"/>
+    <rect x="11" y="6" width="3" height="4" fill="currentColor"/>
+    <rect x="4" y="13" width="8" height="2" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-gear" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="7" y="1" width="2" height="3" fill="currentColor"/>
+    <rect x="7" y="12" width="2" height="3" fill="currentColor"/>
+    <rect x="1" y="7" width="3" height="2" fill="currentColor"/>
+    <rect x="12" y="7" width="3" height="2" fill="currentColor"/>
+    <rect x="3" y="3" width="2" height="2" fill="currentColor"/>
+    <rect x="11" y="3" width="2" height="2" fill="currentColor"/>
+    <rect x="3" y="11" width="2" height="2" fill="currentColor"/>
+    <rect x="11" y="11" width="2" height="2" fill="currentColor"/>
+    <rect x="5" y="5" width="6" height="6" fill="currentColor"/>
+    <rect x="7" y="7" width="2" height="2" fill="#fff9f0" opacity=".5"/>
+  </symbol>
+  <symbol id="i-jar" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="5" y="2" width="6" height="2" fill="currentColor"/>
+    <rect x="4" y="4" width="8" height="10" fill="currentColor"/>
+    <rect x="5" y="6" width="6" height="6" fill="#b54d45" opacity=".7"/>
+  </symbol>
+  <symbol id="i-leaf" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="8" y="2" width="2" height="10" fill="currentColor"/>
+    <rect x="4" y="4" width="6" height="4" fill="currentColor"/>
+    <rect x="9" y="7" width="4" height="4" fill="currentColor"/>
+    <rect x="3" y="12" width="4" height="2" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="7" y="3" width="2" height="10" fill="currentColor"/>
+    <rect x="3" y="7" width="10" height="2" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-flower" viewBox="0 0 24 24" shape-rendering="crispEdges">
+    <rect x="10" y="2" width="4" height="4" fill="#f4ede0"/>
+    <rect x="4" y="8" width="4" height="4" fill="#f4ede0"/>
+    <rect x="16" y="8" width="4" height="4" fill="#f4ede0"/>
+    <rect x="7" y="5" width="4" height="4" fill="#e8c56a"/>
+    <rect x="13" y="5" width="4" height="4" fill="#e8c56a"/>
+    <rect x="10" y="8" width="4" height="4" fill="#c9942e"/>
+    <rect x="11" y="12" width="2" height="8" fill="#4d6b48"/>
+    <rect x="7" y="16" width="4" height="3" fill="#6f8f64"/>
+  </symbol>
+</svg>
+<div class="app-shell">
+<div class="app-panel">
+  <svg class="deco-botany tl" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flower"/></svg>
+  <svg class="deco-botany tr" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flower"/></svg>
+  <svg class="deco-botany bl" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flower"/></svg>
+  <svg class="deco-botany br" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flower"/></svg>
 <header class="top">
   <div class="top-inner">
-    <div class="brand"><span class="logo">🥘</span> Mijote</div>
+    <div class="brand"><span class="logo" aria-hidden="true"><svg class="i"><use href="#i-pot"/></svg></span> Mijote</div>
     <div class="season-pill" id="seasonPill">Saison…</div>
+    <div class="hdr-tools">
+      <button type="button" data-v="convert" aria-label="Convertisseur" title="Convertisseur"><svg class="i"><use href="#i-scale"/></svg></button>
+      <button type="button" data-v="reglages" aria-label="Réglages" title="Réglages"><svg class="i"><use href="#i-gear"/></svg></button>
+    </div>
   </div>
-  <nav class="tabs" id="tabs">
-    <button data-v="accueil" class="active">🏠 Accueil</button>
-    <button data-v="frigo">🧊 Mon frigo</button>
-    <button data-v="recettes">📖 Recettes</button>
-    <button data-v="semaine">🗓️ Ma semaine</button>
-    <button data-v="courses">🛒 Courses</button>
-    <button data-v="convert">⚖️ Convertisseur</button>
-    <button data-v="reglages">⚙️ Réglages</button>
+  <nav class="tabs" id="tabs" aria-label="Navigation principale">
+    <button type="button" data-v="accueil" class="active"><svg class="i"><use href="#i-home"/></svg> Accueil</button>
+    <button type="button" data-v="frigo"><svg class="i"><use href="#i-fridge"/></svg> Frigo</button>
+    <button type="button" data-v="recettes"><svg class="i"><use href="#i-book"/></svg> Recettes</button>
+    <button type="button" data-v="semaine"><svg class="i"><use href="#i-cal"/></svg> Semaine</button>
+    <button type="button" data-v="courses"><svg class="i"><use href="#i-cart"/></svg> Courses</button>
   </nav>
 </header>
-
 <main>
   <!-- ACCUEIL -->
   <section class="view active" id="v-accueil">
@@ -300,9 +1120,9 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
 
   <!-- FRIGO (inventaire unifié + péremption + pickles) -->
   <section class="view" id="v-frigo">
-    <div class="spread" style="margin-bottom:6px">
-      <div><h2 style="margin:0">🧊 Mon frigo &amp; placard</h2>
-      <div class="muted small">Un seul inventaire : ajoute tes aliments, indique une date de péremption pour ceux qui se gâtent, et cuisine avec ce que tu as.</div></div>
+    <div class="page-head">
+      <h2><svg class="i"><use href="#i-fridge"/></svg> Mon frigo &amp; placard</h2>
+      <p class="screen-lead">Un inventaire unique : ajoute tes aliments, suis les péremptions, et cuisine avec ce que tu as.</p>
     </div>
     <div class="card stack">
       <div class="row">
@@ -316,10 +1136,10 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
       <div class="row small muted" id="fridgeSugg"></div>
     </div>
 
-    <div class="sub-h"><h3>📦 Mon inventaire</h3><span class="ln"></span><span class="muted small" id="fridgeInvCount"></span></div>
+    <div class="sub-h"><h3>Mon inventaire</h3><span class="ln"></span><span class="muted small" id="fridgeInvCount"></span></div>
     <div class="row" id="fridgeChips"></div>
 
-    <div class="sub-h"><h3>🍳 Ce que je peux cuisiner</h3><span class="ln"></span></div>
+    <div class="sub-h"><h3>Ce que je peux cuisiner</h3><span class="ln"></span></div>
     <div class="row" style="margin:0 0 12px">
       <label class="row small" style="gap:8px;cursor:pointer"><span class="muted">Mode vegan</span><span class="toggle" id="veganGlobal"><i></i></span></label>
       <label class="row small" style="gap:8px;cursor:pointer;margin-left:8px"><input type="checkbox" id="seasonOnly" style="width:auto"><span class="muted">De saison seulement</span></label>
@@ -327,26 +1147,29 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
     </div>
     <div class="grid g2" id="fridgeResults"></div>
 
-    <div class="sub-h"><h3>🫙 Pickles &amp; marinades maison</h3><span class="ln"></span><button class="btn sm primary" id="jarNew">+ Démarrer un bocal</button></div>
+    <div class="sub-h"><h3><svg class="i"><use href="#i-jar"/></svg> Pickles &amp; marinades</h3><span class="ln"></span><button class="btn sm primary" id="jarNew">+ Démarrer un bocal</button></div>
     <div class="muted small" style="margin:4px 0 14px">Lance un bocal, on calcule quand il est prêt à manger (et jusqu'à quand le garder).</div>
     <div class="grid g2" id="jarList"></div>
   </section>
 
   <!-- RECETTES -->
   <section class="view" id="v-recettes">
-    <div class="spread" style="margin-bottom:14px;flex-wrap:wrap">
-      <h2 style="margin:0">Mes recettes</h2>
-      <div class="row">
-        <button class="btn sm primary" onclick="gotoTab('ajouter')">➕ Ajouter</button>
-        <input id="recipeSearch" placeholder="Rechercher…" style="width:180px">
-        <select id="cuisineFilter" style="width:auto"></select>
-        <select id="dietFilter" style="width:auto">
+    <div class="page-head spread">
+      <div>
+        <h2><svg class="i"><use href="#i-book"/></svg> Mes recettes</h2>
+        <p class="screen-lead" style="margin:0">Parcours ta base, filtre, ou ajoute une nouvelle recette.</p>
+      </div>
+      <button class="btn primary" onclick="gotoTab('ajouter')"><svg class="i"><use href="#i-plus"/></svg> Ajouter</button>
+    </div>
+    <div class="toolbar scroll-x" style="margin-bottom:14px">
+        <input id="recipeSearch" placeholder="Rechercher…" style="width:180px;flex:none">
+        <select id="cuisineFilter" style="width:auto;flex:none"></select>
+        <select id="dietFilter" style="width:auto;flex:none">
           <option value="">Tout</option><option value="vegan">Vegan</option>
           <option value="vegetarien">Végétarien</option><option value="veganizable">Vegan possible</option>
-          <option value="poisson">🐟 Poisson</option><option value="viande">🍖 Viande</option>
+          <option value="poisson">Poisson</option><option value="viande">Viande</option>
         </select>
-        <label class="row small" style="gap:6px;cursor:pointer;white-space:nowrap"><input type="checkbox" id="quickFilter" style="width:auto"> ⚡ Rapides</label>
-      </div>
+        <label class="row small" style="gap:6px;cursor:pointer;white-space:nowrap;flex:none"><input type="checkbox" id="quickFilter" style="width:auto"> Rapides</label>
     </div>
     <div class="row small muted" style="margin-bottom:12px" id="recipeCount"></div>
     <div class="grid g2" id="recipeList"></div>
@@ -354,19 +1177,20 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
 
   <!-- SEMAINE -->
   <section class="view" id="v-semaine">
-    <div class="spread" style="margin-bottom:14px">
-      <h2 style="margin:0">Ma semaine</h2>
-      <div class="row">
-        <button class="btn sm" id="weekOptim">🧩 Menu optimisé</button>
-        <button class="btn sm" id="weekRandom">🎲 Remplir au hasard</button>
+    <div class="page-head">
+      <h2><svg class="i"><use href="#i-cal"/></svg> Ma semaine</h2>
+      <p class="screen-lead">Compose midi &amp; soir, puis valide pour afficher le menu sur l'accueil.</p>
+    </div>
+    <div class="toolbar scroll-x">
+        <button class="btn sm" id="weekOptim">Menu optimisé</button>
+        <button class="btn sm" id="weekRandom">Au hasard</button>
         <button class="btn sm" id="weekClear">Vider</button>
-        <button class="btn sm" id="weekToShop">🛒 Liste de courses</button>
-        <button class="btn sm primary" id="weekValidate">✓ Valider le menu</button>
-      </div>
+        <button class="btn sm" id="weekToShop">Courses</button>
+        <button class="btn sm primary" id="weekValidate">Valider</button>
     </div>
     <div class="ctrlbar">
       <div class="stepper">
-        <span class="lbl">👥 Cuisiner pour</span>
+        <span class="lbl">Cuisiner pour</span>
         <button class="btn sm" id="peopleMinus" aria-label="Moins une personne">−</button>
         <span id="peopleCount" class="count">1</span>
         <button class="btn sm" id="peoplePlus" aria-label="Plus une personne">+</button>
@@ -374,7 +1198,7 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
       </div>
       <label class="row small restes-toggle" style="gap:8px;cursor:pointer">
         <span class="toggle" id="restesToggle"><i></i></span>
-        <span class="muted">♻️ Mode restes — cuisiner en plus grande fournée et manger les restes un jour suivant (max 2× les portions)</span>
+        <span class="muted">Mode restes — plus grande fournée, restes le jour suivant (max 2× les portions)</span>
       </label>
     </div>
     <div id="weekValidInfo" style="margin-bottom:12px"></div>
@@ -383,21 +1207,25 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
 
   <!-- COURSES -->
   <section class="view" id="v-courses">
-    <div class="spread" style="margin-bottom:14px">
-      <h2 style="margin:0">Liste de courses</h2>
+    <div class="page-head spread">
+      <div>
+        <h2><svg class="i"><use href="#i-cart"/></svg> Liste de courses</h2>
+        <p class="screen-lead" style="margin:0">Calculée depuis ta semaine, moins ce qui est déjà dans ton frigo.</p>
+      </div>
       <div class="row">
         <button class="btn sm" id="shopCopy">Copier</button>
         <button class="btn sm" id="shopReset">Tout décocher</button>
       </div>
     </div>
-    <div class="muted small" style="margin-bottom:14px">Calculée depuis ta semaine, moins ce qui est déjà dans ton frigo.</div>
     <div id="shopList"></div>
   </section>
 
   <!-- CONVERT -->
   <section class="view" id="v-convert">
-    <h2>Convertisseur de denrées</h2>
-    <div class="muted small" style="margin-bottom:16px">Mesure au volume (ton ecocup, un verre…) → poids, et inversement.</div>
+    <div class="page-head">
+      <h2><svg class="i"><use href="#i-scale"/></svg> Convertisseur</h2>
+      <p class="screen-lead">Mesure au volume (ecocup, verre…) → poids, et inversement.</p>
+    </div>
     <div class="grid g2">
       <div class="card stack">
         <div>
@@ -427,8 +1255,10 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
 
   <!-- AJOUTER -->
   <section class="view" id="v-ajouter">
-    <div class="spread" style="margin-bottom:6px"><h2 style="margin:0">Ajouter une recette</h2>
-    <button class="btn sm" onclick="gotoTab('recettes');renderRecipes()">← Retour aux recettes</button></div>
+    <div class="page-head spread">
+      <h2 style="margin:0">Ajouter une recette</h2>
+      <button class="btn sm" onclick="gotoTab('recettes');renderRecipes()">← Retour</button>
+    </div>
     <div class="grid g2" style="margin-top:6px;align-items:start">
       <div class="card stack">
         <h3>Depuis une URL</h3>
@@ -441,9 +1271,9 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
         <textarea id="pasteInput" placeholder="Colle ici…"></textarea>
         <button class="btn" id="pasteImport">Analyser le texte collé</button>
         <hr>
-        <h3>🔖 Bookmarklet « Siphonner »</h3>
+        <h3>Bookmarklet « Siphonner »</h3>
         <div class="muted small">Glisse ce bouton dans ta barre de favoris. Sur n'importe quelle page de recette, clique-le : la recette est copiée, tu n'as plus qu'à la coller ci-dessus.</div>
-        <div class="row"><a id="bmLink" class="btn primary" href="#">🔖 Siphonner vers Mijote</a><button class="btn sm" id="bmCopy">Copier le code</button></div>
+        <div class="row"><a id="bmLink" class="btn primary" href="#">Siphonner vers Mijote</a><button class="btn sm" id="bmCopy">Copier le code</button></div>
         <code class="bm" id="bmCode"></code>
       </div>
       <div class="card stack">
@@ -466,20 +1296,23 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
 
   <!-- REGLAGES -->
   <section class="view" id="v-reglages">
-    <h2>Réglages & goûts</h2>
+    <div class="page-head">
+      <h2><svg class="i"><use href="#i-gear"/></svg> Réglages &amp; goûts</h2>
+      <p class="screen-lead">Régime, aliments à éviter, export et import de tes données.</p>
+    </div>
     <div class="grid g2" style="align-items:start">
       <div class="card stack">
-        <h3>🥗 Mon régime</h3>
+        <h3>Mon régime</h3>
         <label class="row small" style="gap:10px;cursor:pointer;justify-content:space-between"><span class="muted">Masquer viande & poisson (pour moi)</span><span class="toggle" id="vegOnlyToggle"><i></i></span></label>
         <div class="muted tiny">Désactive ce réglage pour montrer toutes les recettes (ex : quand tu partages l'app avec des amis).</div>
         <hr>
-        <h3>🚫 Aliments que je n'aime pas</h3>
+        <h3>Aliments que je n'aime pas</h3>
         <div class="muted small">Les recettes qui en contiennent sont masquées ou signalées. Ex : « olives » exclut les olives mais pas l'huile d'olive.</div>
         <div class="row"><input id="dislikeInput" placeholder="Ajouter un aliment…" style="flex:1"><button class="btn" id="dislikeAdd">+</button></div>
         <div class="row" id="dislikeChips"></div>
       </div>
       <div class="card stack">
-        <h3>💾 Données</h3>
+        <h3>Données</h3>
         <div class="muted small">Tes recettes, préférences et personnalisations sont sauvegardées dans ce navigateur. Exporte-les pour les sauvegarder ou les transférer.</div>
         <div class="row">
           <button class="btn" id="exportBtn">⬇️ Exporter (JSON)</button>
@@ -492,6 +1325,17 @@ hr{border:none;border-top:1px solid var(--line);margin:16px 0}
     </div>
   </section>
 </main>
+
+<nav class="bottom-nav" id="bottomNav" aria-label="Navigation principale">
+  <button type="button" data-v="accueil" class="active"><span class="nav-ico"><svg class="i"><use href="#i-home"/></svg></span><span>Accueil</span></button>
+  <button type="button" data-v="frigo"><span class="nav-ico"><svg class="i"><use href="#i-fridge"/></svg></span><span>Frigo</span></button>
+  <button type="button" data-v="recettes"><span class="nav-ico"><svg class="i"><use href="#i-book"/></svg></span><span>Recettes</span></button>
+  <button type="button" data-v="semaine"><span class="nav-ico"><svg class="i"><use href="#i-cal"/></svg></span><span>Semaine</span></button>
+  <button type="button" data-v="courses"><span class="nav-ico"><svg class="i"><use href="#i-cart"/></svg></span><span>Courses</span></button>
+</nav>
+</div><!-- /.app-panel -->
+</div><!-- /.app-shell -->
+
 
 <div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
 <div class="modal-bg" id="pickBg"><div class="modal" id="pickModal" style="max-width:520px"></div></div>
@@ -1434,27 +2278,38 @@ function dietOf(r){ return r.diet || (r.vegan?"vegan":(r.veganSwap?"veganizable"
 function isVegMe(r){ const d=dietOf(r); return d!=="poisson" && d!=="viande"; } // végétarien-compatible
 function dietBadgeClass(r){ const d=dietOf(r); return d==="poisson"?"fish":(d==="viande"?"meat":"veg"); }
 function dietLabel(r){ const d=dietOf(r);
-  return d==="vegan"?"Vegan":d==="veganizable"?"Vegan possible":d==="poisson"?"🐟 Poisson":d==="viande"?"🍖 Viande":"Végétarien"; }
+  return d==="vegan"?"Vegan":d==="veganizable"?"Vegan possible":d==="poisson"?"Poisson":d==="viande"?"Viande":"Végétarien"; }
 function currentMonth(){ return new Date().getMonth()+1; }
 function inSeason(r){ const m=currentMonth(); return !r.season||r.season.length===0||r.season.includes(m); }
 
 /* ============================ NAV ============================ */
-$("#tabs").addEventListener("click",e=>{
-  const b=e.target.closest("button[data-v]"); if(!b)return;
-  $$("#tabs button").forEach(x=>x.classList.toggle("active",x===b));
-  $$(".view").forEach(v=>v.classList.remove("active"));
-  $("#v-"+b.dataset.v).classList.add("active");
-  if(b.dataset.v==="accueil")renderHome();
-  if(b.dataset.v==="frigo"){renderFridge();renderFridgeResults();renderJars();}
-  if(b.dataset.v==="recettes")renderRecipes();
-  if(b.dataset.v==="semaine")renderWeek();
-  if(b.dataset.v==="courses")renderShop();
-  if(b.dataset.v==="reglages")renderDislikes();
-});
-function gotoTab(v){
-  $$("#tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===v));
+function syncNavActive(v){
+  $$("#tabs button, #bottomNav button, .hdr-tools button").forEach(x=>{
+    x.classList.toggle("active", x.dataset.v===v);
+  });
+}
+function activateView(v){
+  syncNavActive(v);
   $$(".view").forEach(x=>x.classList.remove("active"));
-  $("#v-"+v).classList.add("active");
+  const el=$("#v-"+v); if(el) el.classList.add("active");
+  if(v==="accueil")renderHome();
+  if(v==="frigo"){renderFridge();renderFridgeResults();renderJars();}
+  if(v==="recettes")renderRecipes();
+  if(v==="semaine")renderWeek();
+  if(v==="courses")renderShop();
+  if(v==="reglages")renderDislikes();
+  if(v==="convert"){ /* already init'd */ }
+}
+function onNavClick(e){
+  const b=e.target.closest("button[data-v]"); if(!b)return;
+  activateView(b.dataset.v);
+}
+$("#tabs").addEventListener("click",onNavClick);
+$("#bottomNav").addEventListener("click",onNavClick);
+document.querySelector(".hdr-tools").addEventListener("click",onNavClick);
+function gotoTab(v){
+  activateView(v);
+  try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(_){ window.scrollTo(0,0); }
 }
 window.gotoTab=gotoTab;
 
@@ -1476,7 +2331,7 @@ function setFridgeExpiry(f){
 function renderFridge(){
   const wrap=$("#fridgeChips"); if(!wrap)return; wrap.innerHTML="";
   if(!state.fridge.length){
-    wrap.innerHTML=`<div class="dash-empty" style="width:100%"><span class="ic">📦</span>Inventaire vide. Ajoute ce que tu as dans le frigo ou le placard ci-dessus.</div>`;
+    wrap.innerHTML=`<div class="dash-empty" style="width:100%">Inventaire vide. Ajoute ce que tu as dans le frigo ou le placard.</div>`;
   } else {
     const items=state.fridge.map(f=>({f,t:fridgeExpiry(f)}));
     items.sort((a,b)=>{
@@ -1535,7 +2390,7 @@ function renderFridgeResults(){
   $("#fridgeCount").textContent=`${list.length} recette${list.length>1?"s":""}`;
   const box=$("#fridgeResults"); box.innerHTML="";
   list.forEach(({r,s})=>box.appendChild(recipeCard(r,s)));
-  if(!list.length)box.innerHTML=`<div class="empty"><div class="ic">🍃</div>Aucune recette ne correspond. Élargis tes filtres.</div>`;
+  if(!list.length)box.innerHTML=`<div class="empty">Aucune recette ne correspond. Élargis tes filtres.</div>`;
 }
 $("#seasonOnly").onchange=renderFridgeResults;
 
@@ -1551,9 +2406,9 @@ function recipeCard(r,score){
   el.innerHTML=`
     <div class="spread"><span class="title">${r.name}</span></div>
     <div class="row" style="gap:6px">
-      <span class="badge ${dietBadgeClass(r)}">${dietLabel(r)}</span>${r.quick?'<span class="badge quick">⚡ Rapide</span>':''}${seasonB}
+      <span class="badge ${dietBadgeClass(r)}">${dietLabel(r)}</span>${r.quick?'<span class="badge quick">Rapide</span>':''}${seasonB}
     </div>
-    <div class="meta"><span class="chip cuisine">${r.cuisine}</span><span class="chip">⏱ ${r.time} min</span><span class="chip">👥 ${r.servings}</span></div>
+    <div class="meta"><span class="chip cuisine">${r.cuisine}</span><span class="chip">${r.time} min</span><span class="chip">${r.servings} pers.</span></div>
     ${matchHtml}`;
   el.onclick=()=>openRecipe(r.id);
   return el;
@@ -1577,7 +2432,7 @@ function openRecipe(id){
   $("#modal").innerHTML=`
     <div class="mhead"><span class="close-x" onclick="closeModal()">×</span>
       <h2 style="margin:0 0 6px;max-width:90%">${r.name}</h2>
-      <div class="row" style="gap:6px"><span class="badge ${dietBadgeClass(r)}">${dietLabel(r)}</span><span class="chip cuisine">${r.cuisine}</span><span class="chip">⏱ ${r.time} min</span><span class="chip">👥 quantités pour ${state.people} pers.</span>${state.people!==r.servings?`<span class="chip muted">base : ${r.servings} pers.</span>`:""}</div>
+      <div class="row" style="gap:6px"><span class="badge ${dietBadgeClass(r)}">${dietLabel(r)}</span><span class="chip cuisine">${r.cuisine}</span><span class="chip">${r.time} min</span><span class="chip">pour ${state.people} pers.</span>${state.people!==r.servings?`<span class="chip muted">base : ${r.servings} pers.</span>`:""}</div>
     </div>
     <div class="mbody">
       ${disWarn}
@@ -1590,7 +2445,7 @@ function openRecipe(id){
     </div>
     <div class="mfoot">
       <button class="btn danger" onclick="deleteRecipe('${r.id}')">Supprimer</button>
-      <button class="btn" onclick="editRecipe('${r.id}')">✏️ Personnaliser</button>
+      <button class="btn" onclick="editRecipe('${r.id}')">Personnaliser</button>
       <button class="btn primary" onclick="addToWeekPrompt('${r.id}')">+ Ajouter à ma semaine</button>
     </div>`;
   $("#modalBg").classList.add("open");
@@ -1635,13 +2490,13 @@ function renderRecipes(){
   $("#recipeCount").textContent=`${list.length} recette${list.length>1?"s":""} dans ta base`;
   const box=$("#recipeList"); box.innerHTML="";
   list.forEach(r=>{ const c=recipeCard(r); if(recipeDislikes(r).length)c.classList.add("dim"); box.appendChild(c); });
-  if(!list.length)box.innerHTML=`<div class="empty"><div class="ic">📭</div>Aucune recette.</div>`;
+  if(!list.length)box.innerHTML=`<div class="empty">Aucune recette.</div>`;
 }
 ["#recipeSearch","#cuisineFilter","#dietFilter","#quickFilter"].forEach(s=>$(s).addEventListener("input",renderRecipes));
 $("#quickFilter").addEventListener("change",renderRecipes);
 
 /* ============================ SEMAINE ============================ */
-const MEALS=[["midi","☀️ Midi"],["soir","🌙 Soir"]];
+const MEALS=[["midi","Midi"],["soir","Soir"]];
 // normalise le plan d'un jour vers {midi:[],soir:[]} (gère l'ancien format tableau)
 function ensureMeals(i){
   let p=state.plan[i];
@@ -1689,7 +2544,7 @@ function renderWeek(){
       const slots=meals[key].map((id,si)=>{
         const r=recipeOf(id); const lo=isLeftover(id);
         const name=r?r.name:"—";
-        const label=lo?`<span class="ico">♻️</span>Restes — ${name}`:name;
+        const label=lo?`<span class="ico">↺</span>Restes — ${name}`:name;
         const loBtn=(!lo&&r&&state.restes&&isBatchable(r))?`<span class="lo-act" title="Manger les restes un autre jour" data-lo-d="${i}" data-lo-k="${key}" data-lo-s="${si}">♻</span>`:"";
         return `<div class="slot${lo?" leftover":""}">${label}${loBtn}<span class="rm" data-d="${i}" data-k="${key}" data-s="${si}">×</span></div>`;
       }).join("");
@@ -1730,7 +2585,7 @@ function changePeople(delta){
 $("#weekValidate").onclick=validateWeek;
 $("#peopleMinus").onclick=()=>changePeople(-1);
 $("#peoplePlus").onclick=()=>changePeople(1);
-$("#restesToggle").onclick=()=>{ state.restes=!state.restes; persist(); syncCtrlBar(); renderWeek(); toast(state.restes?"Mode restes activé ♻️":"Mode restes désactivé"); };
+$("#restesToggle").onclick=()=>{ state.restes=!state.restes; persist(); syncCtrlBar(); renderWeek(); toast(state.restes?"Mode restes activé":"Mode restes désactivé"); };
 $("#weekClear").onclick=()=>{if(confirm("Vider toute la semaine ?")){state.plan={};state.validated=null;persist();renderWeek();}};
 $("#weekRandom").onclick=()=>{
   const pool=state.recipes.filter(r=>!recipeDislikes(r).length && (!state.vegOnly||isVegMe(r)) && (!state.vegan||isVeganView(r)));
@@ -1739,7 +2594,7 @@ $("#weekRandom").onclick=()=>{
   let bag=[]; const draw=()=>{ if(!bag.length)bag=shuffle(pool.map(r=>r.id)); return bag.pop(); };
   state.plan={};
   for(let i=0;i<7;i++)state.plan[i]={midi:[draw()],soir:[draw()]};
-  persist(); renderWeek(); toast("Semaine remplie au hasard 🎲 — à toi de trier !");
+  persist(); renderWeek(); toast("Semaine remplie au hasard — à toi de trier !");
 };
 // --- Menu optimisé (anti-gâchis : maximise le partage d'ingrédients) ---
 const STAPLES=["sel","poivre","huile","eau","sucre"]; // ignorés (on les a toujours)
@@ -1824,7 +2679,7 @@ $("#weekOptim").onclick=()=>{
     if(!plan){toast("Ajoute d'abord quelques recettes");return;}
     state.plan=plan; persist(); renderWeek(); renderShop();
     let cooked=0,left=0; for(let i=0;i<7;i++){const m=ensureMeals(i);[...m.midi,...m.soir].forEach(id=>{if(!id)return;isLeftover(id)?left++:cooked++;});}
-    toast(`Menu optimisé ♻️ — ${cooked} plats cuisinés · ${left} repas de restes`);
+    toast(`Menu optimisé — ${cooked} plats cuisinés · ${left} repas de restes`);
     return;
   }
   const days=weekOptimized();
@@ -1835,7 +2690,7 @@ $("#weekOptim").onclick=()=>{
   const all=days.flat().filter(Boolean);
   const counts={}; all.forEach(r=>recipeIngSet(r).forEach(x=>counts[x]=(counts[x]||0)+1));
   const shared=Object.values(counts).filter(c=>c>=2).length, distinct=Object.keys(counts).length;
-  toast(`Menu optimisé 🧩 — ${distinct} ingrédients, ${shared} partagés · 1 plat ⚡/jour`);
+  toast(`Menu optimisé — ${distinct} ingrédients, ${shared} partagés · 1 plat rapide/jour`);
 };
 $("#weekToShop").onclick=()=>{gotoTab("courses");renderShop();};
 
@@ -1856,11 +2711,11 @@ function openPicker(dayIndex,recipeId,meal){
   } else {
     const rows=DAYS.map((d,i)=>{const mm=ensureMeals(i);
       return `<div class="row" style="justify-content:space-between;margin-bottom:7px"><span>${d}</span><span class="row" style="gap:6px">
-        <button class="btn sm" data-day="${i}" data-meal="midi">☀️ Midi (${mm.midi.length})</button>
-        <button class="btn sm" data-day="${i}" data-meal="soir">🌙 Soir (${mm.soir.length})</button></span></div>`;}).join("");
+        <button class="btn sm" data-day="${i}" data-meal="midi">Midi (${mm.midi.length})</button>
+        <button class="btn sm" data-day="${i}" data-meal="soir">Soir (${mm.soir.length})</button></span></div>`;}).join("");
     m.innerHTML=`<div class="mhead"><span class="close-x" onclick="closePick()">×</span><h3 style="margin:0">Quel jour / service ?</h3></div><div class="mbody" style="max-height:60vh;overflow:auto">${rows}</div>`;
     $("#pickBg").classList.add("open");
-    $$("#pickModal button[data-day]").forEach(b=>b.onclick=()=>{const i=+b.dataset.day,k=b.dataset.meal;ensureMeals(i)[k].push(recipeId);persist();closePick();toast("Ajouté à "+DAYS[i]+" "+(k==="soir"?"🌙 Soir":"☀️ Midi"));});
+    $$("#pickModal button[data-day]").forEach(b=>b.onclick=()=>{const i=+b.dataset.day,k=b.dataset.meal;ensureMeals(i)[k].push(recipeId);persist();closePick();toast("Ajouté à "+DAYS[i]+" "+(k==="soir"?"Soir":"Midi"));});
   }
 }
 function closePick(){$("#pickBg").classList.remove("open");}
@@ -1919,9 +2774,9 @@ function renderShop(){
   const cats={}; Object.entries(agg).forEach(([k,v])=>{(cats[v.cat]=cats[v.cat]||[]).push({k,...v});});
   const order=SHOP_ORDER;
   const box=$("#shopList"); box.innerHTML="";
-  if(!Object.keys(agg).length){ box.innerHTML=`<div class="empty"><div class="ic">🛒</div>Ta liste est vide. Planifie des repas dans « Ma semaine ».</div>`; return; }
+  if(!Object.keys(agg).length){ box.innerHTML=`<div class="empty">Ta liste est vide. Planifie des repas dans « Ma semaine ».</div>`; return; }
   const summary=document.createElement("div"); summary.className="shop-summary muted small";
-  summary.innerHTML=`Quantités calculées pour <b>${state.people} personne${state.people>1?"s":""}</b>${state.restes?" · mode restes ♻️ actif":""}.`;
+  summary.innerHTML=`Quantités calculées pour <b>${state.people} personne${state.people>1?"s":""}</b>${state.restes?" · mode restes actif":""}.`;
   box.appendChild(summary);
   order.filter(c=>cats[c]).forEach(c=>{
     const div=document.createElement("div"); div.className="shop-cat";
@@ -1946,67 +2801,84 @@ function renderHome(){
   const validated = state.validated===currentWeekKey();
   const soon=fridgeSoon();
   const jars=state.jars||[];
+  const hasDash = validated || jars.length || soon.length;
 
   let head;
   if(validated){
-    head=`<div class="spread" style="margin-bottom:14px;flex-wrap:wrap"><h2 style="margin:0">🍽️ Mon tableau de bord</h2>
-      <div class="row"><button class="btn sm" onclick="copyShop()">📋 Copier les courses</button>
-      <button class="btn sm" onclick="gotoTab('courses');renderShop()">🛒 Liste</button>
-      <button class="btn sm" onclick="gotoTab('semaine');renderWeek()">✏️ Modifier la semaine</button></div></div>`;
+    head=`<div class="home-head">
+      <div><span class="wood-tag">Cette semaine</span><h2 style="margin-top:8px">Ton menu mijote</h2></div>
+      <div class="row">
+        <button class="btn sm" onclick="copyShop()">Copier les courses</button>
+        <button class="btn sm" onclick="gotoTab('courses');renderShop()">Liste</button>
+        <button class="btn sm primary" onclick="gotoTab('semaine');renderWeek()">Modifier</button>
+      </div>
+    </div>`;
   } else {
-    head=`<div class="hero stack" style="margin-bottom:14px">
-      <h2 style="margin:0">Bienvenue 👋</h2>
-      <div class="muted">Pas encore de menu validé pour cette semaine.</div>
-      <div class="row"><button class="btn primary" onclick="gotoTab('semaine');renderWeek()">🗓️ Planifier ma semaine</button>
-      <button class="btn" onclick="gotoTab('frigo');renderFridge();renderFridgeResults();renderJars()">🧊 Partir de mon frigo</button></div>
+    head=`<div class="hero">
+      <p class="hero-brand">Mijote</p>
+      <p class="hero-lead">Cuisine de saison, sans gaspillage — planifie ta semaine autour de ce que tu as déjà.</p>
+      <div class="row">
+        <button class="btn primary" onclick="gotoTab('semaine');renderWeek()">Planifier ma semaine</button>
+        <button class="btn" onclick="gotoTab('frigo');renderFridge();renderFridgeResults();renderJars()">Partir du frigo</button>
+      </div>
     </div>`;
   }
+
+  if(!hasDash){
+    box.innerHTML = head;
+    return;
+  }
+
   box.innerHTML = head + `<div class="dash">
     <div class="dash-col" id="dashWeek"></div>
     <div class="dash-col" id="dashJars"></div>
     <div class="dash-col" id="dashSoon"></div>
   </div>`;
 
-  // Colonne 1 — menu de la semaine
-  let wkHtml=`<div class="dash-head"><h3>🗓️ Menu de la semaine</h3><button class="lnk" onclick="gotoTab('semaine');renderWeek()">${validated?"Modifier →":"Planifier →"}</button></div>`;
+  let wkHtml=`<div class="dash-head"><h3><svg class="i"><use href="#i-cal"/></svg> Menu</h3><button class="lnk" onclick="gotoTab('semaine');renderWeek()">${validated?"modifier →":"Planifier →"}</button></div>`;
   if(validated){
     DAYS.forEach((d,i)=>{
       const m=ensureMeals(i);
-      const lines=([["midi","☀️"],["soir","🌙"]]).map(([k,ic])=>{
-        const dishes=m[k].map(id=>{const r=recipeOf(id);if(!r)return"";const lo=isLeftover(id);return `<a data-rid="${r.id}">${lo?"♻️ ":""}${r.name}</a>`;}).filter(Boolean).join(", ")||`<span class="muted">—</span>`;
+      const lines=([["midi","Midi"],["soir","Soir"]]).map(([k,ic])=>{
+        const dishes=m[k].map(id=>{const r=recipeOf(id);if(!r)return"";const lo=isLeftover(id);return `<a data-rid="${r.id}">${lo?"Restes · ":""}${r.name}</a>`;}).filter(Boolean).join(", ")||`<span class="muted">—</span>`;
         return `<div class="mline"><span class="lbl">${ic}</span><span>${dishes}</span></div>`;
       }).join("");
       wkHtml+=`<div class="mday${i===ti?" today":""}"><div class="mday-h">${d}${i===ti?`<span class="tag-today">AUJ.</span>`:""}</div>${lines}</div>`;
     });
   } else {
-    wkHtml+=`<div class="dash-empty"><span class="ic">🍽️</span>Aucun menu validé.<br>Planifie ta semaine pour la retrouver ici d'un coup d'œil.</div>`;
+    wkHtml+=`<div class="dash-empty">Aucun menu validé.<br>Planifie ta semaine pour la retrouver ici.</div>`;
   }
   $("#dashWeek").innerHTML=wkHtml;
   $$("#dashWeek a[data-rid]").forEach(a=>a.onclick=()=>openRecipe(a.dataset.rid));
 
-  // Colonne 2 — bocaux en cours
-  let jHtml=`<div class="dash-head"><h3>🫙 Bocaux en cours</h3><button class="lnk" onclick="gotoTab('frigo');renderFridge();renderFridgeResults();renderJars()">Gérer →</button></div>`;
+  let jHtml=`<div class="dash-head"><h3><svg class="i"><use href="#i-jar"/></svg> Bocaux</h3><button class="lnk" onclick="gotoTab('frigo');renderFridge();renderFridgeResults();renderJars()">Gérer →</button></div>`;
   if(jars.length){
     [...jars].sort((a,b)=>b.start-a.start).forEach(j=>{
       const s=jarStatus(j);
       jHtml+=`<div class="mini ${s.cls}"><div class="mini-top"><b>${j.name}</b></div><div class="bar"><i style="width:${s.pct}%"></i></div><div class="st">${s.status}</div></div>`;
     });
   } else {
-    jHtml+=`<div class="dash-empty"><span class="ic">🫙</span>Aucun bocal en cours.<br>Lance des pickles ou des œufs marinés depuis « Mon frigo ».</div>`;
+    jHtml+=`<div class="dash-empty">Aucun bocal en cours.<br>Lance des pickles depuis le frigo.</div>`;
   }
   $("#dashJars").innerHTML=jHtml;
 
-  // Colonne 3 — ça périme bientôt
-  let sHtml=`<div class="dash-head"><h3>⏳ Ça périme bientôt</h3><button class="lnk" onclick="gotoTab('frigo');renderFridge();renderFridgeResults();renderJars()">Gérer →</button></div>`;
+  let sHtml=`<div class="dash-head"><h3>À finir</h3><button class="lnk" onclick="gotoTab('frigo');renderFridge();renderFridgeResults();renderJars()">Gérer →</button></div>`;
   if(soon.length){
     soon.forEach(f=>{
       const s=openedStatus(f);
       sHtml+=`<div class="mini ${s.cls}"><div class="mini-top"><b>${f.name}</b></div><div class="bar"><i style="width:${s.pct}%"></i></div><div class="st">${leftLabel(s.left)}</div></div>`;
     });
   } else {
-    sHtml+=`<div class="dash-empty"><span class="ic">✅</span>Rien ne presse.<br>Ajoute une date de péremption dans « Mon frigo » pour être alerté ici.</div>`;
+    sHtml+=`<div class="dash-empty">Rien ne presse.<br>Ajoute une date de péremption dans le frigo.</div>`;
   }
   $("#dashSoon").innerHTML=sHtml;
+
+  // sans menu validé : n'afficher que les colonnes utiles (bocaux / péremptions)
+  if(!validated){
+    const w=$("#dashWeek"); if(w) w.style.display="none";
+    if(!jars.length){ const el=$("#dashJars"); if(el) el.style.display="none"; }
+    if(!soon.length){ const el=$("#dashSoon"); if(el) el.style.display="none"; }
+  }
 }
 
 /* ============================ PÉREMPTIONS (helpers, partagés frigo/accueil) ============================ */
@@ -2034,7 +2906,7 @@ function leftLabel(left){
 function renderOpenedPresets(){
   const box=$("#openedPresets"); if(!box)return;
   box.innerHTML=OPENED_PRESETS.map(p=>`<button data-n="${p.n}" data-d="${p.d}">${p.n} <span class="muted">· ${p.d}j</span></button>`).join("");
-  $$("#openedPresets button").forEach(b=>b.onclick=()=>{ addFridge(b.dataset.n,+b.dataset.d); toast(b.dataset.n+" ajouté au frigo 🧊"); });
+  $$("#openedPresets button").forEach(b=>b.onclick=()=>{ addFridge(b.dataset.n,+b.dataset.d); toast(b.dataset.n+" ajouté au frigo"); });
 }
 
 /* ============================ TRACKER PICKLES ============================ */
@@ -2063,7 +2935,7 @@ function jarStatus(j){
 }
 function renderJars(){
   const box=$("#jarList"); if(!box)return; box.innerHTML="";
-  if(!state.jars.length){ box.innerHTML=`<div class="empty"><div class="ic">🫙</div>Aucun bocal en cours.<br>Clique « Démarrer un bocal » quand tu lances des pickles ou des œufs marinés.</div>`; return; }
+  if(!state.jars.length){ box.innerHTML=`<div class="empty">Aucun bocal en cours.<br>Clique « Démarrer un bocal » pour suivre pickles ou marinades.</div>`; return; }
   // les plus récents / non prêts en premier
   [...state.jars].sort((a,b)=>b.start-a.start).forEach(j=>{
     const s=jarStatus(j); const cls=s.cls, status=s.status, sub=s.sub, pct=s.pct, best=j.bestHours||j.readyHours;
@@ -2089,7 +2961,7 @@ $("#jarNew").onclick=()=>{
   $$("#pickModal button[data-id]").forEach(b=>b.onclick=()=>{
     const r=state.recipes.find(x=>x.id===b.dataset.id);
     state.jars.push({id:uid(),recipeId:r.id,name:r.name,start:Date.now(),readyHours:r.readyHours,bestHours:r.bestHours||r.readyHours,keepDays:r.keepDays||14});
-    persist(); closePick(); renderJars(); toast("Bocal lancé 🫙 — c'est parti !");
+    persist(); closePick(); renderJars(); toast("Bocal lancé — c'est parti !");
   });
 };
 
@@ -2212,7 +3084,7 @@ function openImportPreview(r){
 // import par URL (tente plusieurs proxies CORS, parse JSON-LD)
 $("#urlImport").onclick=async()=>{
   const url=$("#urlInput").value.trim(); if(!url){toast("Colle une URL");return;}
-  const st=$("#urlStatus"); st.textContent="⏳ Récupération de la page…";
+  const st=$("#urlStatus"); st.textContent="Récupération de la page…";
   const proxies=[u=>"https://r.jina.ai/"+u, u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u)];
   let html=null;
   for(const p of proxies){ try{ const res=await fetch(p(url)); if(res.ok){ html=await res.text(); if(html&&html.length>200)break; } }catch(e){} }
@@ -2276,7 +3148,8 @@ $("#vegOnlyToggle").onclick=()=>{ state.vegOnly=!state.vegOnly; $("#vegOnlyToggl
 /* ============================ INIT ============================ */
 function renderSeason(){
   const m=currentMonth(); const list=SEASON[m].slice(0,6).join(", ");
-  $("#seasonPill").innerHTML=`📍 Lyon · <b>${MONTHS_FULL[m-1]}</b> · de saison : ${list}…`;
+  $("#seasonPill").innerHTML=`Lyon · <b>${MONTHS_FULL[m-1]}</b> · <span class="season-items">${list}…</span>`;
+  $("#seasonPill").title = `De saison : ${SEASON[m].join(", ")}`;
 }
 function renderAll(){ renderSeason(); renderHome(); renderFridge(); renderFridgeResults(); renderDislikes(); renderJars(); syncCtrlBar(); $("#veganGlobal").classList.toggle("on",state.vegan); $("#vegOnlyToggle").classList.toggle("on",state.vegOnly); }
 function init(){
