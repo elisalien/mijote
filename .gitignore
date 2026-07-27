@@ -7,6 +7,7 @@ dist/
 .capacitor/
 *.apk
 *.aab
+!release/*.apk
 *.keystore
 local.properties
 keystore.properties

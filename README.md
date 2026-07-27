@@ -2,49 +2,60 @@
 
 **Mijote** aide à planifier repas et courses de la semaine, en privilégiant les **produits végétariens et vegan de saison** disponibles localement à **Lyon, France**.
 
-## Produit : Android APK
+👉 **[Ouvrir la webapp](https://elisalien.github.io/mijote/)** · **[Télécharger l’APK Android](release/mijote-1.1.0-glass-sync-debug.apk)**
 
-La **source de vérité produit** est l’application Android (`fr.mijote.app`), empaquetée avec **Capacitor**. Les nouvelles fonctionnalités (dont le **mode partagé**) ciblent l’APK.
+## Web + Android — même app, même sync
 
-### Prototype web (figé)
+| Surface | Rôle |
+| --- | --- |
+| **Web** (GitHub Pages) | Navigateur : planning, frigo, courses, mode partagé |
+| **APK** (`fr.mijote.app`) | App Android Capacitor : même UI, hors-ligne, partage natif |
 
-La page GitHub Pages ([ouvrir](https://elisalien.github.io/mijote/)) reste un **prototype figé** : pas de nouvelles features web. `index.html` n’est modifié que comme **asset WebView** pour l’APK (`npm run cap:sync` → `www/`).
+Les deux partagent le **même `index.html`** et le **même protocole de sync foyer** (Supabase). Un code `MIJOTE-XXXXXX` créé sur le téléphone fonctionne dans le navigateur (et inversement), à condition d’utiliser le **même projet Supabase**.
 
 ## Fonctionnalités
 
 - **Recettes selon le frigo** — propose des recettes à partir des aliments déjà présents, pour limiter le gaspillage.
 - **Planning de la semaine** — composez vos repas jour par jour selon la saison.
 - **Liste de courses automatique** — générée à partir du planning, simple et regroupée.
-- **Mode partagé (APK)** — foyer synchronisé en temps réel (courses, recettes, goûts **par personne**).
+- **Mode partagé (web ↔ APK)** — foyer synchronisé (courses, recettes, goûts **par personne**).
 - **Alternatives vegan** — swap en un clic pour les ingrédients d’origine animale.
 - **Convertisseur de denrées** — conversions poids ↔ volume.
 - **Saisonnalité Lyon** — suggestions adaptées aux produits de saison de la région.
 
 ## Mode partagé (foyer)
 
-Sur l’APK, dans **Réglages → Mode partagé** :
+Dans **Réglages → Mode partagé** (web ou APK) :
 
-1. Configurer Supabase (voir [`supabase/README.md`](supabase/README.md) et `sync.config.example.js`).
-2. **Créer un foyer** (nom de ton profil) → obtenir un code `MIJOTE-XXXXXX` à partager.
-3. Les autres appareils **rejoignent** avec le code et choisissent / créent leur profil.
-4. Courses, semaine, frigo, recettes ajoutées et goûts de chaque profil se synchronisent automatiquement (plus besoin d’échanger un JSON).
+1. Configurer Supabase (panneau intégré, ou `sync.config.js` — voir [`supabase/README.md`](supabase/README.md)).
+2. **Créer un foyer** (nom de profil) → code `MIJOTE-XXXXXX` à partager.
+3. Sur l’autre appareil (web ou APK) : **même config Supabase** → **Rejoindre** avec le code → choisir / créer le profil.
+4. Courses, semaine, frigo, recettes et goûts se synchronisent (plus besoin d’échanger un JSON).
 
-Les goûts sont **par personne** ; le filtre recettes / semaine utilise l’**union** des profils actifs (désactive un profil s’il est absent ce soir).
+Les goûts sont **par personne** ; le filtre recettes / semaine utilise l’**union** des profils actifs.
 
-## Android — build
+## Android — build & APK
 
-### Prérequis
+### APK prêt à installer
+
+Un build debug synchro est versionné ici :
+
+- [`release/mijote-1.1.0-glass-sync-debug.apk`](release/mijote-1.1.0-glass-sync-debug.apk)
+
+Pour une release Play Store, préférer un **AAB signé** (voir plus bas).
+
+### Prérequis build
 
 - Node.js 18+
 - Android Studio (ou Android SDK + JDK 17/21)
 - Variables `ANDROID_HOME` / `JAVA_HOME` configurées
-- (Mode partagé) projet Supabase + `sync.config.js`
+- (Mode partagé) projet Supabase + `sync.config.js` **ou** config saisie dans l’app
 
 ### Build
 
 ```bash
 npm install
-cp sync.config.example.js sync.config.js   # puis renseigner url + anon key
+cp sync.config.example.js sync.config.js   # optionnel : url + anon key
 npm run cap:sync          # index.html (+ sync.config.js) → www/ puis sync Android
 npx cap open android      # ouvre le projet dans Android Studio
 ```
@@ -81,18 +92,16 @@ Google Play exige un **Android App Bundle (.aab)** signé (plus l'APK) pour tout
    npm run cap:sync
    cd android && ./gradlew bundleRelease
    ```
-   Sortie : `android/app/build/outputs/bundle/release/app-release.aab`.
-5. **Play Console** → créer l'app → première version envoyée dans une piste de test interne (recommandé avant la production) → activer **Play App Signing** (Google gère alors la clé de signature finale ; tu ne gères que la « clé d'upload », récupérable via Google si perdue — fortement recommandé pour une nouvelle app).
-6. Remplir la fiche store : description, captures d'écran, icône, **politique de confidentialité** (obligatoire, même pour une app locale-first), classification de contenu, formulaire de sécurité des données.
-7. Soumettre à la revue (généralement quelques heures à 1-2 jours).
+   Artefact : `android/app/build/outputs/bundle/release/app-release.aab`.
+5. **Play Console** : Créer l'app → Production (ou test interne) → Créer une version → uploader l'AAB → fiche store (textes, captures, classification du contenu, politique de confidentialité).
 
 ## Technique
 
-- UI : HTML / CSS / JavaScript vanilla (asset Capacitor).
+- UI : HTML / CSS / JavaScript vanilla (asset Capacitor + GitHub Pages).
 - Capacitor 7 : Clipboard, Share, Filesystem, App back button, StatusBar.
-- Sync foyer : Supabase (Postgres + Realtime), schéma dans `supabase/migrations/`.
+- Sync foyer : Supabase (Postgres RPC + poll), schéma dans `supabase/migrations/`.
+- Config sync : panneau Réglages (localStorage) et/ou `sync.config.js` (gitignoré).
 - Hors ligne : cache `localStorage` ; flush sync à la reconnexion.
-- Prototype web : GitHub Pages (non maintenu pour les nouvelles features).
 
 ## Licence
 

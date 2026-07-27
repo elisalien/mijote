@@ -955,7 +955,26 @@ hr{border:none;border-top:1px solid var(--line);margin:var(--s4) 0}
             <button class="btn primary" id="sharedCreateBtn">Créer un foyer</button>
             <button class="btn" id="sharedJoinBtn">Rejoindre</button>
           </div>
-          <div class="muted tiny" id="sharedConfigHint">Synchronisation indisponible sur cette version.</div>
+          <div class="muted tiny" id="sharedConfigHint">Configure Supabase ci-dessous pour synchroniser web et APK.</div>
+          <details id="sharedConfigPanel" style="margin-top:4px">
+            <summary class="muted small" style="cursor:pointer">Configurer la synchronisation (Supabase)</summary>
+            <div class="stack" style="gap:8px;margin-top:10px">
+              <div class="muted tiny">Même projet Supabase sur le navigateur et l’APK → même foyer via le code <code>MIJOTE-XXXXXX</code>. Clé <b>anon</b> uniquement.</div>
+              <label class="stack" style="gap:4px"><span class="muted tiny">URL projet</span>
+                <input id="syncUrlInput" placeholder="https://xxxx.supabase.co" autocomplete="off" spellcheck="false">
+              </label>
+              <label class="stack" style="gap:4px"><span class="muted tiny">Clé anon</span>
+                <input id="syncKeyInput" placeholder="eyJhbGciOi…" autocomplete="off" spellcheck="false">
+              </label>
+              <div class="row" style="flex-wrap:wrap;gap:8px">
+                <button type="button" class="btn sm primary" id="syncSaveCfgBtn">Enregistrer</button>
+                <button type="button" class="btn sm" id="syncClearCfgBtn">Effacer</button>
+              </div>
+            </div>
+          </details>
+          <div class="muted tiny" id="apkDownloadHint" hidden style="margin-top:6px">
+            APK Android : <a href="release/mijote-1.1.0-glass-sync-debug.apk" id="apkDownloadLink">télécharger Mijote</a> (même sync foyer que le web).
+          </div>
         </div>
         <div id="sharedPanel" class="stack" style="gap:12px;margin-top:10px" hidden>
           <div class="row" style="flex-wrap:wrap;gap:8px">
@@ -3344,7 +3363,8 @@ function initBookmarklet(){
 }
 
 /* ============================ SHARED SYNC ============================ */
-const APP_VERSION="1.1.0-glass";
+const APP_VERSION="1.2.0-sync";
+const SYNC_CFG_LS="mijote_sync_cfg";
 const SYNC_CODE_ALPH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 let syncPushTimer=null;
 let syncPushing=false;
@@ -3353,14 +3373,38 @@ let syncStatus="off"; // off | on | pending | err
 let syncApplyingRemote=false;
 let syncPollTimer=null;
 
-function getSyncConfig(){
-  const c=window.MIJOTE_SYNC;
+function readStoredSyncCfg(){
+  try{
+    const raw=localStorage.getItem(SYNC_CFG_LS);
+    if(!raw)return null;
+    const j=JSON.parse(raw);
+    if(!j||!j.url||!j.anonKey)return null;
+    return j;
+  }catch(e){ return null; }
+}
+function normalizeSyncCfg(c){
   if(!c||!c.url||!c.anonKey)return null;
   if(String(c.url).includes("YOUR_PROJECT"))return null;
   if(String(c.anonKey).includes("YOUR_SUPABASE"))return null;
-  return {url:String(c.url).replace(/\/$/,""), anonKey:String(c.anonKey)};
+  const url=String(c.url).trim().replace(/\/$/,"");
+  const anonKey=String(c.anonKey).trim();
+  if(!/^https:\/\//i.test(url)||anonKey.length<20)return null;
+  return {url, anonKey};
+}
+function getSyncConfig(){
+  // Priorité : config saisie (localStorage) → sync.config.js (build APK / Pages)
+  return normalizeSyncCfg(readStoredSyncCfg()) || normalizeSyncCfg(window.MIJOTE_SYNC);
 }
 function syncConfigured(){ return !!getSyncConfig(); }
+function saveSyncConfig(url, anonKey){
+  const cfg=normalizeSyncCfg({url, anonKey});
+  if(!cfg) return false;
+  localStorage.setItem(SYNC_CFG_LS, JSON.stringify(cfg));
+  return true;
+}
+function clearSyncConfig(){
+  localStorage.removeItem(SYNC_CFG_LS);
+}
 
 function syncHeaders(){
   const cfg=getSyncConfig();
@@ -3532,7 +3576,7 @@ function startSyncPoll(){
 function stopSyncPoll(){ if(syncPollTimer){ clearInterval(syncPollTimer); syncPollTimer=null; } }
 
 async function createHouseholdFlow(){
-  if(!syncConfigured()){ toast("Sync non configurée sur cette APK"); return; }
+  if(!syncConfigured()){ toast("Configure d’abord la sync (Réglages → Mode partagé)"); return; }
   const name=await showPrompt("Nom du profil dans le foyer (ex. Ellie, maison…) :", {title:"Créer un foyer", defaultValue:"", okLabel:"Créer"});
   if(name==null)return;
   const profileName=name.trim();
@@ -3568,7 +3612,7 @@ async function createHouseholdFlow(){
 }
 
 async function joinHouseholdFlow(){
-  if(!syncConfigured()){ toast("Sync non configurée sur cette APK"); return; }
+  if(!syncConfigured()){ toast("Configure d’abord la sync (Réglages → Mode partagé)"); return; }
   const codeRaw=await showPrompt("Code du foyer (ex. MIJOTE-AB12CD) :", {title:"Rejoindre un foyer", okLabel:"Rejoindre"});
   if(codeRaw==null)return;
   const code=codeRaw.trim().toUpperCase().replace(/\s+/g,"");
@@ -3670,21 +3714,33 @@ function updateSharedUi(){
   const status=$("#sharedStatus");
   const solo=$("#sharedSolo");
   const panel=$("#sharedPanel");
+  const cfgPanel=$("#sharedConfigPanel");
+  const apkHint=$("#apkDownloadHint");
   const cfg=syncConfigured();
+  const stored=readStoredSyncCfg();
+  const fileCfg=normalizeSyncCfg(window.MIJOTE_SYNC);
+  if(apkHint) apkHint.hidden=!!isNative;
+  if($("#syncUrlInput")&&!$("#syncUrlInput").dataset.dirty){
+    const src=stored||fileCfg;
+    if(src){ $("#syncUrlInput").value=src.url||""; $("#syncKeyInput").value=src.anonKey||""; }
+  }
   if(hint){
-    if(cfg) hint.style.display="none";
-    else hint.style.display="";
-    hint.textContent=isNative
-      ? "Cette APK n’inclut pas la config Supabase. Installe la release android-debug-v1.0.2 ou plus récente."
-      : "Synchronisation réservée à l’APK Android.";
+    hint.style.display=cfg?"none":"";
+    hint.textContent="Configure Supabase ci-dessous pour synchroniser le navigateur et l’APK.";
+  }
+  if(cfgPanel){
+    // Garder le panneau ouvert si pas encore configuré
+    if(!cfg) cfgPanel.open=true;
   }
   if(inHousehold()){
-    if(status) status.textContent="Foyer « "+state.householdCode+" » · rev "+(state.syncRev||0)+(syncStatus==="pending"?" · synchro…":syncStatus==="err"?" · hors ligne":" · connecté");
+    if(status) status.textContent="Foyer « "+state.householdCode+" » · rev "+(state.syncRev||0)+(syncStatus==="pending"?" · synchro…":syncStatus==="err"?" · hors ligne":" · connecté")+(isNative?"":" · web");
     if(solo) solo.hidden=true;
     if(panel){ panel.hidden=false; }
     renderMembers();
   }else{
-    if(status) status.textContent=cfg?"Données sur cet appareil uniquement. Crée ou rejoins un foyer pour synchroniser.":"Données sur cet appareil uniquement.";
+    if(status) status.textContent=cfg
+      ? "Données locales. Crée ou rejoins un foyer pour synchroniser web ↔ APK."
+      : "Données sur cet appareil uniquement.";
     if(solo) solo.hidden=false;
     if(panel) panel.hidden=true;
   }
@@ -3729,6 +3785,43 @@ $("#sharedCopyCodeBtn").onclick=async()=>{
   const ok=await copyText(state.householdCode);
   toast(ok?"Code copié ✓":"Copie impossible");
 };
+["syncUrlInput","syncKeyInput"].forEach(id=>{
+  const el=$("#"+id); if(!el)return;
+  el.addEventListener("input",()=>{ el.dataset.dirty="1"; });
+});
+$("#syncSaveCfgBtn")&&($("#syncSaveCfgBtn").onclick=async()=>{
+  const url=($("#syncUrlInput")&&$("#syncUrlInput").value)||"";
+  const key=($("#syncKeyInput")&&$("#syncKeyInput").value)||"";
+  if(!saveSyncConfig(url,key)){ toast("URL https://…supabase.co + clé anon requises"); return; }
+  if($("#syncUrlInput")) delete $("#syncUrlInput").dataset.dirty;
+  if($("#syncKeyInput")) delete $("#syncKeyInput").dataset.dirty;
+  updateSharedUi();
+  toast("Sync configurée · web et APK peuvent partager un foyer");
+  if(inHousehold()){
+    setSyncStatus("pending");
+    await subscribeHousehold();
+    try{
+      const row=syncRow(await syncRpc("join_household",{p_code:state.householdCode}));
+      if(row&&(row.rev|0)>(state.syncRev|0)){
+        state.syncRev=row.rev|0;
+        applySharedPayload(row.payload);
+        renderAll();
+      }
+      setSyncStatus("on");
+    }catch(e){ setSyncStatus("err"); toast("Config OK, mais foyer injoignable"); }
+  }
+  renderAll();
+});
+$("#syncClearCfgBtn")&&($("#syncClearCfgBtn").onclick=()=>{
+  clearSyncConfig();
+  if($("#syncUrlInput")){ $("#syncUrlInput").value=""; delete $("#syncUrlInput").dataset.dirty; }
+  if($("#syncKeyInput")){ $("#syncKeyInput").value=""; delete $("#syncKeyInput").dataset.dirty; }
+  if(inHousehold()){ stopHouseholdSub(); setSyncStatus("err"); }
+  else setSyncStatus("off");
+  updateSharedUi();
+  renderAll();
+  toast("Config sync effacée (données locales conservées)");
+});
 $("#memberAddBtn").onclick=()=>{
   if(!inHousehold()){ toast("Rejoins ou crée un foyer d’abord"); return; }
   const v=$("#memberNameInput").value.trim();
@@ -3806,7 +3899,7 @@ function renderAll(){
   renderSeason(); renderHome(); renderFridge(); renderFridgeResults();
   renderDislikes(); renderJars(); syncCtrlBar();
   updateSharedUi(); updateSyncPills();
-  const ver=$("#appVersion"); if(ver) ver.textContent="Mijote APK "+APP_VERSION+(syncConfigured()?" · sync OK":" · sync off");
+  const ver=$("#appVersion"); if(ver) ver.textContent="Mijote "+(isNative?"APK":"Web")+" "+APP_VERSION+(syncConfigured()?" · sync OK":" · sync off");
   $("#veganGlobal").classList.toggle("on",state.vegan);
   $("#vegOnlyToggle").classList.toggle("on",state.vegOnly);
 }
