@@ -2,7 +2,7 @@
 
 **Mijote** aide à planifier repas et courses de la semaine, en privilégiant les **produits végétariens et vegan de saison** disponibles localement à **Lyon, France**.
 
-👉 **[Ouvrir la webapp](https://elisalien.github.io/mijote/)** · **[Télécharger l’APK Android](release/mijote-1.2.0-sync-debug.apk)**
+👉 **[Ouvrir la webapp](https://elisalien.github.io/mijote/)** · **[Télécharger l’APK Android v1.2.0](https://github.com/elisalien/mijote/releases/download/v1.2.0/mijote-1.2.0-sync-debug.apk)**
 
 ## Web + Android — même app, même sync
 
