@@ -40,7 +40,7 @@ Les goûts sont **par personne** ; le filtre recettes / semaine utilise l’**un
 
 Un build debug synchro est versionné ici :
 
-- [`release/mijote-1.2.0-sync-debug.apk`](release/mijote-1.2.0-sync-debug.apk) — v1.2.0, sync web ↔ APK
+- [`release/mijote-1.2.0-sync-debug.apk`](https://github.com/elisalien/mijote/releases/download/v1.2.0/mijote-1.2.0-sync-debug.apk) — v1.2.0, sync web ↔ APK ([notes de release](https://github.com/elisalien/mijote/releases/tag/v1.2.0))
 
 Pour une release Play Store, préférer un **AAB signé** (voir plus bas).
 
