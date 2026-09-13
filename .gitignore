@@ -5,27 +5,23 @@ node_modules/
 .vscode/
 dist/
 .capacitor/
+
+# Build web → Capacitor (généré par npm run sync:www)
+www/
+
+# Android
 *.apk
 *.aab
-!release/*.apk
 *.keystore
+*.jks
 local.properties
 keystore.properties
-*.jks
 .gradle/
 **/build/
 **/captures/
 .externalNativeBuild/
 .cxx/
 *.iml
-.DS_Store
-.idea/caches/
-.idea/libraries/
-.idea/modules.xml
-.idea/workspace.xml
-.idea/navEditor.xml
-.idea/assetWizardSettings.xml
-.cxx/
-sync.config.js
-www/sync.config.js
 
+# Config sync locale (clés Supabase)
+sync.config.js
