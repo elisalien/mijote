@@ -7,12 +7,12 @@
   },
   "android": {
     "allowMixedContent": false,
-    "backgroundColor": "#0a0a0f"
+    "backgroundColor": "#F3F4EE"
   },
   "plugins": {
     "StatusBar": {
-      "style": "DARK",
-      "backgroundColor": "#0a0a0f"
+      "style": "LIGHT",
+      "backgroundColor": "#F3F4EE"
     }
   }
 }
