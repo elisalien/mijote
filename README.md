@@ -1,67 +1,54 @@
-# 🍲 Mijote — planificateur de repas végétariens de saison
+# 🍲 Mijote
+
+> Planificateur de repas végétariens et vegan de saison, pensé pour Lyon — webapp et app Android.
+
+![Platform](https://img.shields.io/badge/platform-Web%20%7C%20Android-informational) ![Stack](https://img.shields.io/badge/stack-HTML%2FCSS%2FJS%20%2B%20Capacitor%207-blue) ![License](https://img.shields.io/badge/license-MIT-green)
+
+**[Ouvrir la webapp](https://elisalien.github.io/mijote/)** · **[Télécharger la dernière APK Android](https://github.com/elisalien/mijote/releases/latest)**
+
+## À propos
 
 **Mijote** aide à planifier repas et courses de la semaine, en privilégiant les **produits végétariens et vegan de saison** disponibles localement à **Lyon, France**.
 
-👉 **[Ouvrir la webapp](https://elisalien.github.io/mijote/)** · **[Télécharger la dernière APK Android](https://github.com/elisalien/mijote/releases/latest)**
-
-## Web + Android — même app, même sync
+L'app existe en deux surfaces qui partagent les **mêmes fichiers web** (`index.html`, `css/`, `js/`) et le **même protocole de sync foyer** (Supabase) :
 
 | Surface | Rôle |
 | --- | --- |
 | **Web** (GitHub Pages) | Navigateur : planning, frigo, courses, mode partagé |
 | **APK** (`fr.mijote.app`) | App Android Capacitor : même UI, hors-ligne, partage natif |
 
-Les deux partagent les **mêmes fichiers web** (`index.html`, `css/`, `js/`) et le **même protocole de sync foyer** (Supabase). Un code `MIJOTE-XXXXXX` créé sur le téléphone fonctionne dans le navigateur (et inversement), à condition d’utiliser le **même projet Supabase**.
+Un code `MIJOTE-XXXXXX` créé sur le téléphone fonctionne dans le navigateur (et inversement), à condition d'utiliser le **même projet Supabase**.
 
 ## Fonctionnalités
 
-- **Accueil de saison** — le mois en cours, ses produits à Lyon, les repas du jour et ce qui périme bientôt. La couleur de l’app suit le produit phare du mois.
+- **Accueil de saison** — le mois en cours, ses produits à Lyon, les repas du jour et ce qui périme bientôt. La couleur de l'app suit le produit phare du mois.
 - **Recettes selon le frigo** — propose des recettes à partir des aliments déjà présents, pour limiter le gaspillage.
 - **Planning de la semaine** — midi et soir, menu anti-gâchis automatique, mode restes.
 - **Liste de courses automatique** — générée depuis le planning, groupée par rayon, moins ce qui est au frigo.
 - **Mode partagé (web ↔ APK)** — foyer synchronisé (courses, recettes, goûts **par personne**).
-- **Alternatives vegan** — swap en un clic pour les ingrédients d’origine animale.
+- **Alternatives vegan** — swap en un clic pour les ingrédients d'origine animale.
 - **Bocaux** — suivi des pickles et marinades (prêt quand, à manger avant quand).
 - **Convertisseur** — volume ↔ poids avec densités courantes.
 - **Thème clair / sombre** — suit le réglage du système.
 
-## Mode partagé (foyer)
+## Installation
 
-Dans **Réglages → Mode partagé** (web ou APK) :
+### Webapp
 
-1. Configurer Supabase (panneau intégré, ou `sync.config.js` — voir [`supabase/README.md`](supabase/README.md)).
-2. **Créer un foyer** (nom de profil) → code `MIJOTE-XXXXXX` à partager.
-3. Sur l’autre appareil (web ou APK) : **même config Supabase** → **Rejoindre** avec le code → choisir / créer le profil.
-4. Courses, semaine, frigo, recettes et goûts se synchronisent (plus besoin d’échanger un JSON).
+Aucune installation : ouvrir **[elisalien.github.io/mijote](https://elisalien.github.io/mijote/)**. L'UI est en HTML / CSS / JS vanilla, sans étape de build.
 
-Les goûts sont **par personne** ; le filtre recettes / semaine utilise l’**union** des profils actifs.
-
-## Structure
-
-```
-index.html          balisage des vues
-css/mijote.css      design system (tokens, composants, responsive)
-js/data.js          données statiques : saisons, couleurs du mois, conversions, recettes
-js/app.js           état, rendu des vues, import, sync foyer
-scripts/build-www.mjs  copie les assets web dans www/ pour Capacitor
-android/            projet Android (Capacitor 7)
-supabase/           schéma SQL du mode partagé
-```
-
-`www/` est généré (`npm run sync:www`) et n’est pas versionné.
-
-## Android — build & APK
+### APK Android
 
 Les APK sont publiées sur la page [Releases](https://github.com/elisalien/mijote/releases). Pour le Play Store, préférer un **AAB signé** (voir plus bas).
 
-### Prérequis build
+### Build Android
+
+Prérequis :
 
 - Node.js 18+
 - Android Studio (ou Android SDK + JDK 17/21)
 - Variables `ANDROID_HOME` / `JAVA_HOME` configurées
-- (Mode partagé) projet Supabase + `sync.config.js` **ou** config saisie dans l’app
-
-### Build
+- (Mode partagé) projet Supabase + `sync.config.js` **ou** config saisie dans l'app
 
 ```bash
 npm install
@@ -105,7 +92,35 @@ Google Play exige un **Android App Bundle (.aab)** signé (plus l'APK) pour tout
    Artefact : `android/app/build/outputs/bundle/release/app-release.aab`.
 5. **Play Console** : Créer l'app → Production (ou test interne) → Créer une version → uploader l'AAB → fiche store (textes, captures, classification du contenu, politique de confidentialité).
 
-## Technique
+## Utilisation
+
+### Mode partagé (foyer)
+
+Dans **Réglages → Mode partagé** (web ou APK) :
+
+1. Configurer Supabase (panneau intégré, ou `sync.config.js` — voir [`supabase/README.md`](supabase/README.md)).
+2. **Créer un foyer** (nom de profil) → code `MIJOTE-XXXXXX` à partager.
+3. Sur l'autre appareil (web ou APK) : **même config Supabase** → **Rejoindre** avec le code → choisir / créer le profil.
+4. Courses, semaine, frigo, recettes et goûts se synchronisent (plus besoin d'échanger un JSON).
+
+Les goûts sont **par personne** ; le filtre recettes / semaine utilise l'**union** des profils actifs.
+
+## Structure du projet
+
+```
+index.html             balisage des vues
+css/mijote.css         design system (tokens, composants, responsive)
+js/data.js             données statiques : saisons, couleurs du mois, conversions, recettes
+js/app.js              état, rendu des vues, import, sync foyer
+scripts/build-www.mjs  copie les assets web dans www/ pour Capacitor
+android/               projet Android (Capacitor 7)
+supabase/              schéma SQL du mode partagé
+sync.config.example.js modèle de config Supabase (à copier en sync.config.js)
+```
+
+`www/` est généré (`npm run sync:www`) et n'est pas versionné.
+
+## Stack technique
 
 - UI : HTML / CSS / JavaScript vanilla, sans build (assets Capacitor + GitHub Pages).
 - Typographies : Bricolage Grotesque (titres) et Atkinson Hyperlegible Next (texte), repli système hors ligne.
@@ -114,6 +129,13 @@ Google Play exige un **Android App Bundle (.aab)** signé (plus l'APK) pour tout
 - Config sync : panneau Réglages (localStorage) et/ou `sync.config.js` (gitignoré).
 - Hors ligne : cache `localStorage` ; flush sync à la reconnexion.
 
-## Licence
+## Crédits & licence
 
-[MIT](LICENSE) — libre d'utilisation et de modification.
+Par Ellie. Distribué sous licence [MIT](LICENSE) — libre d'utilisation et de modification.
+
+---
+
+<p align="center">
+  Fait par <a href="https://github.com/elisalien">Élisalien</a> ·
+  <a href="https://gitlab.com/elisalien/catalog">Catalogue des shaders, sources & logiciels</a>
+</p>
